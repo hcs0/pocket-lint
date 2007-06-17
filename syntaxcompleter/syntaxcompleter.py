@@ -49,9 +49,8 @@ class SyntaxCompleter:
                 match = re.search("[\w.]+$", line)
                 if match != None:
                     word = match.group()
-                    #mime_type = gedit.Document.get_mime_type()
-                    mime_type = 'text/python'
-                    if mime_type.find('python') > -1:
+                   if doc.get_language()
+                   and doc.get_language().get_id() == "Python"
                         self.words = self.get_all_symbols(word)
                     # set word to match only the fragment after a dot
                     # make the word match normal words
