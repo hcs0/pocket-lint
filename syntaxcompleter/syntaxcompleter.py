@@ -8,24 +8,21 @@ from gtk.gdk import (
 
 class SyntaxCompleter:
     """Suggest and complete words as they are typed."""
-    separators = r'\W'
 
     def __init__(self, language):
         """Initialize the list of matching words."""
         self.langauge = language
-        # Each word has a key to order it
-        self.keys = {}
-        self.key_counter = 1
+        self.sort_keys = {}
+        self.sort_key_counter = 1
         self.reset()
 
     def reset(self):
-        """Reset the word list and cycle state."""
-        self.cycle = False
+        """Reset the word list."""
         self.words = []
         self.word_i = 0
         self.last_word = None
 
-    def complete_word(self, view, event):
+    def complete(self, view, event):
         """Suggest and complete the word at the cursor."""
         space = keyval_from_name('space')
 
@@ -39,87 +36,72 @@ class SyntaxCompleter:
             # http://guichaz.free.fr/gedit-completion
             buffer = view.get_buffer()
             iter_cursor = buffer.get_iter_at_mark(buffer.get_insert())
-            iter_line = iter_cursor.copy()
             iter_word = iter_cursor.copy()
-
+            iter_line = iter_cursor.copy()
             iter_line.set_line_offset(0)
             line = buffer.get_text(iter_line, iter_cursor)
 
-            if not self.cycle:
-                self.words = []
-                match = re.search("[\w.]+$", line)
-                if match != None:
-                    word = match.group()
-                    if self.langauge == "Python":
-                        self.words = self.get_all_symbols(word)
-                    # set word to match only the fragment after a dot
-                    # make the word match normal words
-                    word = word.split('.')[-1]
-                    self.words.extend(self.get_all_words(word, buffer))
+            if not self.words:
+                text = buffer.get_text(
+                    buffer.get_start_iter(), buffer.get_end_iter())
+                word, self.words = self.getWords(line, text)
                 if not self.words:
                     return False
+                self.line_index = iter_cursor.get_line_index() - len(word)
 
-                self.line_index = buffer.get_iter_at_mark(
-                    buffer.get_insert()).get_line_index() - len(word)
-            if len(self.words) > 1:
-                if self.cycle:
-                    self.word_i += 1
-                    if self.word_i >= len(self.words):
-                        self.word_i = 0
-                iter_word.set_line_index(self.line_index)
-                buffer.delete(iter_word, iter_cursor)
-                buffer.insert_at_cursor(self.words[self.word_i])
-            elif len(self.words) == 1:
-                if self.cycle:
-                    self.reset()
-                    return False
-                iter_word.set_line_index(self.line_index)
-                buffer.delete(iter_word, iter_cursor)
-                buffer.insert_at_cursor(self.words[0])
-            else:
-                if self.cycle:
-                    self.reset()
-                    return False
-
+            iter_word.set_line_index(self.line_index)
+            buffer.delete(iter_word, iter_cursor)
+            buffer.insert_at_cursor(self.words[self.word_i])
             self.last_word = self.words[self.word_i]
-            self.cycle = True
+            self.word_i += 1
+            if self.word_i >= len(self.words):
+                self.word_i = 0
             return True
         else:
-            if self.cycle:
-                self.update_key(self.last_word)
+            self.updateSortKey(self.last_word)
             self.reset()
             return False
 
-    def get_key(self, word):
-        """return the key to a list of matching words or 0."""
-        if self.keys.has_key(word):
-            return self.keys[word]
-        else:
-            return 0
-
-    def update_key(self, word):
-        """Add a word to the keys."""
-        self.keys[word] = self.key_counter
-        self.key_counter += 1
-
-    def get_all_words(self, word, buffer):
-        """Build the dictionary of known words in the file."""
-        text = buffer.get_text(
-            buffer.get_start_iter(), buffer.get_end_iter())
+    def getWords(self, line, text):
+        """Return touple of the word and the list of matches at the cursor.
+        
+        The last word in the list is the word at the cursor.
+        """
         words = []
-        words = re.findall(
-            "(?:\A|[%(sep)s])(%(word)s[^%(sep)s]+)" % {
-                "sep": self.separators,
-                "word": re.escape(word)},
-            text)
+        match = re.search("[\w.]+$", line)
+        if match != None:
+            word = match.group()
+            if self.langauge == "Python":
+                words = self.getMatchingSymbols(word)
+            # set word to match only the fragment after a dot
+            # make the word match normal words
+            word = word.split('.')[-1]
+            words.extend(self.getMatchingWords(word, text))
+        return (word, words)
 
+    def getMatchingWords(self, word, text):
+        """Build the dictionary of known words in the file."""
+        words = []
+        words = re.findall(r'\b(%s[\w]+)' % re.escape(word), text)
         words[:] = frozenset(words)
         words.sort()
-        words.sort(key=self.get_key, reverse=True)
+        words.sort(key=self.getSortKey, reverse=True)
         words.append(word)
         return words
 
-    def get_all_symbols(self, s, imports=None):
+    def getSortKey(self, word):
+        """return the word's key for list sorting."""
+        if self.sort_keys.has_key(word):
+            return self.sort_keys[word]
+        else:
+            return 0
+
+    def updateSortKey(self, word):
+        """Increment word's key for list sorting."""
+        self.sort_keys[word] = self.sort_key_counter
+        self.sort_key_counter += 1
+
+    def getMatchingSymbols(self, s, imports=None):
         """Set the contextual completion of s (string of >= zero chars).
 
         If given, imports is a list of import statements to be executed first.

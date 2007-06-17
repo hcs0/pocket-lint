@@ -50,5 +50,5 @@ class SyntaxCompleterPlugin(gedit.Plugin):
                     language = None
                 setattr(view, 'syntax_completer', SyntaxCompleter(language))
                 handler_id = view.connect(
-                    'key-press-event', view.syntax_completer.complete_word)
+                    'key-press-event', view.syntax_completer.complete)
                 self.handler_ids.append((handler_id, view))
