@@ -10,8 +10,9 @@ class SyntaxCompleter:
     """Suggest and complete words as they are typed."""
     separators = r'\W'
 
-    def __init__(self):
+    def __init__(self, language):
         """Initialize the list of matching words."""
+        self.langauge = language
         # Each word has a key to order it
         self.keys = {}
         self.key_counter = 1
@@ -49,17 +50,12 @@ class SyntaxCompleter:
                 match = re.search("[\w.]+$", line)
                 if match != None:
                     word = match.group()
-                   if doc.get_language()
-                   and doc.get_language().get_id() == "Python"
+                    if self.langauge == "Python":
                         self.words = self.get_all_symbols(word)
                     # set word to match only the fragment after a dot
                     # make the word match normal words
                     word = word.split('.')[-1]
                     self.words.extend(self.get_all_words(word, buffer))
-#                 match = re.search("[^%s]+$" % self.separators, line)
-#                 if match != None:
-#                     word = match.group()
-#                     self.words.extend(self.get_all_words(word, buffer))
                 if not self.words:
                     return False
 
@@ -88,10 +84,6 @@ class SyntaxCompleter:
             self.last_word = self.words[self.word_i]
             self.cycle = True
             return True
-        elif ((event.type == KEY_PRESS)
-                and ((event.keyval == keyval_from_name('Control_L'))
-                or (event.keyval == keyval_from_name('Control_R')))):
-            return False
         else:
             if self.cycle:
                 self.update_key(self.last_word)

@@ -27,7 +27,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
 
     def activate(self, window):
         """Activate the plugin in the current top-level window."""
-        self.setup_syntax_completer(window.get_active_view())
+        self.setup_syntax_completer(window)
 
     def deactivate(self, window):
         """deactivate the plugin in the current top-level window."""
@@ -36,13 +36,19 @@ class SyntaxCompleterPlugin(gedit.Plugin):
 
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window."""
-        self.setup_syntax_completer( window.get_active_view())
+        self.setup_syntax_completer(window)
 
-    def setup_syntax_completer(self, view):
+    def setup_syntax_completer(self, window):
         """Setup the syntax completion in the view."""
-        if type(view) != types.NoneType:
-            if getattr(view, 'completion_instance', False) == False:
-                setattr(view, 'completion_instance', SyntaxCompleter())
+        view = window.get_active_view()
+        if view is not None:
+            if getattr(view, 'syntax_completer', False) == False:
+                doc = window.get_active_document()
+                if doc.get_language() is not None:
+                    language = doc.get_language().get_id()
+                else:
+                    language = None
+                setattr(view, 'syntax_completer', SyntaxCompleter(language))
                 handler_id = view.connect(
-                    'key-press-event', view.completion_instance.complete_word)
+                    'key-press-event', view.syntax_completer.complete_word)
                 self.handler_ids.append((handler_id, view))
