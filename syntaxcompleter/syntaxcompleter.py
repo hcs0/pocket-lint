@@ -3,8 +3,14 @@
 
 import re
 
+import gobject
+import gtk
 from gtk.gdk import (
     KEY_PRESS, CONTROL_MASK, SHIFT_MASK, keyval_from_name)
+
+#import gedit
+from snippets.SnippetComplete import SnippetComplete
+
 
 class SyntaxCompleter:
     """Suggest and complete words as they are typed."""
@@ -144,3 +150,297 @@ class SyntaxCompleter:
 
         suffix = dots[-1]
         return [k for k in dir(symbol) if k.startswith(suffix)]
+
+
+class CompleteModel(snippets.SnippetComplete.CompleteModel):
+    """A model for managing multiple syntaxes.
+    
+    This model extends the Gedit Snippet module to determine the words that
+    can be inserted at the cursor. The model understands the free text in
+    the document and the Python syntax.
+    """
+    def create_list(self, sources, prefix):
+        """Return a list of terms for the provides sources.
+        
+        Sources is a dictionary of the GtkSourceView type and data. The type
+        key must be a supported parser (text or Python). The data value may
+        be string that is passed to the parser
+        """
+        words = []
+        for datatype, data in sources:
+            if 'python' == datatype:
+                words.extend(parse_python(data, prefix))
+            elif 'text' == datatype:
+                words.extend(text_parser(data, prefix))
+            else:
+                raise ValueError, 'Unsupported datatype in sources.'
+            #if not prefix or s['tag'].lower().startswith(prefix.lower()):
+            #   result.append(s)
+        return words
+
+
+class TestComplete(SnippetComplete):
+    """A widget for selecting the word to insert at the cursor.
+    
+    This widget extends the Gedit Snippet module to complete the word
+    using the syntax of the document.
+    """
+
+    def snippet_activated(self, snippet):
+        """See snippets.syntaxcompleter.SnippetComplete
+        
+        Signal that the word (snippet) was selected.
+        """
+        self.emit('syntax-activated', snippet)
+        self.destroy()
+
+
+gobject.signal_new(
+    'syntax-activated', TestComplete, gobject.SIGNAL_RUN_LAST,
+    gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
+
+
+class SyntaxControler(object):
+    """."""
+
+    def __init__(self):
+        pass
+
+    def env_get_selected_text(self, buf):
+        bounds = buf.get_selection_bounds()
+        if bounds:
+            return buf.get_text(bounds[0], bounds[1])
+        else:
+            return ''
+
+    def env_get_current_word(self, buf):
+        start, end = buffer_word_boundary(buf)
+        return buf.get_text(start, end)
+            
+    def env_get_filename(self, buf):
+        uri = buf.get_uri()
+        if uri:
+            return buf.get_uri_for_display()
+        else:
+            return ''
+    
+    def env_get_basename(self, buf):
+        uri = buf.get_uri()
+        if uri:
+            return os.path.basename(buf.get_uri_for_display())
+        else:
+            return ''
+
+    def update_environment(self):
+        buf = self.view.get_buffer()
+        variables = {
+            'GEDIT_SELECTED_TEXT': self.env_get_selected_text,
+            'GEDIT_CURRENT_WORD': self.env_get_current_word,
+            'GEDIT_FILENAME': self.env_get_filename,
+            'GEDIT_BASENAME': self.env_get_basename}
+        for var in variables:
+            os.environ[var] = variables[var](buf)
+
+    def run_snippet(self):
+        if not self.view:
+            return False
+        buf = self.view.get_buffer()
+        # get the word preceding the current insertion position
+        (word, start, end) = self.get_tab_tag(buf)
+        if not word:
+            return self.skip_to_next_placeholder()
+        snippets = SnippetsLibrary().from_tag(word, self.language_id)
+        if snippets:
+            if len(snippets) == 1:
+                return self.apply_snippet(snippets[0], start, end)
+            else:
+                # Do the fancy completion dialog
+                return self.show_completion(snippets)
+        return self.skip_to_next_placeholder()
+
+    def deactivate_snippet(self, snippet, force = False):
+        buf = self.view.get_buffer()
+        remove = []
+        for tabstop in snippet[3]:
+            if tabstop == -1:
+                placeholders = snippet[3][-1]
+            else:
+                placeholders = [snippet[3][tabstop]]
+
+            for placeholder in placeholders:
+                if placeholder in self.placeholders:
+                    if placeholder in self.update_placeholders:
+                        placeholder.update_contents()
+                        self.update_placeholders.remove(placeholder)
+                    elif placeholder in self.jump_placeholders:
+                        placeholder[0].leave()
+                    remove.append(placeholder)
+        for placeholder in remove:
+            if placeholder == self.active_placeholder:
+                self.active_placeholder = None
+            self.placeholders.remove(placeholder)
+            placeholder.remove(force)
+
+        buf.delete_mark(snippet[0])
+        buf.delete_mark(snippet[1])
+        buf.delete_mark(snippet[2])
+        self.active_snippets.remove(snippet)
+        if len(self.active_snippets) == 0:
+            self.last_snippet_removed()
+
+
+    def move_completion_window(self, complete, x, y):
+        """Moves the completion window to a suitable place
+        
+        It honors the hint given by x and y. It tries to position the window
+        so it's always visible on the screen.
+        """
+        MARGIN = 15
+        screen = self.view.get_screen()
+        width = screen.get_width()
+        height = screen.get_height()
+        cw, ch = complete.get_size()
+        if x + cw > width:
+            x = width - cw - MARGIN
+        elif x < MARGIN:
+            x = MARGIN
+        if y + ch > height:
+            y = height - ch - MARGIN
+        elif y < MARGIN:
+            y = MARGIN
+        complete.move(x, y)
+
+    def show_completion(self, preset = None):
+        """Show completion, shows a completion dialog in the view.
+        
+        If preset is not None then a completion dialog is shown with the 
+        snippets in the preset list. Otherwise it will try to find the word
+        preceding the current cursor position. If such a word is found, it
+        is taken as a  tab trigger prefix so that only snippets with a tab
+        trigger prefixed with the word are in the list. If no such word can
+        be found than all snippets are shown.
+        """
+        buf = self.view.get_buffer()
+        bounds = buf.get_selection_bounds()
+        prefix = None
+
+        if not bounds and not preset:
+            # When there is no text selected and no preset present, find the
+            # prefix
+            (prefix, ignored, end) = self.get_tab_tag(buf)
+        if not prefix:
+            # If there is no prefix, than take the insertion point as the end
+            end = buf.get_iter_at_mark(buf.get_insert())
+        if not preset or len(preset) == 0:
+            # There is no preset, find all the text words and the language
+            # specific words
+            nodes = SnippetsLibrary().get_snippets(None)
+            if self.language_id:
+                nodes += SnippetsLibrary().get_snippets(self.language_id)
+            if prefix and len(prefix) == 1 and not prefix.isalnum():
+                hasnodes = False
+                for node in nodes:
+                    if node['tag'] and node['tag'].startswith(prefix):
+                        hasnodes = True
+                        break
+                if not hasnodes:
+                    prefix = None
+            complete = SnippetComplete(nodes, prefix, False)	
+        else:
+            # There is a preset, so show that preset
+            complete = SnippetComplete(preset, None, True)
+        complete.connect('snippet-activated', self.on_complete_row_activated)
+        rect = self.view.get_iter_location(end)
+        win = self.view.get_window(gtk.TEXT_WINDOW_TEXT)
+        (x, y) = self.view.buffer_to_window_coords(
+            gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
+        (xor, yor) = win.get_origin()
+        self.move_completion_window(complete, x + xor, y + yor)
+        return complete.run()
+
+    def update_snippet_contents(self):
+        self.timeout_update_id = 0
+        for placeholder in self.update_placeholders:
+            placeholder.update_contents()
+        for placeholder in self.jump_placeholders:
+            self.goto_placeholder(placeholder[0], placeholder[1])
+        del self.update_placeholders[:]
+        del self.jump_placeholders[:]
+        return False
+
+    # Callbacks
+    def on_view_destroy(self, view):
+        self.stop()
+        return
+
+    def on_complete_row_activated(self, complete, snippet):
+        buf = self.view.get_buffer()
+        bounds = buf.get_selection_bounds()
+        if bounds:
+            self.apply_snippet(snippet.data, None, None)
+        else:
+            (ignored, start, end) = self.get_tab_tag(buf)
+            self.apply_snippet(snippet.data, start, end)
+
+    def on_buffer_cursor_moved(self, buf):
+        piter = buf.get_iter_at_mark(buf.get_insert())
+        # Check for all snippets if the cursor is outside its scope
+        for snippet in list(self.active_snippets):
+            if snippet[0].get_deleted() or snippet[1].get_deleted():
+                self.deactivate(snippet)
+            else:
+                begin = buf.get_iter_at_mark(snippet[0])
+                end = buf.get_iter_at_mark(snippet[1])
+                if piter.compare(begin) < 0 or piter.compare(end) > 0:
+                    # Oh no! Remove the snippet this instant!!
+                    self.deactivate_snippet(snippet)
+        current = self.current_placeholder()
+        if current != self.active_placeholder:
+            if self.active_placeholder:
+                self.jump_placeholders.append(
+                    (self.active_placeholder, current))
+                if self.timeout_update_id != 0:
+                    gobject.source_remove(self.timeout_update_id)
+                self.timeout_update_id = gobject.timeout_add(
+                    0, self.update_snippet_contents)
+
+            self.active_placeholder = current
+
+    def on_buffer_changed(self, buf):
+        current = self.current_placeholder()
+        if current:
+            self.update_placeholders.append(current)
+            if self.timeout_update_id != 0:
+                gobject.source_remove(self.timeout_update_id)
+            self.timeout_update_id = gobject.timeout_add(
+                0, self.update_snippet_contents)
+
+    def on_notify_language(self, buf, spec):
+        self.update_language()
+
+    def on_notify_editable(self, view, spec):
+        self._set_view(view)
+
+    def on_view_key_press(self, view, event):
+        library = SnippetsLibrary()
+        if (not (event.state & gdk.CONTROL_MASK)
+            and not (event.state & gdk.MOD1_MASK)
+            and  event.keyval in self.TAB_KEY_VAL):
+            if not event.state & gdk.SHIFT_MASK:
+                return self.run_snippet()
+            else:
+                return self.skip_to_previous_placeholder()
+        elif ((event.state & gdk.CONTROL_MASK)
+            and not (event.state & gdk.MOD1_MASK)
+            and not (event.state & gdk.SHIFT_MASK)
+            and event.keyval in self.SPACE_KEY_VAL):
+            return self.show_completion()
+        elif (not library.loaded 
+            and library.valid_accelerator(event.keyval, event.state)):
+            library.ensure_files()
+            library.ensure(self.language_id)
+            self.accelerator_activate(
+                event.keyval, 
+                event.state & gtk.accelerator_get_default_mod_mask())
+        return False
+
