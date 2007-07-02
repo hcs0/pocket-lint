@@ -1,6 +1,13 @@
 # Copyright (C) 2007 - Curtis Hovey <sinzui.is at verizon.net>
 """A syntax completer for document words and python symbols."""
 
+__metaclass__ = type
+
+__all__ = ['SyntaxCompleter',
+           'SyntaxModel',
+           'TestComplete',
+           'SyntaxControler']
+
 import re
 
 import gobject

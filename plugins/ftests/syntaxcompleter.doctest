@@ -1,0 +1,18 @@
+SyntaxCompleter
+===============
+
+The SyntaxCompleter is a gedit plugin that will suggest complete words
+that match the part of a word at the cursor.
+
+
+CompleteModel
+-------------
+
+The CompleteModel accepts a dictionary of datatypes and their data. It
+builds a gtk.GenericTreeModel by parsing the data for each datatype with
+the appropriate parser.
+
+    >>> from syntaxcompleter import SyntaxCompleter
+    >>> data = 'This, that, and the other thing are simple words.'
+    >>> print data
+    This, that, and the other thing are simple words.

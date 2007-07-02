@@ -1,6 +1,6 @@
 [Gedit Plugin]
 Loader=python
-Module=pylint
+Module=lint
 IAge=2
 Name=Pylint
 Description=Pylint static analysis support

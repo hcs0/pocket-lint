@@ -14,7 +14,7 @@
 
 import gedit
 
-from syntaxcompleter import SyntaxCompleter
+from gdp import SyntaxCompleter
 
 
 class SyntaxCompleterPlugin(gedit.Plugin):
