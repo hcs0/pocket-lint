@@ -3,10 +3,10 @@
 
 __metaclass__ = type
 
-__all__ = ['SyntaxCompleter',
-           'SyntaxModel',
-           'TestComplete',
-           'SyntaxControler']
+__all__ = ['CompleteModel',
+           'SyntaxCompleter',
+           'SyntaxControler',
+           'TestComplete']
 
 import re
 
@@ -15,8 +15,8 @@ import gtk
 from gtk.gdk import (
     KEY_PRESS, CONTROL_MASK, SHIFT_MASK, keyval_from_name)
 
-#import gedit
-from snippets.SnippetComplete import SnippetComplete
+import snippets
+from snippets.SnippetComplete import SnippetComplete, CompleteModel
 
 
 class SyntaxCompleter:
