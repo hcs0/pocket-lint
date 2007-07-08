@@ -10,10 +10,54 @@ import os
 import re
 import sys
 import unittest
+from unittest import _WritelnDecorator
 
 
 class Env(object):
     """The test environment properties."""
+
+
+class XTermWritelnDecorator(_WritelnDecorator):
+    """Decorate lines with xterm bold and colors."""
+    def __init__(self, stream):
+        """Initialize the stream and setup colors."""
+        _WritelnDecorator.__init__(self, stream)
+        try:
+            self.t_bold = os.popen('tput bold').read()
+            self.t_reset = os.popen('tput sgr0').read()
+            self.t_colour = [''] * 16
+            for i in range(8):
+                # 0	Black
+                # 1	Blue
+                # 2	Green
+                # 3	White
+                # 4	Red
+                # 5	Magenta
+                # 6	Yellow
+                # 7	Grey
+                self.t_colour[i] = os.popen('tput setf %d' % i).read()
+                self.t_colour[i+8] = self.t_bold + self.t_colour[i]
+        except IOError:
+            # The default values of the styles are safe for all streams.
+            self.t_colour = [''] * 16
+            self.t_bold = ''
+            self.t_reset = ''
+
+    def write(self, arg):
+        """Write bolded and coloured lines."""
+        if arg.startswith('Doctest:'):
+            text = '%s%s%s' % (self.t_bold, arg, self.t_reset)
+        elif arg.startswith('Ran'):
+            text = '%s%s%s' % (self.t_colour[9], arg, self.t_reset)
+        elif arg.startswith('ok'):
+            text = '%s%s%s' % (self.t_colour[7], arg, self.t_reset)
+        elif arg.startswith('ERROR'):
+            text = '%s%s%s' % (self.t_colour[4], arg, self.t_reset)
+        elif arg.startswith('--') or arg.startswith('=='):
+            text = '%s%s%s' % (self.t_colour[7], arg, self.t_reset)
+        else:
+            text = arg
+        self.stream.write(text)
 
 
 def setup_env():
@@ -56,11 +100,12 @@ def main():
     if len(sys.argv) > 1:
         like = sys.argv[1]
     Env.file_re = re.compile(r'.*(%s).*\.doctest' % like)
+    suite = unittest.TestSuite()
     for file_path in find_files('./' , Env.dir_re, Env.file_re):
-        sys.stdout.write('Testing %s:\n' % file_path)
-        sys.stdout.flush()
-        suite = doctest.DocFileSuite(file_path)
-        unittest.TextTestRunner().run(suite)
+        suite.addTest(doctest.DocFileTest(file_path))
+    # Write coloured and bolded text.
+    unittest._WritelnDecorator = XTermWritelnDecorator
+    unittest.TextTestRunner(verbosity=2).run(suite)
 
 
 if __name__ == '__main__':
