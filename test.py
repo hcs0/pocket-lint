@@ -92,10 +92,14 @@ def parse_args():
         "-d", "--display", dest="display", type="string",
         help="format output (t | x). Text is default.")
     parser.add_option(
-        "-v", "--verbosity", dest="verbosity", type="int",
+        "-v", "--verbosity", dest="verbosity", default=0, action='count',
         help="The verbosity of the ouput")
+    parser.add_option(
+        "-t", "--test", dest="test_pattern", type="string",
+        help="A regular expression pattern used to select the testst to run.")
     parser.set_defaults(
-        display=Env.get('t', 't'), verbosity=Env.get('verbosity', 1))
+        display=Env.get('t', 't'), verbosity=Env.get('verbosity', 1),
+        test_pattern='.*')
     return parser.parse_args()
 
 
@@ -122,11 +126,10 @@ def setup_env():
     if len(args) >= 1:
         Env.test_pattern = args[0]
     else:
-        # match all tests
-        Env.test_pattern = r'.*'
+        Env.test_pattern = options.test_pattern
 
 
-def find_tests(root_dir, skip_dir_re, test_pattern):
+def find_tests(root_dir, skip_dir_re='sourcecode', test_pattern='.*'):
     """Generate a list of matching test files below a directory."""
     file_re = re.compile(r'.*(%s).*\.(txt|doctest)$' % test_pattern)
     for path, subdirs, files in os.walk(root_dir):
