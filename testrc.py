@@ -11,5 +11,5 @@ paths = ['/usr/lib/gedit-2/plugins/',
 # Exclude directories that match:
 dir_re = r'(sourcecode)'
 
-# Exclude files that match:
-file_re = r'.*(pyc$)'
+# The level of detail in the output.
+verbosity = 2
