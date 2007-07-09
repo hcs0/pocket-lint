@@ -158,9 +158,10 @@ def main():
     """
     setup_env()
     os.chdir(project_dir())
-    suite = unittest.TestSuite()
-    for file_path in find_tests('./' , Env.dir_re, Env.test_pattern):
-        suite.addTest(doctest.DocFileTest(file_path))
+    doctest.set_unittest_reportflags(doctest.REPORT_NDIFF)
+    option_flags = doctest.ELLIPSIS + doctest.NORMALIZE_WHITESPACE
+    tests = [test for test in find_tests('./' , Env.dir_re, Env.test_pattern)]
+    suite = doctest.DocFileSuite(optionflags=option_flags, *tests)
     # Format the output.
     unittest._WritelnDecorator = Env.write_decorator
     unittest.TextTestRunner(verbosity=Env.verbosity).run(suite)
