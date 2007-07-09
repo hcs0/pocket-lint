@@ -1,0 +1,18 @@
+SyntaxContext
+===============
+
+The a SyntaxContext class represents a word source and syntax rules.
+It can build a list of matching words when provided a word fragment.
+
+
+Context
+-------------
+
+The base Context class defines the core methods that all subclasses
+may choose override. It also provides several helper methods and
+properties.
+
+    >>> from gdp.syntaxcontext import Context
+    >>> context = Context()
+    >>> context
+    <gdp.syntaxcontext.Context object at ...>
