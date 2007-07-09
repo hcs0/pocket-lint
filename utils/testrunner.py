@@ -103,17 +103,17 @@ def parse_args():
     return parser.parse_args()
 
 
-def setup_env():
+def setup_env(params=None):
     """Setup the test environment.
     
     This function merges the command line args with testrc customizations
     and the default values.
     """
-    Env.dir_re = re.compile(testrc.__dict__.get('dir_re', '(sourcecode)'))
-    if 'paths' in testrc.__dict__:
-        [sys.path.append(os.path.abspath(path)) for path in testrc.paths]
-    if 'verbosity' in testrc.__dict__:
-        Env.verbosity  = testrc.verbosity
+    Env.dir_re = re.compile(params.get('dir_re', '(sourcecode)'))
+    if 'paths' in params:
+        [sys.path.append(os.path.abspath(path)) for path in params['paths']]
+    if 'verbosity' in params:
+        Env.verbosity  = params['verbosity']
 
     (options, args) = parse_args()
     Env.verbosity = options.verbosity
@@ -150,18 +150,19 @@ def project_dir():
     return '/'.join(script_path.split('/')[0:-1])
 
 
-def main():
+def main(params=None):
     """Run the specified tests or all.
     
     Uses an option command line argument that is a regulat expression to
     select a subset of tests to run.
     """
-    setup_env()
+    setup_env(params)
     os.chdir(project_dir())
     doctest.set_unittest_reportflags(doctest.REPORT_NDIFF)
     option_flags = doctest.ELLIPSIS + doctest.NORMALIZE_WHITESPACE
     tests = [test for test in find_tests('./' , Env.dir_re, Env.test_pattern)]
-    suite = doctest.DocFileSuite(optionflags=option_flags, *tests)
+    suite = doctest.DocFileSuite(
+        module_relative=False, optionflags=option_flags, *tests)
     # Format the output.
     unittest._WritelnDecorator = Env.write_decorator
     unittest.TextTestRunner(verbosity=Env.verbosity).run(suite)

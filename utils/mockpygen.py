@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Copyright (C) 2007 - Curtis Hovey <sinzui.is at verizon.net>
 """Generate mock python implementations from a defs file."""
 
 from codegen.definitions import (BoxedDef, EnumDef, FlagsDef,
