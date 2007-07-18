@@ -18,7 +18,7 @@ class Context(object):
     """An abstract class representing the source of a word fragment."""
     def __init__(self, fragment=None, text_buffer=None, file_path=None):
         """Create a new Context."""
-        self.fragment = fragment
+        self._fragment = fragment
         self._text_buffer = text_buffer
         self._file_path = file_path
 
@@ -27,9 +27,20 @@ class Context(object):
         raise NotImplementedError
 
     @property
+    def fragment(self):
+        """The fragment use to match words to."""
+        return self._fragment
+
+    @property
+    def file_path(self):
+        """The path to the file that is the word source."""
+        return self._file_path
+
+    @property
     def buffer_text(self):
-        """Return the text of the TextBuffer."""
-        assert self._text_buffer, _("text_buffer cannot be None.")
+        """Return the text of the TextBuffer or None."""
+        if not self._text_buffer:
+            return None
         start_iter = self._text_buffer.get_start_iter()
         end_iter = self._text_buffer.get_end_iter()
         return self._text_buffer.get_text(start_iter , end_iter)
@@ -45,11 +56,16 @@ class TextContext(Context):
         :file_path string: The path to the file that contains the words to
                            search.
         """
-        self.fragment = fragment
+        self._fragment = fragment
         self._text_buffer = text_buffer
         self._file_path = file_path
-        if not self._buffer and self.file_path:
+        if not self._text_buffer and self.file_path:
             self.file_path = self._file_path
+
+    @property
+    def fragment(self):
+        """The fragment use to match words to."""
+        return self._fragment
 
     def file_path(self):
         """The path to the file that is the source of this TextContext.
@@ -69,7 +85,7 @@ class TextContext(Context):
         else:
             source_file.close()
         self._text_buffer = gtk.TextBuffer()
-        self._textbuffer.set_text(text)
+        self._text_buffer.set_text(text)
 
     file_path = property(
         fget=file_path, fset=_set_file_path, doc=file_path.__doc__)
@@ -79,9 +95,10 @@ class TextContext(Context):
         assert fragment or self._fragment, _(u"A word fragment is required.")
         if not fragment:
             fragment = self.fragment
-        word_re = r'\b(%s[\w]+)' % re.escape(fragment)
+        word_re = r'\b(%s[\w-]+)' % re.escape(fragment)
         words = re.findall(word_re, self.buffer_text)
-        words[:] = set(words)
+        # Find the unique words that do not have psuedo m-dashed in them.
+        words[:] = set(word for word in words if '--' not in word)
         words.sort()
         words.append(fragment)
         return words        

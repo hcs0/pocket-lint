@@ -1,12 +1,14 @@
 SyntaxContext
-===============
+=============
 
 The a SyntaxContext class represents a word source and syntax rules.
 It can build a list of matching words when provided a word fragment.
+Some syntax completers require a buffer or a file path to as
+their word source.
 
 
 Context
--------------
+-------
 
 The base Context class defines the core methods that all subclasses
 may choose override. It also provides several helper methods and
@@ -16,3 +18,55 @@ properties.
     >>> context = Context()
     >>> context
     <gdp.syntaxcontext.Context object at ...>
+    
+    >>> context.file_path is None
+    True
+    >>> context.buffer_text is None
+    True
+
+    Context().getWords('Ba')
+    Traceback
+    ...
+    Exception NotImplementedError
+
+
+TextContext
+-----------
+
+The TextContext class represents plain text sources. The words of the
+source are the words it represents, no alteration or interpretation is
+applied. Words are identified by common word boundaries like
+punctuation and line ends.
+
+    >>> from gdp.syntaxcontext import TextContext
+    >>> text_context = TextContext(
+    ...     fragment='Ba', file_path='plugins/data/snark12.txt')
+    >>> text_context
+    <gdp.syntaxcontext.TextContext object at ...>
+
+    >>> text_context.file_path
+    'plugins/data/snark12.txt'
+    
+    >>> text_context.buffer_text
+    'This is the Project Gutenberg Etext of The Hunting of the Snark...'
+
+The getWords method returns all words that start with the fragment.
+The method may be called without a fragment to return the words that
+match the default fragment set on initialization. If the fragment is
+passed, then it will be used to match words. Matching is 
+case-sensitive.
+
+    >>> text_context.getWords()
+    ['Baker', 'Bandersnatch', 'Banker', 'Barrister', 'Ba']
+
+    >>> text_context.getWords('Ba')
+    ['Baker', 'Bandersnatch', 'Banker', 'Barrister', 'Ba']
+    
+    >>> text_context.getWords('Snar')
+    ['Snark', 'Snarks', 'Snar']
+
+    >>> text_context.getWords('snar')
+    ['snark12', 'snarked', 'snar']
+   
+    >>> text_context.getWords('What-')
+    ['What-was-his-name', 'What-you-may-call-um', 'What-']
