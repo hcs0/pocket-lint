@@ -2,7 +2,7 @@ SyntaxContext
 =============
 
 The a SyntaxContext class represents a word source and syntax rules.
-It can build a list of matching words when provided a word fragment.
+It can build a list of matching words when provided a word prefix.
 Some syntax completers require a buffer or a file path to as
 their word source.
 
@@ -40,7 +40,7 @@ punctuation and line ends.
 
     >>> from gdp.syntaxcontext import TextContext
     >>> text_context = TextContext(
-    ...     fragment='Ba', file_path='plugins/data/snark12.txt')
+    ...     prefix='Ba', file_path='plugins/data/snark12.txt')
     >>> text_context
     <gdp.syntaxcontext.TextContext object at ...>
 
@@ -50,9 +50,9 @@ punctuation and line ends.
     >>> text_context.buffer_text
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
 
-The getWords method returns all words that start with the fragment.
-The method may be called without a fragment to return the words that
-match the default fragment set on initialization. If the fragment is
+The getWords method returns all words that start with the prefix.
+The method may be called without a prefix to return the words that
+match the default prefix set on initialization. If the prefix is
 passed, then it will be used to match words. Matching is 
 case-sensitive.
 
