@@ -1,0 +1,25 @@
+CompleteModel for SyntaxComplete
+================================
+
+The CompleteModel manages a list of words thagt may complete the
+prefix provided. It is used by SyntaxComplete.
+
+
+CompleteModel
+-------------
+
+CompleteModel is responsible for selecting a SyntaxModel that provides
+the words. CompleteModel controls the filtering and retrieval of the
+words.
+
+    >>> from gdp.syntaxcompleter import CompleteModel
+    >>> CompleteModel()
+    Traceback (most recent call last):
+    ...
+    TypeError: __init__() takes at least 2 arguments (1 given)
+
+    >>> from tests.helpers import get_gtk_textbuffer
+    >>> text_buffer = get_gtk_textbuffer('plugins/data/snark12.txt')
+    >>> model = CompleteModel(('text/plain', None, text_buffer))
+    >>> model
+    <CompleteModel object (PyGtkGenericTreeModel) at ...>
