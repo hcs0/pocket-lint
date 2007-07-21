@@ -67,16 +67,18 @@ class CompleteModel(gtk.GenericTreeModel):
     The model understands the free text in the document and the Python syntax.
     """
 
-    def __init__(self, text_buffer, prefix=None, description_only=False):
+    def __init__(self, sources, prefix=None, description_only=False):
         """Create, sort, and display the model."""
+        mime_type, file_path, text_buffer = sources
         gtk.GenericTreeModel.__init__(self)
-        self.words = self.create_list(text_buffer, prefix)
+        self.words = self.create_list(
+            mime_type, file_path, text_buffer, prefix)
         self.display_word = self.display_word_default
         self.do_filter = self.filter_word_default
         self.words.sort(lambda a, b: cmp(a.lower(), b.lower()))
-        self.visible_words = list(self.word)
+        self.visible_words = list(self.words)
 
-    def create_list(self, text_buffer, prefix):
+    def create_list(self, mime_type, file_path, text_buffer, prefix):
         """Return a list of words for the provides sources.
 
         Sources is a dictionary of the GtkSourceView type and data. The type
@@ -84,13 +86,12 @@ class CompleteModel(gtk.GenericTreeModel):
         be string that is passed to the parser
         """
         words = []
-        for datatype, data in sources:
-            if 'python' == datatype:
-                words.extend(parse_python(data, prefix))
-            elif 'text' == datatype:
-                words.extend(text_parser(data, prefix))
-            else:
-                raise ValueError, 'Unsupported datatype in sources.'
+        if 'python' in mime_type:
+            pass #words.extend(parse_python(text_buffer, fileprefix))
+        elif 'text' in mime_type:
+            pass #words.extend(text_parser(text_buffer, prefix))
+        else:
+            raise ValueError, 'Unsupported datatype in sources.'
         return words
 
     def display_word_default(self, word):

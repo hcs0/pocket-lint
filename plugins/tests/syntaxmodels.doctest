@@ -24,10 +24,10 @@ properties.
     >>> model.buffer_text is None
     True
 
-    Context().getWords('Ba')
-    Traceback
+    >>> SyntaxModel().getWords('Ba')
+    Traceback (most recent call last):
     ...
-    Exception NotImplementedError
+    NotImplementedError
 
 
 TextModel
