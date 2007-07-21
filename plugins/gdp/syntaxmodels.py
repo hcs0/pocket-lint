@@ -1,5 +1,5 @@
 # Copyright (C) 2007 - Curtis Hovey <sinzui.is at verizon.net>
-"""Context objects that represent a source of words.
+"""Model objects that represent a source of words.
 
 A context may be used to build a list of words that relate to a term.
 """
@@ -14,10 +14,10 @@ from gettext import gettext as _
 import gtk
 
 
-class Context(object):
+class SyntaxModel(object):
     """An abstract class representing the source of a word prefix."""
     def __init__(self, prefix=None, text_buffer=None, file_path=None):
-        """Create a new Context."""
+        """Create a new SyntaxModel."""
         self._prefix = prefix
         self._text_buffer = text_buffer
         self._file_path = file_path
@@ -46,10 +46,10 @@ class Context(object):
         return self._text_buffer.get_text(start_iter , end_iter)
 
 
-class TextContext(Context):
+class TextModel(SyntaxModel):
     """Generate a list of words that match a given prefix for a document."""
     def __init__(self, prefix=None, text_buffer=None, file_path=None):
-        """Create a TextContext
+        """Create a TextModel
         
         :prefix string: The word prefix used to locate complete words.
         :text_buffer gtk.TextBuffer: The source of words to search.
@@ -68,7 +68,7 @@ class TextContext(Context):
         return self._prefix
 
     def file_path(self):
-        """The path to the file that is the source of this TextContext.
+        """The path to the file that is the source of this TextModel.
         
         Setting file_path will load the file into the text_buffer.
         """

@@ -159,7 +159,7 @@ def main(params=None):
     setup_env(params)
     os.chdir(project_dir())
     doctest.set_unittest_reportflags(doctest.REPORT_NDIFF)
-    option_flags = doctest.ELLIPSIS + doctest.NORMALIZE_WHITESPACE
+    option_flags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
     tests = [test for test in find_tests('./' , Env.dir_re, Env.test_pattern)]
     suite = doctest.DocFileSuite(
         module_relative=False, optionflags=option_flags, *tests)

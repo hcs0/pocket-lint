@@ -1,27 +1,27 @@
-SyntaxContext
-=============
+SyntaxModels
+============
 
-The a SyntaxContext class represents a word source and syntax rules.
+The a SyntaxModels class represents a word source and syntax rules.
 It can build a list of matching words when provided a word prefix.
 Some syntax completers require a buffer or a file path to as
 their word source.
 
 
-Context
--------
+SyntaxModel
+-----------
 
-The base Context class defines the core methods that all subclasses
+The base SyntaxModel class defines the core methods that all subclasses
 may choose override. It also provides several helper methods and
 properties.
 
-    >>> from gdp.syntaxcontext import Context
-    >>> context = Context()
-    >>> context
-    <gdp.syntaxcontext.Context object at ...>
+    >>> from gdp.syntaxmodels import SyntaxModel
+    >>> model = SyntaxModel()
+    >>> model
+    <gdp.syntaxmodels.SyntaxModel object at ...>
     
-    >>> context.file_path is None
+    >>> model.file_path is None
     True
-    >>> context.buffer_text is None
+    >>> model.buffer_text is None
     True
 
     Context().getWords('Ba')
@@ -30,24 +30,24 @@ properties.
     Exception NotImplementedError
 
 
-TextContext
------------
+TextModel
+---------
 
-The TextContext class represents plain text sources. The words of the
+The TextModel class represents plain text sources. The words of the
 source are the words it represents, no alteration or interpretation is
 applied. Words are identified by common word boundaries like
 punctuation and line ends.
 
-    >>> from gdp.syntaxcontext import TextContext
-    >>> text_context = TextContext(
+    >>> from gdp.syntaxmodels import TextModel
+    >>> text_model = TextModel(
     ...     prefix='Ba', file_path='plugins/data/snark12.txt')
-    >>> text_context
-    <gdp.syntaxcontext.TextContext object at ...>
+    >>> text_model
+    <gdp.syntaxmodels.TextModel object at ...>
 
-    >>> text_context.file_path
+    >>> text_model.file_path
     'plugins/data/snark12.txt'
     
-    >>> text_context.buffer_text
+    >>> text_model.buffer_text
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
 
 The getWords method returns all words that start with the prefix.
@@ -56,17 +56,17 @@ match the default prefix set on initialization. If the prefix is
 passed, then it will be used to match words. Matching is 
 case-sensitive.
 
-    >>> text_context.getWords()
+    >>> text_model.getWords()
     ['Baker', 'Bandersnatch', 'Banker', 'Barrister', 'Ba']
 
-    >>> text_context.getWords('Ba')
+    >>> text_model.getWords('Ba')
     ['Baker', 'Bandersnatch', 'Banker', 'Barrister', 'Ba']
     
-    >>> text_context.getWords('Snar')
+    >>> text_model.getWords('Snar')
     ['Snark', 'Snarks', 'Snar']
 
-    >>> text_context.getWords('snar')
+    >>> text_model.getWords('snar')
     ['snark12', 'snarked', 'snar']
    
-    >>> text_context.getWords('What-')
+    >>> text_model.getWords('What-')
     ['What-was-his-name', 'What-you-may-call-um', 'What-']

@@ -4,9 +4,8 @@
 __metaclass__ = type
 
 __all__ = ['CompleteModel',
-           'SyntaxCompleter',
-           'SyntaxControler',
-           'TestComplete']
+           'SyntaxComplete',
+           'SyntaxControler']
 
 import gobject
 import gtk
@@ -15,7 +14,7 @@ from snippets.SnippetComplete import SnippetComplete
 
 
 # XXX sinzui 2007-07-18:
-# Push this function into syntaxcontext.
+# Push this function into syntaxmodels.
 def getMatchingSymbols(s, imports=None):
     """Set the contextual completion of s (string of >= zero chars).
 
