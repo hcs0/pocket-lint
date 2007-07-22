@@ -1,5 +1,7 @@
 # Copyright (C) 2007 - Curtis Hovey <sinzui.is at verizon.net>
 """A syntax completer for document words and python symbols."""
+# pylint: disable-msg=R0901
+
 
 __metaclass__ = type
 
@@ -12,6 +14,7 @@ import gtk
 
 from snippets.SnippetComplete import SnippetComplete
 
+from gdp.syntaxmodels import TextModel
 
 # XXX sinzui 2007-07-18:
 # Push this function into syntaxmodels.
@@ -68,7 +71,11 @@ class CompleteModel(gtk.GenericTreeModel):
     """
 
     def __init__(self, sources, prefix=None, description_only=False):
-        """Create, sort, and display the model."""
+        """Create, sort, and display the model.
+        
+        The sources parameter is a tuple of mime_type, file_path, and
+        text_buffer.
+        """
         mime_type, file_path, text_buffer = sources
         gtk.GenericTreeModel.__init__(self)
         self.words = self.create_list(
@@ -77,6 +84,15 @@ class CompleteModel(gtk.GenericTreeModel):
         self.do_filter = self.filter_word_default
         self.words.sort(lambda a, b: cmp(a.lower(), b.lower()))
         self.visible_words = list(self.words)
+
+    @property
+    def nodes(self):
+        """Return the all the words in the model.
+        
+        This properties name is used to mape words to node for the
+        parent class.
+        """
+        return self.words
 
     def create_list(self, mime_type, file_path, text_buffer, prefix):
         """Return a list of words for the provides sources.
@@ -88,10 +104,10 @@ class CompleteModel(gtk.GenericTreeModel):
         words = []
         if 'python' in mime_type:
             pass #words.extend(parse_python(text_buffer, fileprefix))
-        elif 'text' in mime_type:
-            pass #words.extend(text_parser(text_buffer, prefix))
         else:
-            raise ValueError, 'Unsupported datatype in sources.'
+            # We use assume the buffer is text/plain.
+            syntax_model = TextModel(prefix=prefix, text_buffer=text_buffer)
+            words.extend(syntax_model.getWords())
         return words
 
     def display_word_default(self, word):

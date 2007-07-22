@@ -20,6 +20,6 @@ words.
 
     >>> from tests.helpers import get_gtk_textbuffer
     >>> text_buffer = get_gtk_textbuffer('plugins/data/snark12.txt')
-    >>> model = CompleteModel(('text/plain', None, text_buffer))
+    >>> model = CompleteModel(('text/plain', '', text_buffer), prefix='Ba')
     >>> model
     <CompleteModel object (PyGtkGenericTreeModel) at ...>
