@@ -10,7 +10,13 @@ CompleteModel
 
 CompleteModel is responsible for selecting a SyntaxModel that provides
 the words. CompleteModel controls the filtering and retrieval of the
-words.
+words. 
+
+The complete model requires a tuple of sources that identify and
+provide the data. The sources tuple contains the mime_type, file_path,
+and text_buffer. The mime_type is used to select to the SyntaxModel.
+The other items in sources may be used to create the vocabulary. A
+prefix may be provided to filter the words in the vocabulary.
 
     >>> from gdp.syntaxcompleter import CompleteModel
     >>> CompleteModel()
@@ -20,6 +26,46 @@ words.
 
     >>> from tests.helpers import get_gtk_textbuffer
     >>> text_buffer = get_gtk_textbuffer('plugins/data/snark12.txt')
-    >>> model = CompleteModel(('text/plain', '', text_buffer), prefix='Ba')
+    >>> sources = ('text/plain', '', text_buffer)
+    >>> model = CompleteModel(sources)
     >>> model
     <CompleteModel object (PyGtkGenericTreeModel) at ...>
+
+The model can filter the vocabulary to match the prefix provided.
+
+    >>> len(model.words)
+    1988
+    >>> model.words == model.visible_words
+    True
+    >>> model.visible_words
+    ['', '000', '000x100', '03', '08', '1', '10', '1992', '2', ...]
+
+    >>> model.filter_word_default('B')
+    >>> model.words == model.visible_words
+    False
+    >>> len(model.visible_words)
+    109
+    >>> model.visible_words
+    ['B', 'backwards', 'bade', 'bags', 'bake', 'BAKER', ...]
+
+    >>> model.filter_word_default('Be')
+    >>> model.words == model.visible_words
+    False
+    >>> len(model.visible_words)
+    38
+    >>> model.visible_words
+    ['be', 'BE', 'Be', 'beach', 'beamish', 'bear', 'bearer', ...]
+
+When a prefix is provided to the model when it is created, the prefix
+restricts th vocabulary to only those words that match the prefix.
+Matching is case-insensative.
+
+    >>> sources = ('text/plain', '', text_buffer)
+    >>> prefix = 'B'
+    >>> model = CompleteModel(sources, prefix=prefix)
+    >>> model.words == model.visible_words
+    True
+    >>> len(model.words)
+    109
+    >>> model.visible_words
+    ['B', 'backwards', 'bade', 'bags', 'bake', 'BAKER', ...]

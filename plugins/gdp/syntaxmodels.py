@@ -92,13 +92,14 @@ class TextModel(SyntaxModel):
 
     def getWords(self, prefix=None):
         """Return an orders list of words that match the prefix."""
-        assert prefix or self._prefix, _(u"A word prefix is required.")
-        if not prefix:
-            prefix = self.prefix
-        word_re = r'\b(%s[\w-]+)' % re.escape(prefix)
-        words = re.findall(word_re, self.buffer_text)
+        if not prefix and self._prefix:
+            prefix = self._prefix
+        else:
+            # Match all words in the buffer_text.
+            prefix = ""
+        word_re = re.compile(r'\b(%s[\w-]+)' % re.escape(prefix), re.I)
+        words = word_re.findall(self.buffer_text)
         # Find the unique words that do not have psuedo m-dashed in them.
         words[:] = set(word for word in words if '--' not in word)
-        words.sort()
         words.append(prefix)
         return words        

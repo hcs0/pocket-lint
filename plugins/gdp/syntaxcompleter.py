@@ -13,6 +13,7 @@ import gobject
 import gtk
 
 from snippets.SnippetComplete import SnippetComplete
+from snippets.SnippetController import SnippetController
 
 from gdp.syntaxmodels import TextModel
 
@@ -260,117 +261,23 @@ gobject.signal_new(
     gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
 
 
-class SyntaxControler(object):
-    """."""
-
-    def __init__(self):
-        pass
-
-    def env_get_selected_text(self, buf):
-        bounds = buf.get_selection_bounds()
-        if bounds:
-            return buf.get_text(bounds[0], bounds[1])
-        else:
-            return ''
-
-    def env_get_current_word(self, buf):
-        start, end = buffer_word_boundary(buf)
-        return buf.get_text(start, end)
-
-    def env_get_filename(self, buf):
-        uri = buf.get_uri()
-        if uri:
-            return buf.get_uri_for_display()
-        else:
-            return ''
-
-    def env_get_basename(self, buf):
-        uri = buf.get_uri()
-        if uri:
-            return os.path.basename(buf.get_uri_for_display())
-        else:
-            return ''
-
-    def update_environment(self):
-        buf = self.view.get_buffer()
-        variables = {
-            'GEDIT_SELECTED_TEXT': self.env_get_selected_text,
-            'GEDIT_CURRENT_WORD': self.env_get_current_word,
-            'GEDIT_FILENAME': self.env_get_filename,
-            'GEDIT_BASENAME': self.env_get_basename}
-        for var in variables:
-            os.environ[var] = variables[var](buf)
+class SyntaxControler(SnippetController):
+    """This class manages the interaction ofthe completion window."""
 
     def run_word(self):
+        """Retrieve the words and the cursor and show the sytaxt widget."""
         if not self.view:
             return False
         buf = self.view.get_buffer()
         # get the word preceding the current insertion position
         (word, start, end) = self.get_tab_tag(buf)
-        if not word:
-            return self.skip_to_next_placeholder()
-        snippets = SnippetsLibrary().from_tag(word, self.language_id)
-        if snippets:
-            if len(snippets) == 1:
-                return self.apply_word(snippets[0], start, end)
-            else:
-                # Do the fancy completion dialog
-                return self.show_completion(snippets)
-        return self.skip_to_next_placeholder()
+        return self.show_completion(word)
 
-    def deactivate_word(self, snippet, force = False):
-        buf = self.view.get_buffer()
-        remove = []
-        for tabstop in snippet[3]:
-            if tabstop == -1:
-                placeholders = snippet[3][-1]
-            else:
-                placeholders = [snippet[3][tabstop]]
+    def deactivate_word(self, snippet, force=False):
+        """SyntaxControler does not support snippets."""
+        pass
 
-            for placeholder in placeholders:
-                if placeholder in self.placeholders:
-                    if placeholder in self.update_placeholders:
-                        placeholder.update_contents()
-                        self.update_placeholders.remove(placeholder)
-                    elif placeholder in self.jump_placeholders:
-                        placeholder[0].leave()
-                    remove.append(placeholder)
-        for placeholder in remove:
-            if placeholder == self.active_placeholder:
-                self.active_placeholder = None
-            self.placeholders.remove(placeholder)
-            placeholder.remove(force)
-
-        buf.delete_mark(snippet[0])
-        buf.delete_mark(snippet[1])
-        buf.delete_mark(snippet[2])
-        self.active_words.remove(snippet)
-        if len(self.active_words) == 0:
-            self.last_word_removed()
-
-
-    def move_completion_window(self, complete, x, y):
-        """Moves the completion window to a suitable place
-
-        It honors the hint given by x and y. It tries to position the window
-        so it's always visible on the screen.
-        """
-        MARGIN = 15
-        screen = self.view.get_screen()
-        width = screen.get_width()
-        height = screen.get_height()
-        cw, ch = complete.get_size()
-        if x + cw > width:
-            x = width - cw - MARGIN
-        elif x < MARGIN:
-            x = MARGIN
-        if y + ch > height:
-            y = height - ch - MARGIN
-        elif y < MARGIN:
-            y = MARGIN
-        complete.move(x, y)
-
-    def show_completion(self, preset = None):
+    def show_completion(self, preset=None):
         """Show completion, shows a completion dialog in the view.
 
         If preset is not None then a completion dialog is shown with the
@@ -386,30 +293,23 @@ class SyntaxControler(object):
 
         if not bounds and not preset:
             # When there is no text selected and no preset present, find the
-            # prefix
+            # prefix.
             (prefix, ignored, end) = self.get_tab_tag(buf)
         if not prefix:
-            # If there is no prefix, than take the insertion point as the end
+            # If there is no prefix, than take the insertion point as the end.
             end = buf.get_iter_at_mark(buf.get_insert())
-        if not preset or len(preset) == 0:
-            # There is no preset, find all the text words and the language
-            # specific words
-            nodes = SnippetsLibrary().get_words(None)
-            if self.language_id:
-                nodes += SnippetsLibrary().get_words(self.language_id)
-            if prefix and len(prefix) == 1 and not prefix.isalnum():
-                hasnodes = False
-                for node in nodes:
-                    if node['tag'] and node['tag'].startswith(prefix):
-                        hasnodes = True
-                        break
-                if not hasnodes:
-                    prefix = None
-            complete = SnippetComplete(nodes, prefix, False)
+
+        # XXX sinzui 2007-07-22
+        # We need to create the sources touple in place of nodes
+        if len(buf.SourceLanguage.get_mime_types):
+            mime_type = buf.SourceLanguage.get_mime_types[0]
         else:
-            # There is a preset, so show that preset
-            complete = SnippetComplete(preset, None, True)
-        complete.connect('snippet-activated', self.on_complete_row_activated)
+            mime_type = 'text/plain'
+        file_path = self.env_get_filename(buf)
+        sources = (mime_type, file_path, buf)
+        complete = SyntaxComplete(sources, prefix, False)
+
+        complete.connect('syntax-activated', self.on_complete_row_activated)
         rect = self.view.get_iter_location(end)
         win = self.view.get_window(gtk.TEXT_WINDOW_TEXT)
         (x, y) = self.view.buffer_to_window_coords(
@@ -419,88 +319,27 @@ class SyntaxControler(object):
         return complete.run()
 
     def update_word_contents(self):
-        self.timeout_update_id = 0
-        for placeholder in self.update_placeholders:
-            placeholder.update_contents()
-        for placeholder in self.jump_placeholders:
-            self.goto_placeholder(placeholder[0], placeholder[1])
-        del self.update_placeholders[:]
-        del self.jump_placeholders[:]
+        """SyntaxController does not support snippets."""
         return False
 
-    # Callbacks
-    def on_view_destroy(self, view):
-        self.stop()
-        return
-
-    def on_complete_row_activated(self, complete, snippet):
+    def on_complete_row_activated(self, complete, word):
+        """Insert the word into the buffer."""
         buf = self.view.get_buffer()
         bounds = buf.get_selection_bounds()
         if bounds:
-            self.apply_word(snippet.data, None, None)
+            self.apply_word(word, None, None)
         else:
             (ignored, start, end) = self.get_tab_tag(buf)
-            self.apply_word(snippet.data, start, end)
+            self.apply_word(word, start, end)
 
     def on_buffer_cursor_moved(self, buf):
-        piter = buf.get_iter_at_mark(buf.get_insert())
-        # Check for all snippets if the cursor is outside its scope
-        for snippet in list(self.active_words):
-            if snippet[0].get_deleted() or snippet[1].get_deleted():
-                self.deactivate(snippet)
-            else:
-                begin = buf.get_iter_at_mark(snippet[0])
-                end = buf.get_iter_at_mark(snippet[1])
-                if piter.compare(begin) < 0 or piter.compare(end) > 0:
-                    # Oh no! Remove the snippet this instant!!
-                    self.deactivate_word(snippet)
-        current = self.current_placeholder()
-        if current != self.active_placeholder:
-            if self.active_placeholder:
-                self.jump_placeholders.append(
-                    (self.active_placeholder, current))
-                if self.timeout_update_id != 0:
-                    gobject.source_remove(self.timeout_update_id)
-                self.timeout_update_id = gobject.timeout_add(
-                    0, self.update_word_contents)
-
-            self.active_placeholder = current
-
-    def on_buffer_changed(self, buf):
-        current = self.current_placeholder()
-        if current:
-            self.update_placeholders.append(current)
-            if self.timeout_update_id != 0:
-                gobject.source_remove(self.timeout_update_id)
-            self.timeout_update_id = gobject.timeout_add(
-                0, self.update_word_contents)
-
-    def on_notify_language(self, buf, spec):
-        self.update_language()
-
-    def on_notify_editable(self, view, spec):
-        self._set_view(view)
+        """SyntaxControler does not support snippets."""
+        self.deactivate_word(self.active_words)
 
     def on_view_key_press(self, view, event):
-        library = SnippetsLibrary()
-        if (not (event.state & gdk.CONTROL_MASK)
+        """Show the completion widget."""
+        if ((event.state & gdk.CONTROL_MASK)
+            and (event.state & gdk.SHIFT_MASK)
             and not (event.state & gdk.MOD1_MASK)
-            and  event.keyval in self.TAB_KEY_VAL):
-            if not event.state & gdk.SHIFT_MASK:
-                return self.run_word()
-            else:
-                return self.skip_to_previous_placeholder()
-        elif ((event.state & gdk.CONTROL_MASK)
-            and not (event.state & gdk.MOD1_MASK)
-            and not (event.state & gdk.SHIFT_MASK)
             and event.keyval in self.SPACE_KEY_VAL):
             return self.show_completion()
-        elif (not library.loaded
-            and library.valid_accelerator(event.keyval, event.state)):
-            library.ensure_files()
-            library.ensure(self.language_id)
-            self.accelerator_activate(
-                event.keyval,
-                event.state & gtk.accelerator_get_default_mod_mask())
-        return False
-
