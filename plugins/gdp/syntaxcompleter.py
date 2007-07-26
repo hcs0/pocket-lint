@@ -7,7 +7,7 @@ __metaclass__ = type
 
 __all__ = ['CompleteModel',
            'SyntaxComplete',
-           'SyntaxControler']
+           'SyntaxController']
 
 import gobject
 import gtk
@@ -33,7 +33,7 @@ def getMatchingSymbols(s, imports=None):
             except TypeError:
                 raise TypeError, "invalid type: %s" % stmt
 
-    dots = s.split(".")
+    dots = s.split('.')
     if len(dots) == 1:
         keys = set()
         keys.update(locald.keys())
@@ -261,7 +261,7 @@ gobject.signal_new(
     gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
 
 
-class SyntaxControler(SnippetController):
+class SyntaxController(SnippetController):
     """This class manages the interaction ofthe completion window."""
 
     def run_word(self):
