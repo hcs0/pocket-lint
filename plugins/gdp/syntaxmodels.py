@@ -101,5 +101,4 @@ class TextModel(SyntaxModel):
         words = word_re.findall(self.buffer_text)
         # Find the unique words that do not have psuedo m-dashed in them.
         words[:] = set(word for word in words if '--' not in word)
-        words.append(prefix)
         return words        
