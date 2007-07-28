@@ -1,15 +1,15 @@
-CompleteModel for SyntaxComplete
-================================
+SyntaxModel for SyntaxCompleter
+===============================
 
-The CompleteModel manages a list of words thagt may complete the
-prefix provided. It is used by SyntaxComplete.
+The SyntaxModel manages a list of words thagt may complete the
+prefix provided. It is used by SyntaxCompleter.
 
 
-CompleteModel
--------------
+SyntaxModel
+-----------
 
-CompleteModel is responsible for selecting a SyntaxModel that provides
-the words. CompleteModel controls the filtering and retrieval of the
+SyntaxModel is responsible for selecting a SyntaxModel that provides
+the words. SyntaxModel controls the filtering and retrieval of the
 words. 
 
 The complete model requires a tuple of sources that identify and
@@ -18,8 +18,8 @@ and text_buffer. The mime_type is used to select to the SyntaxModel.
 The other items in sources may be used to create the vocabulary. A
 prefix may be provided to filter the words in the vocabulary.
 
-    >>> from gdp.syntaxcompleter import CompleteModel
-    >>> CompleteModel()
+    >>> from gdp.syntaxcompleter import SyntaxModel
+    >>> SyntaxModel()
     Traceback (most recent call last):
     ...
     TypeError: __init__() takes at least 2 arguments (1 given)
@@ -27,9 +27,9 @@ prefix may be provided to filter the words in the vocabulary.
     >>> from gdp.tests.helpers import get_gtk_textbuffer
     >>> text_buffer = get_gtk_textbuffer('plugins/gdp/data/snark12.txt')
     >>> sources = ('text/plain', '', text_buffer)
-    >>> model = CompleteModel(sources)
+    >>> model = SyntaxModel(sources)
     >>> model
-    <CompleteModel object (PyGtkGenericTreeModel) at ...>
+    <SyntaxModel object (PyGtkGenericTreeModel) at ...>
 
 The model can filter the vocabulary to match the prefix provided.
 
@@ -62,7 +62,7 @@ Matching is case-insensative.
 
     >>> sources = ('text/plain', '', text_buffer)
     >>> prefix = 'B'
-    >>> model = CompleteModel(sources, prefix=prefix)
+    >>> model = SyntaxModel(sources, prefix=prefix)
     >>> model.words == model.visible_words
     True
     >>> len(model.words)

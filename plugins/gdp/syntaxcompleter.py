@@ -5,13 +5,11 @@
 
 __metaclass__ = type
 
-__all__ = [
-           'BaseSyntaxGenerator',
-           'CompleteModel',
+__all__ = ['BaseSyntaxGenerator',
+           'SyntaxModel',
            'SyntaxComplete',
            'SyntaxController',
-           'TextGenerator',
-           ]
+           'TextGenerator',]
 
 import re
 
@@ -19,7 +17,7 @@ from gettext import gettext as _
 import gobject
 import gtk
 
-from snippets.SnippetComplete import SnippetComplete
+from snippets.SnippetComplete import SnippetComplete, CompleteModel
 from snippets.SnippetController import SnippetController
 
 
@@ -162,7 +160,7 @@ class PythonGenerator(BaseSyntaxGenerator):
         return [k for k in dir(symbol) if k.startswith(suffix)]
 
 
-class CompleteModel(gtk.GenericTreeModel):
+class SyntaxModel(gtk.GenericTreeModel):
     """A model for managing multiple syntaxes.
 
     This model determine the words that can be inserted at the cursor. 
@@ -345,6 +343,13 @@ class SyntaxComplete(SnippetComplete):
     This widget extends the Gedit Snippet module to complete the word
     using the syntax of the document.
     """
+    def __init__(self, nodes, prefix=None, description_only=False):
+        """Initialize the syntax completer."""
+        # Replace the snippets.CompleteModel with the SyntaxModel
+        # import SyntaxModel as CompleteModel
+        CompleteModel = SyntaxModel
+        super(SyntaxComplete, self).__init__(
+            nodes=noes, prefix=prefix, description_only=description_only)
 
     def snippet_activated(self, word):
         """See snippets.syntaxcompleter.SnippetComplete
