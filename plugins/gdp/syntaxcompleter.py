@@ -5,63 +5,161 @@
 
 __metaclass__ = type
 
-__all__ = ['CompleteModel',
+__all__ = [
+           'BaseSyntaxGenerator',
+           'CompleteModel',
            'SyntaxComplete',
-           'SyntaxController']
+           'SyntaxController',
+           'TextGenerator',
+           ]
 
+import re
+
+from gettext import gettext as _
 import gobject
 import gtk
 
 from snippets.SnippetComplete import SnippetComplete
 from snippets.SnippetController import SnippetController
 
-from gdp.syntaxmodels import TextModel
+
+class BaseSyntaxGenerator(object):
+    """An abstract class representing the source of a word prefix."""
+    def __init__(self, prefix=None, text_buffer=None, file_path=None):
+        """Create a new SyntaxGenerator."""
+        self._prefix = prefix
+        self._text_buffer = text_buffer
+        self._file_path = file_path
+
+    def getWords(self, prefix=None):
+        """Return an orders list of words that match the prefix."""
+        raise NotImplementedError
+
+    @property
+    def prefix(self):
+        """The prefix use to match words to."""
+        return self._prefix
+
+    @property
+    def file_path(self):
+        """The path to the file that is the word source."""
+        return self._file_path
+
+    @property
+    def buffer_text(self):
+        """Return the text of the TextBuffer or None."""
+        if not self._text_buffer:
+            return None
+        start_iter = self._text_buffer.get_start_iter()
+        end_iter = self._text_buffer.get_end_iter()
+        return self._text_buffer.get_text(start_iter , end_iter)
+
+
+class TextGenerator(BaseSyntaxGenerator):
+    """Generate a list of words that match a given prefix for a document."""
+    def __init__(self, prefix=None, text_buffer=None, file_path=None):
+        """Create a TextGenerator
+        
+        :prefix string: The word prefix used to locate complete words.
+        :text_buffer gtk.TextBuffer: The source of words to search.
+        :file_path string: The path to the file that contains the words to
+                           search.
+        """
+        self._prefix = prefix
+        self._text_buffer = text_buffer
+        self._file_path = file_path
+        if not self._text_buffer and self.file_path:
+            self.file_path = self._file_path
+
+    @property
+    def prefix(self):
+        """The prefix use to match words to."""
+        return self._prefix
+
+    def file_path(self):
+        """The path to the file that is the source of this TextGenerator.
+        
+        Setting file_path will load the file into the text_buffer.
+        """
+        return self._file_path
+
+    def _set_file_path(self, file_path):
+        """See file_path."""
+        self._file_path = file_path
+        try:
+            source_file = open(self._file_path)
+            text = ''.join(source_file.readlines())
+        except IOError:
+            raise ValueError, _(u'%s cannot be read' % file_path)
+        else:
+            source_file.close()
+        self._text_buffer = gtk.TextBuffer()
+        self._text_buffer.set_text(text)
+
+    file_path = property(
+        fget=file_path, fset=_set_file_path, doc=file_path.__doc__)
+
+    def getWords(self, prefix=None):
+        """Return an orders list of words that match the prefix."""
+        if not prefix and self._prefix:
+            prefix = self._prefix
+        else:
+            # Match all words in the buffer_text.
+            prefix = ""
+        word_re = re.compile(r'\b(%s[\w-]+)' % re.escape(prefix), re.I)
+        words = word_re.findall(self.buffer_text)
+        # Find the unique words that do not have psuedo m-dashed in them.
+        words[:] = set(word for word in words if '--' not in word)
+        return words
+
 
 # XXX sinzui 2007-07-18:
-# Push this function into syntaxmodels.
-def getMatchingSymbols(s, imports=None):
-    """Set the contextual completion of s (string of >= zero chars).
+# Convert this to PythonSyntaxGenerator.
+class PythonGenerator(BaseSyntaxGenerator):
+    """Generate a list of words that match a given prefix for a Python."""
+    def getWords(self, prefix=None):
+        """Set the contextual completion of s (string of >= zero chars).
 
-    If given, imports is a list of import statements to be executed first.
-    """
-    #import rpdb2; rpdb2.start_embedded_debugger('password')
-    locald = {}
-    if imports is not None:
-        for stmt in imports:
-            try:
-                exec stmt in globals(), locald
-            except TypeError:
-                raise TypeError, "invalid type: %s" % stmt
+        If given, imports is a list of import statements to be executed first.
+        """
+        #import rpdb2; rpdb2.start_embedded_debugger('password')
+        locald = {}
+        if imports is not None:
+            for stmt in imports:
+                try:
+                    exec stmt in globals(), locald
+                except TypeError:
+                    raise TypeError, "invalid type: %s" % stmt
 
-    dots = s.split('.')
-    if len(dots) == 1:
-        keys = set()
-        keys.update(locald.keys())
-        keys.update(globals().keys())
-        import __builtin__
-        keys.update(dir(__builtin__))
-        keys = list(keys)
-        keys.sort()
-        if s:
-            return [k for k in keys if k.startswith(s)]
+        dots = s.split('.')
+        if len(dots) == 1:
+            keys = set()
+            keys.update(locald.keys())
+            keys.update(globals().keys())
+            import __builtin__
+            keys.update(dir(__builtin__))
+            keys = list(keys)
+            keys.sort()
+            if s:
+                return [k for k in keys if k.startswith(s)]
+            else:
+                return keys
+
+        if len(dots) == 2:
+            module = dots[0]
         else:
-            return keys
+            module = '.'.join(dots[0:-1])
 
-    if len(dots) == 2:
-        module = dots[0]
-    else:
-        module = '.'.join(dots[0:-1])
-
-    try:
-        symbol = eval(module, globals(), locald)
-    except NameError:
         try:
-            symbol = __import__(module, globals(), locald, [])
-        except ImportError:
-            return []
+            symbol = eval(module, globals(), locald)
+        except NameError:
+            try:
+                symbol = __import__(module, globals(), locald, [])
+            except ImportError:
+                return []
 
-    suffix = dots[-1]
-    return [k for k in dir(symbol) if k.startswith(suffix)]
+        suffix = dots[-1]
+        return [k for k in dir(symbol) if k.startswith(suffix)]
 
 
 class CompleteModel(gtk.GenericTreeModel):
@@ -107,8 +205,9 @@ class CompleteModel(gtk.GenericTreeModel):
             pass #words.extend(parse_python(text_buffer, fileprefix))
         else:
             # We use assume the buffer is text/plain.
-            syntax_model = TextModel(prefix=prefix, text_buffer=text_buffer)
-            words.extend(syntax_model.getWords())
+            syntax_generator = TextGenerator(
+                prefix=prefix, text_buffer=text_buffer)
+            words.extend(syntax_generator.getWords())
         return words
 
     def display_word_default(self, word):

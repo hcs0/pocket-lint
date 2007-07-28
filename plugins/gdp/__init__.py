@@ -3,4 +3,3 @@
 __metaclass__ = type
 
 from gdp.syntaxcompleter import *
-from gdp.syntaxmodels import *

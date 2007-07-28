@@ -1,0 +1,103 @@
+SyntaxGenerators
+================
+
+The a SyntaxGenerators class represents a word source and syntax rules.
+It can build a list of matching words when provided a word prefix.
+Some syntax completers require a buffer or a file path to as
+their word source.
+
+
+SyntaxGenerator
+---------------
+
+The base SyntaxGenerator class defines the core methods that all
+subclasses may choose override. It also provides several helper methods
+and properties.
+
+    >>> from gdp.syntaxcompleter import BaseSyntaxGenerator
+    >>> generator = BaseSyntaxGenerator()
+    >>> generator
+    <gdp.syntaxcompleter.BaseSyntaxGenerator object at ...>
+    
+    >>> generator.file_path is None
+    True
+    >>> generator.buffer_text is None
+    True
+
+    >>> BaseSyntaxGenerator().getWords('Ba')
+    Traceback (most recent call last):
+    ...
+    NotImplementedError
+
+
+TextGenerator
+-------------
+
+The TextGenerator class represents plain text sources. The words of the
+source are the words it represents, no alteration or interpretation is
+applied. Words are identified by common word boundaries like
+punctuation and line ends.
+
+    >>> from gdp.syntaxcompleter import TextGenerator
+    >>> hunting_the_snark = 'plugins/gdp/data/snark12.txt'
+    >>> text_generator = TextGenerator(file_path=hunting_the_snark)
+    >>> text_generator
+    <gdp.syntaxcompleter.TextGenerator object at ...>
+
+    >>> text_generator.file_path
+    'plugins/gdp/data/snark12.txt'
+    
+    >>> text_generator.buffer_text
+    'This is the Project Gutenberg Etext of The Hunting of the Snark...'
+
+The getWords method returns all words in the generator, unordered.
+
+    >>> words = text_generator.getWords()
+    >>> len(words)
+    1987
+    >>> words
+    ['aided', 'limited', 'writings', 'yellow', 'protest', ...]
+
+When the generator is created with a prefix, the generator will only
+contain words that start with the prefix. Matching is 
+case-insensitive.
+
+    >>> text_generator = TextGenerator(
+    ...     file_path=hunting_the_snark, prefix='Ba')
+    >>> words = text_generator.getWords()
+    >>> len(words)
+    16
+    >>> words
+    ['bags', 'backwards', 'based', 'bands', 'Bandersnatch', ...]
+    
+    >>> text_generator = TextGenerator(
+    ...     file_path=hunting_the_snark, prefix='Snar')
+    >>> words = text_generator.getWords()
+    >>> len(words)
+    5
+    >>> words
+    ['SNARK', 'snark12', 'Snark', 'Snarks', 'snarked']
+
+    >>> text_generator = TextGenerator(
+    ...     file_path=hunting_the_snark, prefix='snar')
+    >>> lowercase_words = text_generator.getWords()
+    >>> lowercase_words == words
+    True
+    >>> lowercase_words
+    ['SNARK', 'snark12', 'Snark', 'Snarks', 'snarked']
+
+    >>> text_generator = TextGenerator(
+    ...     file_path=hunting_the_snark, prefix='SNAR')
+    >>> uppercase_words = text_generator.getWords()
+    >>> lowercase_words == uppercase_words == words
+    True
+    >>> lowercase_words
+    ['SNARK', 'snark12', 'Snark', 'Snarks', 'snarked']
+
+Hypenated words are
+
+    >>> text_generator = TextGenerator(
+    ...     file_path=hunting_the_snark, prefix='What-')
+    >>> words = text_generator.getWords()
+    >>> text_generator.getWords()
+    ['What-you-may-call-um', 'What-was-his-name']
