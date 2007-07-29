@@ -4,14 +4,17 @@
 __metaclass__ = type
 
 
-__ALL__ = ['get_gtk_textbuffer']
+__ALL__ = ['get_sourcebuffer']
 
 
-import gtk
+from gettext import gettext as _
+from gtksourceview import SourceBuffer, SourceLanguagesManager
 
 
-def get_gtk_textbuffer(file_path):
+def get_sourcebuffer(file_path, mime_type='text/plain'):
     """return a gtk.TextBuffer for the provided file_path."""
+    language_manager = SourceLanguagesManager()
+    language = language_manager.get_language_from_mime_type(mime_type)
     try:
         source_file = open(file_path)
         text = ''.join(source_file.readlines())
@@ -19,7 +22,8 @@ def get_gtk_textbuffer(file_path):
         raise ValueError, _(u'%s cannot be read' % file_path)
     else:
         source_file.close()
-    text_buffer = gtk.TextBuffer()
-    text_buffer.set_text(text)
-    return text_buffer
+    source_buffer = SourceBuffer()
+    source_buffer.set_language(language)
+    source_buffer.set_text(text)
+    return source_buffer
 

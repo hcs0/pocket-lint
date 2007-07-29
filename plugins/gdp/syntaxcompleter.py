@@ -1,6 +1,6 @@
 # Copyright (C) 2007 - Curtis Hovey <sinzui.is at verizon.net>
 """A syntax completer for document words and python symbols."""
-# pylint: disable-msg=R0901
+# pylint: disable-msg=R0901, E0202
 
 
 __metaclass__ = type
@@ -12,6 +12,7 @@ __all__ = ['BaseSyntaxGenerator',
            'TextGenerator',]
 
 import re
+from xml.sax import saxutils
 
 from gettext import gettext as _
 import gobject
@@ -160,12 +161,13 @@ class PythonGenerator(BaseSyntaxGenerator):
         return [k for k in dir(symbol) if k.startswith(suffix)]
 
 
-class SyntaxModel(gtk.GenericTreeModel):
+class SyntaxModel(CompleteModel):
     """A model for managing multiple syntaxes.
 
     This model determine the words that can be inserted at the cursor. 
     The model understands the free text in the document and the Python syntax.
     """
+    column_types = (str, str)
 
     def __init__(self, sources, prefix=None, description_only=False):
         """Create, sort, and display the model.
@@ -173,168 +175,103 @@ class SyntaxModel(gtk.GenericTreeModel):
         The sources parameter is a tuple of mime_type, file_path, and
         text_buffer.
         """
-        mime_type, file_path, text_buffer = sources
+        file_path, source_buffer = sources
         gtk.GenericTreeModel.__init__(self)
-        self.words = self.create_list(
-            mime_type, file_path, text_buffer, prefix)
-        self.display_word = self.display_word_default
-        self.do_filter = self.filter_word_default
+        self.words = self.create_list(file_path, source_buffer, prefix)
         self.words.sort(lambda a, b: cmp(a.lower(), b.lower()))
         self.visible_words = list(self.words)
 
-    @property
-    def nodes(self):
-        """Return the all the words in the model.
-        
-        This properties name is used to mape words to node for the
-        parent class.
-        """
-        return self.words
-
-    def create_list(self, mime_type, file_path, text_buffer, prefix):
+    def create_list(self, file_path, source_buffer, prefix):
         """Return a list of words for the provides sources.
 
         Sources is a dictionary of the GtkSourceView type and data. The type
         key must be a supported parser (text or Python). The data value may
         be string that is passed to the parser
         """
+        language = source_buffer.get_language()
+        if language:
+            mime_types = language.get_mime_types()
+        else:
+            mime_types = ['text/plain']
         words = []
-        if 'python' in mime_type:
+        if 'python' in mime_types:
             pass #words.extend(parse_python(text_buffer, fileprefix))
         else:
             # We use assume the buffer is text/plain.
             syntax_generator = TextGenerator(
-                prefix=prefix, text_buffer=text_buffer)
+                prefix=prefix, text_buffer=source_buffer)
             words.extend(syntax_generator.getWords())
         return words
 
-    def display_word_default(self, word):
+    def display_word(self, word):
         """Return the word escaped for Pango display."""
-        return markup_escape(word)
+        return saxutils.escape(word)
 
-    def filter_word_default(self, prefix):
+    def filter_words(self, prefix):
         """Show only the words that start with the prefix."""
-        new = []
+        new_words = []
         prefix = prefix.lower()
         for word in self.words:
             if word.lower().startswith(prefix):
-                new.append(word)
-        self.filter_word_process(new)
+                new_words.append(word)
+        self._filter_model(new_words)
 
-    def filter_word_process(self, new):
-        """Show the words in the new list."""
-        old = self.visible_words
-        oldlen = len(old)
+    def _filter_model(self, new_words):
+        """Update the tree rows to match the new words."""
+        old_words = self.visible_words
+        old_len = len(old_words)
 
-        self.visible_words = new
-        newlen = len(new)
+        self.visible_words = new_words
+        new_len = len(new_words)
 
-        for index in range(0, min(newlen, oldlen)):
+        for index in range(0, min(new_len, old_len)):
             path = (index,)
             self.row_changed(path, self.get_iter(path))
 
-        if oldlen > newlen:
-            for index in range(oldlen - 1, newlen - 1, -1):
+        if old_len > new_len:
+            for index in range(old_len - 1, new_len - 1, -1):
                 self.row_deleted((index,))
-        elif newlen > oldlen:
-            for index in range(oldlen, newlen):
+        elif new_len > old_len:
+            for index in range(old_len, new_len):
                 path = (index,)
                 self.row_inserted(path, self.get_iter(path))
 
     def get_word(self, path):
         """Return the word at the provided path."""
-        return on_get_iter(path)
-
-    def on_get_flags(self):
-        """Return the gtk.TreeModel flags."""
-        return gtk.TREE_MODEL_LIST_ONLY
+        try:
+            return self.visible_nodes[path[0]]
+        except IndexError:
+            return None
 
     def on_get_n_columns(self):
-        """Return the number of columns."""
-        len(self.column_types)
-
-    def on_get_column_type(self, index):
-        """Return the column type of column at the index."""
-        return self.column_types[index]
-
-    def on_get_iter(self, path):
-        """Return the word at the path."""
-        try:
-            return self.visible_words[path[0]]
-        except IndexError:
-            return None
-
-    def on_get_path(self, rowref):
-        """Return the path to the rowref."""
-        return self.visible_words.index(rowref)
-
-    def on_get_value(self, rowref, column):
-        """Return the value of the column at the rowref."""
-        if column == 0:
-            return self.display_word(rowref)
-        elif column == 1:
-            # The rowref is the raw word.
-            return rowref
-        else:
-            raise ValueError, "The column index does not exist."
-
-    def on_iter_next(self, rowref):
-        """Return the next word."""
-        try:
-            next = self.visible_words.index(rowref) + 1
-        except ValueError:
-            next = 0
-
-        try:
-            return self.visible_words[next]
-        except IndexError:
-            return None
-
-    def on_iter_children(self, parent):
-        """Return the first word, or None.
-
-         Return None when parent evaluates to True because lists do not have
-         parent nodes.
-         """
-        if parent:
-            return None
-        else:
-            return self.visible_words[0]
-
-    def on_iter_has_child(self, rowref):
-        """Return False.
-
-        Lists do not have child nodes.
+        """Return the number of columns.
+        
+        This method is broken in the parent class.
         """
-        return False
+        return len(self.column_types)
 
-    def on_iter_n_children(self, rowref):
-        """Return the number of visible words.
+    # These properties maintain compatability with CompleteModel
+    # and SnippetComplete in snippets.
 
-        Return 0 when rowref evaluates to True becauses lists to not have
-        child nodes.
-        """
-        if rowref:
-            return 0
-        return len(self.visible_words)
+    @property
+    def nodes(self):
+        """Maps words to the parent class."""
+        return self.words
 
-    def on_iter_nth_child(self, parent, n):
-        """Return the n visible word.
+    @property
+    def visible_nodes(self):
+        """Maps visible_words to the parent class."""
+        return self.visible_words
 
-        Return None when parent evaluates to True because lists do not have
-        parent nodes.
-        """
-        if parent:
-            return None
+    @property
+    def display_snippet(self):
+        """Maps display_word to the parent class."""
+        return self.display_word
 
-        try:
-            return self.visible_words[n]
-        except IndexError:
-            return None
-
-    def on_iter_parent(self, child):
-        """Return None becauses lists to not have parent nodes."""
-        return None
+    @property
+    def do_filter(self):
+        """Maps filter_words to the parent class."""
+        return self.filter_words
 
 
 class SyntaxComplete(SnippetComplete):
@@ -447,3 +384,12 @@ class SyntaxController(SnippetController):
             and not (event.state & gdk.MOD1_MASK)
             and event.keyval in self.SPACE_KEY_VAL):
             return self.show_completion()
+
+
+if __name__ == '__main__':
+    from tests.helpers import get_sourcebuffer
+    sources = (None, get_sourcebuffer('plugins/gdp/data/snark12.txt'))
+    model = SyntaxModel(sources, prefix='b')
+    import rpdb2; rpdb2.start_embedded_debugger('password')
+    print model.get_n_columns()
+
