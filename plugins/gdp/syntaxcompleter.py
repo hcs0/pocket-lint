@@ -303,7 +303,7 @@ gobject.signal_new(
 
 
 class SyntaxController(SnippetController):
-    """This class manages the interaction ofthe completion window."""
+    """This class manages the interaction of the completion window."""
 
     def run_word(self):
         """Retrieve the words and the cursor and show the sytaxt widget."""
@@ -340,14 +340,8 @@ class SyntaxController(SnippetController):
             # If there is no prefix, than take the insertion point as the end.
             end = buf.get_iter_at_mark(buf.get_insert())
 
-        # XXX sinzui 2007-07-22
-        # We need to create the sources touple in place of nodes
-        if len(buf.SourceLanguage.get_mime_types):
-            mime_type = buf.SourceLanguage.get_mime_types[0]
-        else:
-            mime_type = 'text/plain'
         file_path = self.env_get_filename(buf)
-        sources = (mime_type, file_path, buf)
+        sources = (file_path, buf)
         complete = SyntaxComplete(sources, prefix, False)
 
         complete.connect('syntax-activated', self.on_complete_row_activated)
@@ -384,12 +378,4 @@ class SyntaxController(SnippetController):
             and not (event.state & gdk.MOD1_MASK)
             and event.keyval in self.SPACE_KEY_VAL):
             return self.show_completion()
-
-
-if __name__ == '__main__':
-    from tests.helpers import get_sourcebuffer
-    sources = (None, get_sourcebuffer('plugins/gdp/data/snark12.txt'))
-    model = SyntaxModel(sources, prefix='b')
-    import rpdb2; rpdb2.start_embedded_debugger('password')
-    print model.get_n_columns()
 
