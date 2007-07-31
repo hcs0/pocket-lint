@@ -7,7 +7,7 @@ __metaclass__ = type
 
 __all__ = ['BaseSyntaxGenerator',
            'SyntaxModel',
-           'SyntaxComplete',
+           'SyntaxView',
            'SyntaxController',
            'TextGenerator',]
 
@@ -274,19 +274,18 @@ class SyntaxModel(CompleteModel):
         return self.filter_words
 
 
-class SyntaxComplete(SnippetComplete):
+class SyntaxView(SnippetComplete):
     """A widget for selecting the word to insert at the cursor.
 
     This widget extends the Gedit Snippet module to complete the word
     using the syntax of the document.
     """
-    def __init__(self, nodes, prefix=None, description_only=False):
-        """Initialize the syntax completer."""
+    def __init__(self, sources, prefix=None, description_only=False):
+        """Initialize the syntax View widget."""
         # Replace the snippets.CompleteModel with the SyntaxModel
-        # import SyntaxModel as CompleteModel
         CompleteModel = SyntaxModel
-        super(SyntaxComplete, self).__init__(
-            nodes=noes, prefix=prefix, description_only=description_only)
+        super(SyntaxView, self).__init__(
+            nodes=sources, prefix=prefix, description_only=description_only)
 
     def snippet_activated(self, word):
         """See snippets.syntaxcompleter.SnippetComplete
@@ -298,7 +297,7 @@ class SyntaxComplete(SnippetComplete):
 
 
 gobject.signal_new(
-    'syntax-activated', SyntaxComplete, gobject.SIGNAL_RUN_LAST,
+    'syntax-activated', SyntaxView, gobject.SIGNAL_RUN_LAST,
     gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
 
 
@@ -342,7 +341,7 @@ class SyntaxController(SnippetController):
 
         file_path = self.env_get_filename(buf)
         sources = (file_path, buf)
-        complete = SyntaxComplete(sources, prefix, False)
+        complete = SyntaxView(sources, prefix, False)
 
         complete.connect('syntax-activated', self.on_complete_row_activated)
         rect = self.view.get_iter_location(end)

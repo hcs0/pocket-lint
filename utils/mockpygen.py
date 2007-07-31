@@ -38,11 +38,14 @@ class MockFlagsDef(FlagsDef):
 
 class MockFunctionDef(FunctionDef):
     """A mock python function that returns data from the test environment."""
+
     module_template = Template ("""
 def $name($params):
     \"\"\"A mock implementation of $name.\"\"\"
-
+    key = '%s' % '$name'
+    return Mock().data.get(key, None)
 """)
+
     class_template = Template ("""
     def $name($params):
         \"\"\"A mock implementation of $name.\"\"\"
@@ -77,6 +80,8 @@ class MockMethodDef(MethodDef):
     template = Template ("""
     def $name(self$params):
         \"\"\"A mock implementation of $name.\"\"\"
+        key = '%s_%s' % (self.__class__.__name__, '$name')
+        return Mock().data.get(key, None)
 """)
 
     def write_code(self, fp=sys.stdout):
@@ -99,6 +104,7 @@ class MockObjectDef(ObjectDef):
 
 class $name($parent):
     \"\"\"A mock implementation of $name.\"\"\"
+
 """)
 
     def write_code(self, fp=sys.stdout, methods=None):
@@ -194,7 +200,26 @@ import gtksourceview
 from gtksourceview import *
 import gnome
 from gnome import *
-""") 
+""")
+
+        fp.write("""
+
+
+class Mock(object):
+    \"\"\"A class for passing mock data between the test and the testee.\"\"\"
+
+    # A dictionary to store data by <class>_<attribute> name
+    data = {}
+
+    def __new__(cls, *args, **kwargs):
+        \"\"\"Create a Singleton class.\"\"\"
+        if '_inst' not in vars(cls):
+            cls._inst = super(Mock, cls).__new__(cls, *args, **kwargs)
+        return cls._inst
+
+
+""")
+
         for enum in self.enums:
             enum.write_code(fp)
         if self.enums:

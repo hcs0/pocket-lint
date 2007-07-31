@@ -1,0 +1,31 @@
+SyntaxView for SyntaxCompleter
+==============================
+The Syntax view is a widget for showing, filtering, and selectings
+a word. It is a subclass of snippets.SnippetComplete and replaces
+some if its data and methods with its own.
+
+
+SyntaxView
+----------
+
+The SyntaxView overrides the snippets.SnippetComplete's initialization
+to replace the model with SyntaxModel
+
+    >>> from gdp.syntaxcompleter import SyntaxView
+    >>> SyntaxView()
+    Traceback (most recent call last):
+    ...
+    TypeError: __init__() takes at least 2 arguments (1 given)
+
+    >>> from gdp.tests.helpers import get_sourcebuffer, get_mock
+    >>> source_buffer = get_sourcebuffer('plugins/gdp/data/snark12.txt')
+    >>> sources = ('', source_buffer)
+    >>> mock = get_mock()
+    >>> import gtk
+    >>> import gedit
+    >>> mock.data['app_get_default'] = gedit.App()
+    >>> mock.data['App_get_active_window'] = gtk.Window(
+    ...     type=gtk.WINDOW_TOPLEVEL)
+    >>> view = SyntaxView(sources)
+    >>> view
+    <SyntaxView object (PyGtkTreeView) at ...>

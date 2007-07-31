@@ -10,7 +10,8 @@ test suite.
 
 # Add additional Python lib paths as needed.
 paths = ['/usr/lib/gedit-2/plugins/',
-         './plugins/']
+         './plugins/',
+         './gedit/']
 
 # Exclude directories that match:
 dir_re = r'(sourcecode)'

@@ -4,11 +4,14 @@
 __metaclass__ = type
 
 
-__ALL__ = ['get_sourcebuffer']
+__ALL__ = ['get_sourcebuffer',
+           'get_mock']
 
 
 from gettext import gettext as _
 from gtksourceview import SourceBuffer, SourceLanguagesManager
+
+from gedit import Mock
 
 
 def get_sourcebuffer(file_path, mime_type='text/plain'):
@@ -27,3 +30,10 @@ def get_sourcebuffer(file_path, mime_type='text/plain'):
     source_buffer.set_text(text)
     return source_buffer
 
+
+def get_mock():
+    """Return a mock gedit object.
+    
+    Store data in keys named after the class and the <class>_<methods>.
+    """
+    return Mock()
