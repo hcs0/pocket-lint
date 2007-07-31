@@ -157,7 +157,7 @@ class PylintMessage(object):
 
     stock_id = property(lambda self: self._stock_id)
 
-class PylintInstance(object):
+class LintInstance(object):
     """GEdit PYlint provider."""
     version_message = (
         "Pylint does not support --output-format. Please upgrade Pylint.")

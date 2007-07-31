@@ -1,15 +1,15 @@
 import gedit
 
-from gedit_pylint import PylintInstance
+from gdp.lint import LintInstance
 
-class PylintPlugin (gedit.Plugin):
+class LintPlugin (gedit.Plugin):
     """Pylint integration class."""
     def __init__(self):
         self._instances = {}
-        super(PylintPlugin, self).__init__ ()
+        super(LintPlugin, self).__init__ ()
 
     def activate(self, window):
-        self._instances[window] = PylintInstance (self, window)
+        self._instances[window] = LintInstance (self, window)
 
     def deactivate(self, window):
         if self._instances.has_key(window):
