@@ -281,9 +281,16 @@ class SyntaxView(SnippetComplete):
     using the syntax of the document.
     """
     def __init__(self, sources, prefix=None, description_only=False):
-        """Initialize the syntax View widget."""
-        # Replace the snippets.CompleteModel with the SyntaxModel
-        CompleteModel = SyntaxModel
+        """Initialize the syntax View widget.
+        
+        param sources A touple of a file path and/or a
+                      gtksourceview.sourcebuffer from which the vocabulary
+                      can be generated.
+        """
+        # Replace the snippets.SnippetComplete.CompleteModel
+        # with the SyntaxModel.
+        from snippets import SnippetComplete
+        SnippetComplete.CompleteModel = SyntaxModel
         super(SyntaxView, self).__init__(
             nodes=sources, prefix=prefix, description_only=description_only)
 
