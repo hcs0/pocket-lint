@@ -38,14 +38,63 @@ return when they are called in the next test.
     >>> view
     <SyntaxView object (GtkWindow) at ...>
 
-The SyntaxView overrides the snippets.SnippetComplete's initialization
-to replace the model with SyntaxModel
+SyntaxView overrides the snippets.SnippetComplete's initialization to
+replace the model with SyntaxModel.
 
     >>> view.model
     <SyntaxModel object (PyGtkGenericTreeModel) at ...>
     >>> len(view.model.words)
     1987
-    >>> view.model.words == view.model.visible_words
-    True
     >>> view.model.visible_words
     ['000', '000x100', '03', '08', '1', '10', '1992', '2', ...]
+    >>> view.model.filter_words('ba')
+    >>> view.model.visible_words
+    ['backwards', 'bade', 'bags', 'bake', 'BAKER', 'Baker', ...]
+
+A prefix may be provided when initializing the SyntaxView.
+Note that the visible_words lists are sorted somewhat
+differently--this appears to relate to the starting set of words
+in the vocabulary.
+
+    >>> view = SyntaxView(sources, 'ba')
+    >>> view.model.visible_words
+    ['backwards', 'bade', 'bags', 'bake', 'Baker', 'BAKER', ...]
+
+SyntaxView provides a gsignal, 'syntax-activated', for client code to
+register a callback with. The gsignal is activated when the user has
+selected a word, thus activating the row in the TreeView. The method
+syntax_activated is also responsible to for destroying the window, and
+thus disconnects the signal.
+
+    >>> from gdp.tests.helpers import proof, SignalTester
+    >>> signal_tester = SignalTester(['view', 'word'])
+    >>> proof(signal_tester.view)
+    <signal_tester.view> None
+    >>> proof(signal_tester.word)
+    <signal_tester.word> None
+
+    >>> handler_id = view.connect('syntax-activated', signal_tester.receiver)
+    >>> proof(view.handler_is_connected(handler_id))
+    <view.handler_is_connected(handler_id)> True
+    >>> view.model.visible_words[4]
+    'Baker'
+    >>> view.syntax_activated(view.model.visible_words[4])
+    >>> proof(view is signal_tester.view)
+    <view is signal_tester.view> True
+    >>> signal_tester.word
+    'Baker'
+   
+    >>> proof(view.handler_is_connected(handler_id))
+    <view.handler_is_connected(handler_id)> False
+
+SyntaxView is compatible with its parent class SnippetComplete. Calling
+snippet_activated will emit the 'syntax-activated' signal.
+
+    >>> signal_tester.view = None
+    >>> signal_tester.word = None
+    >>> handler_id = view.connect('syntax-activated', signal_tester.receiver)
+    >>> view.snippet_activated(view.model.visible_words[3])
+    >>> proof(view is signal_tester.view)
+    <view is signal_tester.view> True
+    >>> signal_tester.word
+    'bake'

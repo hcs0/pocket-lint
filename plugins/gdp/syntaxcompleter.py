@@ -278,14 +278,19 @@ class SyntaxView(SnippetComplete):
     """A widget for selecting the word to insert at the cursor.
 
     This widget extends the Gedit Snippet module to complete the word
-    using the syntax of the document.
+    using the vocabulary of the document.
     """
+
     def __init__(self, sources, prefix=None, description_only=False):
-        """Initialize the syntax View widget.
+        """Initialize the syntax view widget.
         
-        param sources A touple of a file path and/or a
-                      gtksourceview.sourcebuffer from which the vocabulary
-                      can be generated.
+        :sources: A `tuple` of a file path and a source_buffer from which
+                  the vocabulary can be generated. The SyntaxGenerator
+                  required one or both to create the vocabulary.
+                  :file_path: a `str` or None.
+                  :source_buffer: a gtksourceview.sourcebuffer or None
+        :prefix: A `str` that each word in the vocabulary but start with.
+        :description_only: Not used.
         """
         # Replace the snippets.SnippetComplete.CompleteModel
         # with the SyntaxModel.
@@ -294,13 +299,17 @@ class SyntaxView(SnippetComplete):
         super(SyntaxView, self).__init__(
             nodes=sources, prefix=prefix, description_only=description_only)
 
-    def snippet_activated(self, word):
-        """See snippets.syntaxcompleter.SnippetComplete
-
-        Signal that the word (snippet) was selected.
-        """
+    def syntax_activated(self, word):
+        """Signal that the word (snippet) was selected."""
         self.emit('syntax-activated', word)
         self.destroy()
+
+    # These methods maintain compatability with SnippetComplete
+    # in snippets.
+
+    def snippet_activated(self, word):
+        """Maps syntax_activated to the parent class."""
+        self.syntax_activated(word)
 
 
 gobject.signal_new(
