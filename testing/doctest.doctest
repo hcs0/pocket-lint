@@ -1,0 +1,41 @@
+Import the helper functions that we are going to test.
+
+    >>> from testing import proof
+
+A review of some insanity that must expand to values.
+
+    >>> foo = 1024 * 32
+    >>> bar = 'Darling %s bank manager' % 'facist'
+    >>> baz = object()
+    >>> groucho = [foo, bar, baz]
+    >>> harpo = (foo, bar, baz)
+    >>> chico = set([foo, bar, baz, baz, bar, foo])
+    >>> proof((foo >= baz and len(bar) < foo) 
+    ...     or groucho == harpo and harpo[2] in chico)
+    (32768 >= <object object at ...>
+    and len('Darling facist bank manager') < 32768)
+        or [32768, 'Darling facist bank manager', <object object at ...>] ==
+        (32768, 'Darling facist bank manager', <object object at ...>)
+            and (32768, 'Darling facist bank manager',
+            <object object at ...>)[2] in 
+                set([32768, <object object at ...>, 
+                    'Darling facist bank manager'])
+
+David Allouche: Out of curiousity, how would it handle something like this:
+
+    >>> noob = 'wacky'
+    >>> def is_leet(peep):
+    ...     return '%s pH4!L3Z' % peep
+    >>> proof(is_leet(noob) == '%s w!3nZ' % noob)
+    <function is_leet at ...>('wacky') == '%s w!3nZ' % 'wacky'
+
+David Allouche: Or something like this:
+
+    >>> class Cheezburger(object):
+    ...     def get_mallow(self):
+    ...         return 'zany'
+    >>> cheezburger = Cheezburger()
+    >>> kitten = str.lower
+    >>> proof(cheezburger.get_mallow() == kitten)
+    <Cheezburger object at ...>.get_mallow() == 
+    <method 'lower' of 'str' objects>

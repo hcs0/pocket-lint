@@ -11,6 +11,7 @@ __ALL__ = ['get_sourcebuffer',
 
 
 import inspect
+import re
 
 from gettext import gettext as _
 from gtksourceview import SourceBuffer, SourceLanguagesManager
@@ -43,13 +44,50 @@ def get_mock():
     return Mock()
 
 
-def proof(value):
-    """Return a string represenation of an expression and its value."""
-    # Go up 2 frames to the doctest and get the source of the example.
+def AssertEquals(outcome, expected):
+    """Print a string represenation of an outcome's value.
+    
+    When the outcome is not equal to the expected value, the
+    expected value and the outcome are printed for verification.
+    """
+    _testAssertion(outcome, expected, '==')
+
+
+def literal(value):
+    """Print the literal value.
+    
+    Display None, string, and numbers as raw values. Objects are
+    presented using repr()
+    """
+    print '%s' % value
+
+
+_re_tokens = re.compile(r'[\w]+')
+
+
+def proof(outcome):
+    """Print True when the outcome of an expression evaluates to True.
+    
+    When the outcome is False, the values in the expression are
+    printed for verification.
+    """
+    if outcome is True:
+        print '%s' % outcome
+        return
+
+    # The outcome of the expression did not evaluate to True.
+    # Go up 2 frames to the testrunner and get the source of the example.
     source = inspect.stack()[2][0].f_locals['example'].source
-    # Remove proof(...)
+    # Remove 'proof(...)\n' to get the expression the testrunner evaluated.
     expression = source[6:-2]
-    print '<%s> %s' % (expression, value)
+    tokens = set(_re_tokens.findall(expression))
+    for token in list(tokens):
+        # Go up 1 frame to the doctest and use the value of the token
+        # if it is a local variable.
+        if token in inspect.stack()[1][0].f_locals:
+            value = repr(inspect.stack()[1][0].f_locals[token])
+            expression = expression.replace(token, value)
+    print expression
 
 
 class SignalTester(object):
@@ -72,3 +110,4 @@ class SignalTester(object):
         """
         for i, name in enumerate(self.attrs):
             self.__dict__[name] = args[i]
+
