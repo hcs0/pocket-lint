@@ -1,8 +1,7 @@
 #!/usr/bin/python
 """A simple doctest runner.
 
-This test app loads testrc.py to set test environment configuration
-information.
+This test app can be run from test.py which sets the default options.
 """
 
 import doctest
@@ -106,7 +105,7 @@ def parse_args():
 def setup_env(params=None):
     """Setup the test environment.
     
-    This function merges the command line args with testrc customizations
+    This function merges the command line args with Env customizations
     and the default values.
     """
     Env.dir_re = re.compile(params.get('dir_re', '(sourcecode)'))
@@ -131,16 +130,17 @@ def setup_env(params=None):
 
 def find_tests(root_dir, skip_dir_re='sourcecode', test_pattern='.*'):
     """Generate a list of matching test files below a directory."""
-    file_re = re.compile(r'.*(%s).*\.(txt|doctest)$' % test_pattern)
+    file_re = re.compile(r'.*(%s).*' % test_pattern)
+    test_re = re.compile(r'.*\.(txt|doctest)$')
     for path, subdirs, files in os.walk(root_dir):
         subdirs[:] = [dir for dir in subdirs
                       if skip_dir_re.match(dir) is None]
         if path.endswith('tests'):
             for file in files:
                 file_path = os.path.join(path, file)
-                if os.path.islink(file_path):
+                if os.path.islink(file_path) or not test_re.match(file_path):
                     continue
-                if file_re.match(file_path) is not None:
+                if file_re.match(file_path):
                     yield os.path.join(path, file)
 
 
@@ -169,10 +169,4 @@ def main(params=None):
 
 
 if __name__ == '__main__':
-    # The resource configuration file should contain all
-    # the project specific test information.
-    try:
-        import testrc
-    except ImportError:
-        testrc = object()
     main()

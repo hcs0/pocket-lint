@@ -23,7 +23,7 @@ return when they are called in the next test.
     ...
     TypeError: __init__() takes at least 2 arguments (1 given)
 
-    >>> from gdp.tests.helpers import get_sourcebuffer, get_mock
+    >>> from testing.helpers import get_sourcebuffer, get_mock
     >>> source_buffer = get_sourcebuffer('plugins/gdp/data/snark12.txt')
     >>> sources = ('', source_buffer)
     >>> # SnippetComplete.__init__ calls gedit behaviours that must
@@ -66,7 +66,7 @@ selected a word, thus activating the row in the TreeView. The method
 syntax_activated is also responsible to for destroying the window, and
 thus disconnects the signal.
 
-    >>> from testing import literal, proof, SignalTester
+    >>> from testing.helpers import literal, proof, SignalTester
     >>> signal_tester = SignalTester(['view', 'word'])
     >>> literal(signal_tester.view)
     None

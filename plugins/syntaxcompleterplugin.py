@@ -95,6 +95,13 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         """Activate the SyntaxView when the accelerator is called."""
         return self.current_controller.accelerator_activate(keyval, mod)
 
+    # These methods maintain compatability with SnippetController
+    # in snippets.
+
+    def language_changed(self, controller):
+        """Maps ui_changed to parent class."""
+        self.update_ui(self.window)
+
     # XXX sinzui 2007-07-26:
     # Factor this out
     def setup_syntax_completer(self, window):

@@ -1,4 +1,4 @@
-"""testing utilities."""
+"""utilities."""
 
 __metaclass__ = type
 

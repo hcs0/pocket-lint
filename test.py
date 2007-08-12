@@ -24,5 +24,5 @@ if __name__ == '__main__':
     params = vars()
     keys = params.keys()
     [params.pop(k) for k in keys if k.startswith('__')]
-    from utils.testrunner import main
+    from testing.testrunner import main
     main(params)

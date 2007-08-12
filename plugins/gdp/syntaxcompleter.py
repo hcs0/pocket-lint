@@ -372,6 +372,15 @@ class SyntaxController(SnippetController):
         """SyntaxController does not support snippets."""
         return False
 
+    def update_language(self):
+        """Maps update_language to parent class."""
+        lang = self.view.get_buffer().get_language()
+        if not lang:
+            return
+        self.language_id = lang.get_id()
+
+    # Callbacks
+
     def on_complete_row_activated(self, complete, word):
         """Insert the word into the buffer."""
         buf = self.view.get_buffer()
