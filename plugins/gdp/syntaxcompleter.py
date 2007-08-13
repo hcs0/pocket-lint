@@ -17,7 +17,9 @@ from xml.sax import saxutils
 from gettext import gettext as _
 import gobject
 import gtk
+from gtk import gdk
 
+from snippets.functions import buffer_word_boundary
 from snippets.SnippetComplete import SnippetComplete, CompleteModel
 from snippets.SnippetController import SnippetController
 
@@ -333,24 +335,30 @@ class SyntaxController(SnippetController):
         """SyntaxControler does not support snippets."""
         pass
 
+    def apply_word(self, word, start=None, end=None):
+        """Insert the word into the buffer."""
+        if not word:
+            return False
+
+        buf = self.view.get_buffer()
+        if not start:
+            start = buf.get_iter_at_mark(buf.get_insert())
+        if not end:
+            end = buf.get_iter_at_mark(buf.get_selection_bound())
+        if start.equal(end):
+            # Set start and end to the word boundary so it will be replaced.
+            start, end = buffer_word_boundary(buf)
+        buf.delete(start, end)
+        buf.insert_at_cursor(word)
+        return True
+
     def show_completion(self, preset=None):
         """Show completion, shows a completion dialog in the view.
 
-        If preset is not None then a completion dialog is shown with the
-        snippets in the preset list. Otherwise it will try to find the word
-        preceding the current cursor position. If such a word is found, it
-        is taken as a  tab trigger prefix so that only snippets with a tab
-        trigger prefixed with the word are in the list. If no such word can
-        be found than all snippets are shown.
+        The preset param is ignored. 
         """
         buf = self.view.get_buffer()
-        bounds = buf.get_selection_bounds()
-        prefix = None
-
-        if not bounds and not preset:
-            # When there is no text selected and no preset present, find the
-            # prefix.
-            (prefix, ignored, end) = self.get_tab_tag(buf)
+        (prefix, ignored, end) = self.get_tab_tag(buf)
         if not prefix:
             # If there is no prefix, than take the insertion point as the end.
             end = buf.get_iter_at_mark(buf.get_insert())
@@ -361,10 +369,9 @@ class SyntaxController(SnippetController):
 
         complete.connect('syntax-activated', self.on_complete_row_activated)
         rect = self.view.get_iter_location(end)
-        win = self.view.get_window(gtk.TEXT_WINDOW_TEXT)
         (x, y) = self.view.buffer_to_window_coords(
             gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
-        (xor, yor) = win.get_origin()
+        (xor, yor) = self.view.get_window(gtk.TEXT_WINDOW_TEXT).get_origin()
         self.move_completion_window(complete, x + xor, y + yor)
         return complete.run()
 
@@ -403,3 +410,9 @@ class SyntaxController(SnippetController):
             and event.keyval in self.SPACE_KEY_VAL):
             return self.show_completion()
 
+    # These methods maintain compatability with SnippetController
+    # in snippets.
+
+    def stop(self):
+        """Maps SyntaxCompleterPlugin.deactvate to parent class."""
+        self.instance.deactivate(self.instance.window)
