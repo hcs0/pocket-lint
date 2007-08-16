@@ -19,9 +19,7 @@ import gobject
 import gtk
 from gtk import gdk
 
-from snippets.functions import buffer_word_boundary
 from snippets.SnippetComplete import SnippetComplete, CompleteModel
-from snippets.SnippetController import SnippetController
 
 
 class BaseSyntaxGenerator(object):
@@ -60,7 +58,7 @@ class TextGenerator(BaseSyntaxGenerator):
     """Generate a list of words that match a given prefix for a document."""
     def __init__(self, prefix=None, text_buffer=None, file_path=None):
         """Create a TextGenerator
-        
+
         :prefix string: The word prefix used to locate complete words.
         :text_buffer gtk.TextBuffer: The source of words to search.
         :file_path string: The path to the file that contains the words to
@@ -79,7 +77,7 @@ class TextGenerator(BaseSyntaxGenerator):
 
     def file_path(self):
         """The path to the file that is the source of this TextGenerator.
-        
+
         Setting file_path will load the file into the text_buffer.
         """
         return self._file_path
@@ -166,14 +164,14 @@ class PythonGenerator(BaseSyntaxGenerator):
 class SyntaxModel(CompleteModel):
     """A model for managing multiple syntaxes.
 
-    This model determine the words that can be inserted at the cursor. 
+    This model determine the words that can be inserted at the cursor.
     The model understands the free text in the document and the Python syntax.
     """
     column_types = (str, str)
 
     def __init__(self, sources, prefix=None, description_only=False):
         """Create, sort, and display the model.
-        
+
         The sources parameter is a tuple of mime_type, file_path, and
         text_buffer.
         """
@@ -247,7 +245,7 @@ class SyntaxModel(CompleteModel):
 
     def on_get_n_columns(self):
         """Return the number of columns.
-        
+
         This method is broken in the parent class.
         """
         return len(self.column_types)
@@ -285,7 +283,7 @@ class SyntaxView(SnippetComplete):
 
     def __init__(self, sources, prefix=None, description_only=False):
         """Initialize the syntax view widget.
-        
+
         :sources: A `tuple` of a file path and a source_buffer from which
                   the vocabulary can be generated. The SyntaxGenerator
                   required one or both to create the vocabulary.
@@ -319,21 +317,177 @@ gobject.signal_new(
     gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
 
 
-class SyntaxController(SnippetController):
+class SyntaxController(object):
     """This class manages the interaction of the completion window."""
+    TAB_KEY_VAL = (gtk.keysyms.Tab, gtk.keysyms.ISO_Left_Tab)
+    SPACE_KEY_VAL = (gtk.keysyms.space,)
 
-    def run_word(self):
-        """Retrieve the words and the cursor and show the sytaxt widget."""
-        if not self.view:
-            return False
+    def __init__(self, view):
+        """Initialize the controller for the gedit.View."""
+        self.view = None
+        self.placeholders = []
+        self.active_snippets = []
+        self.active_placeholder = None
+        self.signal_ids = {}
+
+        self.update_placeholders = []
+        self.jump_placeholders = []
+        self.language_id = 0
+        self.timeout_update_id = 0
+
+        self.set_view(view)
+
+    def set_view(self, view):
+        """Set the view to be controlled."""
+        if view == self.view:
+            return
+        self._set_view(view)
+
+    def _set_view(self, view):
+        """Set the view to be controlled.
+
+        Installs signal handlers and sets current language. Calling
+        self.set_view(None) will effectively remove all the control from
+        the current view.
+        """
+        if self.view:
+            # Unregister the current view before assigning the new one.
+            buf = self.view.get_buffer()
+            self.disconnect_signal(self.view, 'key-press-event')
+            self.disconnect_signal(self.view, 'destroy')
+            self.disconnect_signal(buf, 'notify::language')
+            self.disconnect_signal(self.view, 'notify::editable')
+            self.disconnect_signal(buf, 'changed')
+            self.disconnect_signal(buf, 'cursor-moved')
+
+        self.view = view
+        if view != None:
+            buf = view.get_buffer()
+            self.update_language()
+            self.signal_ids['destroy'] = view.connect(
+                'destroy', self.on_view_destroy)
+            self.signal_ids['notify::language'] = buf.connect(
+                'notify::language', self.on_notify_language)
+            self.signal_ids['notify::editable'] = view.connect(
+                'notify::editable', self.on_notify_editable)
+            if view.get_editable():
+                self.signal_ids['key-press-event'] = view.connect(
+                    'key_press_event', self.on_view_key_press)
+
+    def disconnect_signal(self, obj, signal):
+        """Disconnect the signal from the provided object."""
+        if signal in self.signal_ids:
+            obj.disconnect(self.signal_ids[signal])
+            del self.signal_ids[signal]
+
+    def accelerator_activate(self, keyval, mod):
+        """Display the SyntaxView widget is permitted.
+
+        When there is no gedit.View, or it is not editable, the SyntaxView
+        widget will not display.
+        """
+        if not self.view or not self.view.get_editable():
+            return
+        return self.show_completion()
+
+    def show_completion(self, preset=None):
+        """Show completion, shows a completion widget in the view.
+
+        The preset param is ignored.
+        """
         buf = self.view.get_buffer()
-        # get the word preceding the current insertion position
-        (word, start, end) = self.get_tab_tag(buf)
-        return self.show_completion(word)
+        (prefix, ignored, end) = self.get_tab_tag(buf)
+        if not prefix:
+            # If there is no prefix, than take the insertion point as the end.
+            end = buf.get_iter_at_mark(buf.get_insert())
 
-    def deactivate_word(self, snippet, force=False):
-        """SyntaxControler does not support snippets."""
-        pass
+        if buf.get_uri():
+            file_path = os.path.basename(buf.get_uri_for_display())
+        else:
+            file_path = ''
+        sources = (file_path, buf)
+        complete = SyntaxView(sources, prefix, False)
+
+        complete.connect('syntax-activated', self.on_complete_row_activated)
+        rect = self.view.get_iter_location(end)
+        (x, y) = self.view.buffer_to_window_coords(
+            gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
+        (xor, yor) = self.view.get_window(gtk.TEXT_WINDOW_TEXT).get_origin()
+        self.move_completion_window(complete, x + xor, y + yor)
+        return complete.run()
+
+    def get_tab_tag(self, buf):
+        """Return the word fragment before the cursor."""
+        end = buf.get_iter_at_mark(buf.get_insert())
+        start = end.copy()
+        word = None
+        if start.backward_word_start():
+            # Check if we were at a word start ourselves
+            tmp = start.copy()
+            tmp.forward_word_end()
+            if tmp.equal(end):
+                word = buf.get_text(start, end)
+            else:
+                start = end.copy()
+        else:
+            start = end.copy()
+
+        if not word or word == '':
+            if start.backward_char():
+                word = start.get_char()
+                if word.isalnum() or word.isspace():
+                    return (None, None, None)
+            else:
+                return (None, None, None)
+
+        return (word, start, end)
+
+    def move_completion_window(self, complete, x, y):
+        """Move the child window to a so that that is visible on the screen.
+
+        The x and y coordinates are taken as hints rather than absolute
+        values.
+        ."""
+
+        def sane_x_or_y(ordinate, parent_length, child_length):
+            """Return a x or y ordinate that is visible on the screen."""
+            MARGIN = 15
+            if ordinate + child_length > parent_length:
+                return child_length - MARGIN
+            elif ordinate < MARGIN:
+                return MARGIN
+            else:
+                return ordinate
+
+        screen = self.view.get_screen()
+        complete_width, complete_height = complete.get_size()
+        x = sane_x_or_y(x, screen.get_width(), complete_width)
+        y = sane_x_or_y(y, screen.get_height(), complete_height)
+        complete.move(x, y)
+
+    def update_language(self):
+        """Map update_language to parent class."""
+        lang = self.view.get_buffer().get_language()
+        if not lang:
+            return
+        self.language_id = lang.get_id()
+
+    # Callbacks
+
+    def on_view_destroy(self, view):
+        """Disconnect the controller."""
+        self.set_view(None)
+        return
+
+    def on_complete_row_activated(self, complete, word):
+        """Insert the word into the buffer."""
+        buf = self.view.get_buffer()
+        bounds = buf.get_selection_bounds()
+        if bounds:
+            self.apply_word(word, None, None)
+        else:
+            (ignored, start, end) = self.get_tab_tag(buf)
+            self.apply_word(word, start, end)
 
     def apply_word(self, word, start=None, end=None):
         """Insert the word into the buffer."""
@@ -352,55 +506,17 @@ class SyntaxController(SnippetController):
         buf.insert_at_cursor(word)
         return True
 
-    def show_completion(self, preset=None):
-        """Show completion, shows a completion dialog in the view.
-
-        The preset param is ignored. 
-        """
-        buf = self.view.get_buffer()
-        (prefix, ignored, end) = self.get_tab_tag(buf)
-        if not prefix:
-            # If there is no prefix, than take the insertion point as the end.
-            end = buf.get_iter_at_mark(buf.get_insert())
-
-        file_path = self.env_get_filename(buf)
-        sources = (file_path, buf)
-        complete = SyntaxView(sources, prefix, False)
-
-        complete.connect('syntax-activated', self.on_complete_row_activated)
-        rect = self.view.get_iter_location(end)
-        (x, y) = self.view.buffer_to_window_coords(
-            gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
-        (xor, yor) = self.view.get_window(gtk.TEXT_WINDOW_TEXT).get_origin()
-        self.move_completion_window(complete, x + xor, y + yor)
-        return complete.run()
-
-    def update_word_contents(self):
-        """SyntaxController does not support snippets."""
-        return False
-
-    def update_language(self):
-        """Maps update_language to parent class."""
-        lang = self.view.get_buffer().get_language()
-        if not lang:
-            return
-        self.language_id = lang.get_id()
-
-    # Callbacks
-
-    def on_complete_row_activated(self, complete, word):
-        """Insert the word into the buffer."""
-        buf = self.view.get_buffer()
-        bounds = buf.get_selection_bounds()
-        if bounds:
-            self.apply_word(word, None, None)
-        else:
-            (ignored, start, end) = self.get_tab_tag(buf)
-            self.apply_word(word, start, end)
-
     def on_buffer_cursor_moved(self, buf):
         """SyntaxControler does not support snippets."""
         self.deactivate_word(self.active_words)
+
+    def on_notify_language(self, buf, spec):
+        """Update the controller that the Document's language changed."""
+        self.update_language()
+
+    def on_notify_editable(self, view, spec):
+        """Update the controller that the view is editable."""
+        self._set_view(view)
 
     def on_view_key_press(self, view, event):
         """Show the completion widget."""
@@ -413,6 +529,47 @@ class SyntaxController(SnippetController):
     # These methods maintain compatability with SnippetController
     # in snippets.
 
-    def stop(self):
-        """Maps SyntaxCompleterPlugin.deactvate to parent class."""
-        self.instance.deactivate(self.instance.window)
+#     def stop(self):
+#         """Map SyntaxCompleterPlugin.deactvate to parent class."""
+#         #self.instance.deactivate(self.instance.window)
+#         self.set_view(None)
+
+#     def apply_snippet(self, snippet, start=None, end=None):
+#         """Not supported.
+#
+#         It is feasible for a SyntaxModel to represent an indentifier
+#         and its parameters. In which case the model could generate
+#         a snippetis real-time. This method would need revision or
+#         removal.
+#         """
+#         return False
+
+#     def run_snippet(self):
+#         """Not supported.
+#
+#         It is feasible for a SyntaxModel to represent an indentifier
+#         and its parameters. In which case the model could generate
+#         a snippetis real-time. This method would need revision or
+#         removal.
+#         """
+#         return False
+
+#     def deactivate_snippet(self, snippet, force=False):
+#         """Not supported.
+#
+#         It is feasible for a SyntaxModel to represent an indentifier
+#         and its parameters. In which case the model could generate
+#         a snippetis real-time. This method would need revision or
+#         removal.
+#         """
+#         pass
+
+#     def update_snippet_contents(self):
+#         """Not supported.
+#
+#         It is feasible for a SyntaxModel to represent an indentifier
+#         and its parameters. In which case the model could generate
+#         a snippetis real-time. This method would need revision or
+#         removal.
+#         """
+#         return False

@@ -37,7 +37,6 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         Add a SyntaxControler to every view.
         """
         self.window = window
-        self.setup_syntax_completer(window)
         window.connect('tab-added', self.on_tab_added)
         for view in self.window.get_views():
             if isinstance(view, gedit.View) and not self.has_controller(view):
@@ -52,7 +51,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         """
         #for (handler_id, view) in self.handler_ids:
         #    view.disconnect(handler_id)
-        for view in self.window.get_views():
+        for view in window.get_views():
             if isinstance(view, gedit.View) and self.has_controller(view):
                 view._syntax_controller.stop()
                 view._syntax_controller = None
@@ -91,6 +90,10 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         if isinstance(view, gedit.View) and not self.has_controller(view):
             view._syntax_controller = SyntaxController(self, view)
 
+    def on_action_snippets_activate(self, item):
+        """The SyntaxCompleter is not configurable."""
+        pass
+
     def accelerator_activated(self, keyval, mod):
         """Activate the SyntaxView when the accelerator is called."""
         return self.current_controller.accelerator_activate(keyval, mod)
@@ -99,22 +102,5 @@ class SyntaxCompleterPlugin(gedit.Plugin):
     # in snippets.
 
     def language_changed(self, controller):
-        """Maps ui_changed to parent class."""
+        """Map ui_changed for SnippetController descendants."""
         self.update_ui(self.window)
-
-    # XXX sinzui 2007-07-26:
-    # Factor this out
-    def setup_syntax_completer(self, window):
-        """Setup the syntax completion in the view."""
-        view = window.get_active_view()
-        if view is not None:
-            if getattr(view, 'syntax_completer', False) == False:
-                doc = window.get_active_document()
-                if doc.get_language() is not None:
-                    language = doc.get_language().get_id()
-                else:
-                    language = None
-                setattr(view, 'syntax_completer', SyntaxCompleter(language))
-                handler_id = view.connect(
-                    'key-press-event', view.syntax_completer.complete)
-                self.handler_ids.append((handler_id, view))
