@@ -71,7 +71,7 @@ def get_window(file_path, document=None):
     view = gedit.View(document)
     scrolled_window = gtk.ScrolledWindow()
     scrolled_window.add(view)
-    view.set_size_request(300,250)
+    view.set_size_request(300, 250)
     window = gedit.Window()
     window.add(scrolled_window)
     window.connect("destroy", gtk.main_quit)
