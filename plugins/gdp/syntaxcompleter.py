@@ -354,6 +354,8 @@ class SyntaxController(object):
             file_path = ''
         sources = (file_path, document)
         syntax_view = SyntaxView(sources, prefix, False)
+        # Add a hook for testing.
+        self.syntax_view = syntax_view
         syntax_view.connect(
             'syntax-activated', self.on_syntaxview_row_activated)
         syntax_view.move(*self._calculateSyntaxViewPosition(syntax_view, end))
@@ -440,16 +442,18 @@ class SyntaxController(object):
         (ignored, start, end) = self.getWordPrefix(document)
         self.insertWord(word, start)
 
-    def on_notify_editable(self, view, spec):
-        """Update the controller when the view editable state changes."""
+    def on_notify_editable(self, view, param_spec):
+        """Update the controller when the view editable state changes.
+        
+        This method is ultimately responsible for enabling and disabling
+        the SyntaxView widget for syntax completion.
+        """
         self.setView(view, True)
 
     def on_view_key_press(self, view, event):
         """Show the SyntaxView widget when Control-Shift-Space is pressed."""
-        if ((event.state & gdk.CONTROL_MASK)
-            and (event.state & gdk.SHIFT_MASK)
-            and not (event.state & gdk.MOD1_MASK)
-            and event.keyval in (gtk.keysyms.space, )):
+        state = gdk.CONTROL_MASK | gdk.SHIFT_MASK
+        if event.state == state and event.keyval in (gtk.keysyms.space, ):
             return self.showSyntaxView()
 
     def on_view_destroy(self, view):
