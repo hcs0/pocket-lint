@@ -265,10 +265,73 @@ at the cursor position.
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'
 
-GSignals
-~~~~~~~~
 
-The SyntaxController relies on GSignals to
+GSignals
+--------
+
+The SyntaxController relies on GSignals to respond the of gedit.View
+and the SyntaxView.
+
+Signal test requires some help to isolate the emission and reception
+of the sginals.
+
+    >>> from testing.helpers import SignalTester
+    >>> signal_tester = SignalTester()
+    >>> signal_tester.attachReceptionHarness(controller)
+    >>> controller.testeeConnect(
+    ...     controller, syntax_view, 'syntax-view', 'syntax-activated',
+    ...     controller.on_syntaxview_row_activated)
+
+on_syntaxview_row_activated()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SyntaxView sends a syntax-activated signal to return the user's chosen
+word. The method calls insertWord. Unlike the afore mentioned method,
+when the word is None or an empty string, there is no error
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> cursor_iter.backward_chars(6)
+    True
+    >>> document.place_cursor(cursor_iter)
+
+When the word is None or an empty string, the Document is no changed.
+
+    >>> signal_tester.emitter('syntax-activated', syntax_view, None)
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_iter_at_mark(sentence_mark))
+    'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'    
+
+    >>> signal_tester.emitter('syntax-activated', syntax_view, '')
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_iter_at_mark(sentence_mark))
+    'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'      
+
+When the word is a string (as it should be), the word is inserted into
+the document. According the rules of insertWord(), when a space or
+symbol preceeds the cursor the word is inserted. Otherwise, the
+characters before the cursor are replaced.
+
+    >>> signal_tester.emitter('syntax-activated', syntax_view, 'ed')
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_iter_at_mark(sentence_mark))
+    'This is the edesteem Project Gutenberg Etext of The Hunting of the Sn...' 
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> cursor_iter.forward_chars(6)
+    True
+    >>> document.place_cursor(cursor_iter)
+    
+     >>> signal_tester.emitter('syntax-activated', syntax_view, 'esteemed')
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_iter_at_mark(sentence_mark))
+    'This is the esteemed Project Gutenberg Etext of The Hunting of the Sn...'
+
+The signal testing harness can be removed now that sginal testing
+is complete.
+
+    >>> controller.testeeDisconnect(
+    ...     controller, syntax_view, 'syntax-view', 'syntax-activated')
+    >>> signal_tester.detachReceptionHarness(controller)
 
 
 deactivate()

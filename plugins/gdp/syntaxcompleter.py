@@ -338,10 +338,6 @@ class SyntaxController(object):
                 self.signal_ids['key-press-event'] = view.connect(
                     'key_press_event', self.on_view_key_press)
 
-    def deactivate(self):
-        """Deactivate the controller; detach the view."""
-        self.setView(None)
-
     def _disconnectSignal(self, obj, signal):
         """Disconnect the signal from the provided object."""
         if signal in self.signal_ids:
@@ -430,11 +426,11 @@ class SyntaxController(object):
                 start, document.get_iter_at_mark(document.get_insert()))
         document.insert_at_cursor(word)
 
-    # Callbacks
+    def deactivate(self):
+        """Deactivate the controller; detach the view."""
+        self.setView(None)
 
-    def on_view_destroy(self, view):
-        """Disconnect the controller."""
-        self.deactivate()
+    # Callbacks
 
     def on_syntaxview_row_activated(self, syntax_view, word):
         """Insert the word into the Document."""
@@ -455,4 +451,8 @@ class SyntaxController(object):
             and not (event.state & gdk.MOD1_MASK)
             and event.keyval in (gtk.keysyms.space, )):
             return self.showSyntaxView()
+
+    def on_view_destroy(self, view):
+        """Disconnect the controller."""
+        self.deactivate()
 

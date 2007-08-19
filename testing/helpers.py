@@ -135,23 +135,104 @@ def proof(outcome):
 
 
 class SignalTester(object):
-    """A simple class that collects attributes for gsignal testing."""
-    def __init__(self, attrs):
+    """A simple class for GSignal emission and reception testing.
+    
+    Signal emission testing:
+    testee = Testee()
+    signal_tester = SignalTester(['testee', 'data'])
+    signal_id = view.connect('syntax-activated', signal_tester.receiver)
+    testee.emitDataMethodOrFunction(data)
+    assert signal_tester.testee is testee
+    assert signal_tester.data == data
+    
+    target = targatEmitterClass()
+    testee = Testee()
+    Signal Reception testing:
+    signal_tester = SignalTester()
+    signal_tester.attachReceptionHarness(testee)
+    testee.testeeConnect(
+        testee, target, 'target_name', 'signal-name', testee.on_callback)
+    signal_tester.emitter('signal-name', target, data)
+    ... (tests)
+    testee.testeeDisconnect(
+        testee, target, 'target_name', 'signal_name')
+    signal_tester.detachReceptionHarness(testee)
+    """
+
+    def __init__(self, attrs=None):
         """Create instance attributes from a list of names.
         
         The list of names are are used to create instance attributes that
         can be access by a controlling routine.
         """
         self.attrs = attrs
-        for name in attrs:
-            self.__dict__[name] = None
+        if attrs:
+            for name in attrs:
+                self.__dict__[name] = None
 
     def receiver(self, *args):
         """A generic method for testing a signal is received.
         
         The arguments received are assigned to the list of attrs passed
-        when the class was initialized. Order is very important.
+        when the class was initialized. Order is very important. Example:
+        handler_id = testee.connect('signal-sent', signal_tester.receiver)
         """
         for i, name in enumerate(self.attrs):
             self.__dict__[name] = args[i]
 
+    def emitter(self, signal_name, target, *args):
+        """A generic method for emitting a signal.
+        
+        The args are sent as the data when signal_name is emitted. Order
+        is very important.
+        """
+        target.emit(signal_name, *args)
+
+    @classmethod
+    def attachReceptionHarness(cls, testee):
+        """Attached the methods need for testing callbacks.
+        
+        To test that a callback receives and handles a signal correctly,
+        a dictionary and two methods are added to the testee:
+        signal_tester_signal_ids is a dictionary of the signal ids that
+        are being tests. See testeeConnect and testeeDisconnect for their
+        explaination.
+        """
+        testee.signal_tester_signal_ids = {}
+        testee.testeeConnect = cls.testeeConnect
+        testee.testeeDisconnect = cls.testeeDisconnect
+
+    @classmethod
+    def detachReceptionHarness(cls, testee):
+        """Detached the methods need for testing callbacks.
+        
+        Remove the callback test harness.
+        """
+        if testee.signal_tester_signal_ids:
+            del testee.signal_tester_signal_ids
+        if testee.testeeConnect:
+            del testee.testeeConnect
+        if testee.testeeDisconnect:
+            del testee.testeeDisconnect
+
+    @classmethod
+    def testeeConnect(cls, testee, target, target_name, signal_name, callback):
+        """A generic method for connecting the testee to SignalTester.
+        
+        This method can be monkey patched to the testee to connect the
+        code being tested to the test.
+        """
+        key = '%s_%s' % (target_name, signal_name)
+        testee.signal_tester_signal_ids[key] = target.connect(
+            signal_name, callback)
+
+    @classmethod
+    def testeeDisconnect(cls, testee, target, target_name, signal_name):
+        """A generic method for disconnecting the testee from SignalTester.
+        
+        This method can be monkey patched to the testee to connect the
+        code being tested to the test.
+        """
+        key = '%s_%s' % (target_name, signal_name)
+        target.disconnect(testee.signal_tester_signal_ids[key])
+        del testee.signal_tester_signal_ids[key]
