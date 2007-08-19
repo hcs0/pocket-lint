@@ -1,0 +1,294 @@
+SyntaxControler for SyntaxCompleter
+===================================
+The SyntaxControler manages the interaction between the SyntaxView
+and the gedit.View classes. The SyntaxControler is is the public
+interface of the SyntaxCompleter. It is used by the
+SyntaxCompleterPlugin to add the Syntax behaviours to Gedit.
+
+
+SyntaxControler
+---------------
+
+The SyntaxView requires a gedit.View for which it will be handling
+requests to complete words.
+
+    >>> from gdp.syntaxcompleter import SyntaxController
+    >>> SyntaxController()
+    Traceback (most recent call last):
+    ...
+    TypeError: __init__() takes exactly 2 arguments (1 given)
+
+    >>> from testing.helpers import get_mock, get_window, literal
+    >>> from syntaxcompleterplugin import SyntaxCompleterPlugin
+    >>> import gtk
+    >>> import gedit
+    >>> mock = get_mock()
+    >>> mock.data['app_get_default'] = gedit.App()
+    >>> win, view, document = get_window('plugins/gdp/data/snark12.txt')    
+    >>> mock.data['App_get_active_window'] = win
+    >>> mock.data['Window_get_group'] = gtk.WindowGroup()
+    >>> mock.data['Window.get_views'] = [view]
+    >>> controller = SyntaxController(view)
+    >>> controller
+    <gdp.syntaxcompleter.SyntaxController object at ...>
+
+
+updateLanguage()
+~~~~~~~~~~~~~~~~
+
+The updateLanguage() method sets the controller.language_id to the
+Document's language
+
+    >>> from gtksourceview import SourceLanguagesManager
+    >>> literal(controller.language_id)
+    0
+    >>> language_manager = SourceLanguagesManager()
+    >>> python_language = language_manager.get_language_from_mime_type(
+    ...     'text/x-python')
+    >>> python_language.get_name()
+    'Python'
+    >>> mock.data['Document_set_language'] = None
+    >>> controller.view.get_buffer().set_language(python_language)
+    >>> mock.data['Document_get_language'] = python_language
+    >>> controller.updateLanguage()
+    >>> literal(controller.language_id)
+    Python
+
+
+gtk.main()
+~~~~~~~~~~
+Prove it still runs.
+    >>> #gtk.main()
+
+
+setView()
+~~~~~~~~~
+
+The view is bound and unbound to the controller using the setView()
+method. It takes an optional reset parameter that rebinds the
+current view, for example, when a document's editability changes.
+
+    >>> current_view = controller.view
+    >>> current_view
+    <View object (GtkSourceView) at ...>
+
+    >>> new_view = gedit.View(document)
+    >>> controller.setView(new_view)
+    >>> controller.view
+    <View object (GtkSourceView) at ...>
+    >>> new_view is controller.view
+    True
+    >>> new_view is current_view
+    False
+
+The setView connects and disconnects signals between the controller
+and the view and document. When the document is editable, the
+key-press-event is connected.
+
+    >>> controller.view.get_editable()
+    True
+    >>> 'key-press-event' in controller.signal_ids
+    True
+    >>> controller.view.set_editable(False)
+    >>> controller.setView(new_view, is_reset=True)
+    >>> new_view is controller.view
+    True
+    >>> 'key-press-event' in controller.signal_ids
+    False
+
+Passing None will disconnect the signals and the view.
+
+    >>> controller.setView(None)
+    >>> literal(controller.view)
+    None
+
+Passing an existing view connects the signals.
+
+    >>> controller.setView(current_view)
+    >>> current_view is controller.view
+    True
+
+
+showSyntaxView()
+~~~~~~~~~~~~~~~~
+
+The showSyntaxView() methods displays the SyntaxView widget at the
+cursor. It determines the prefix from the left adjacent word and passes
+it to the SyntaxView.
+
+    >>> # The widget can only be observed to work when gtk.main()
+    >>> # is run.
+    >>> controller.showSyntaxView()
+    True
+
+
+_calculateSyntaxViewPosition()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The _calculateSyntaxViewPosition() method will return the x and y
+coordinate to align the SyntaxView widget with the cursor. When there
+is not enough space to display the widget it returns a coordinate to
+fit the it to the bottom right of the screen.
+        
+    >>> from gdp.syntaxcompleter import SyntaxView
+    >>> end = document.get_iter_at_mark(document.get_insert())
+    >>> syntax_view = SyntaxView((None, document), None, False)
+    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
+    (15, 301)
+    
+    >>> win.move(100, 100)
+    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
+    (15, 301)
+
+    >>> # Window managers treat window postions as suggestions.
+    >>> # This test can be unreliable. The top-left and bottom-right
+    >>> # corners of the desktop should be visible for this test.
+    >>> right_aligned = controller.view.get_screen().get_width() - 350
+    >>> bottom_aligned = controller.view.get_screen().get_height() - 300
+    >>> win.move(right_aligned, bottom_aligned)
+    >>> pos = controller._calculateSyntaxViewPosition(syntax_view, end)
+    >>> #(107, 377)
+
+
+getWordPrefix()
+~~~~~~~~~~~~~~~
+
+This method will return the prefix before the cursor. The prefix is a
+3-tuple of the word fragment, its starting iterator and its ending
+iterator.
+
+    >>> def print_prefix(prefix):
+    ...     return (
+    ...         prefix[0], prefix[1].get_offset(), prefix[2].get_offset())     
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_end_iter())
+    'This is the Project Gutenberg Etext of The Hunting of the Snark...'
+
+There is no word fragment when the cursor is at the start of the
+document.
+
+    >>> document.place_cursor(document.get_start_iter())
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> cursor_iter.get_offset()
+    0
+    >>> prefix = controller.getWordPrefix(document)
+    >>> print_prefix(prefix)
+    (None, 0, 0)
+
+When the cursor is at the end of a word, such as 'is', the leading
+characters are the prefix.
+
+    >>> cursor_iter.forward_cursor_positions(7)
+    True
+    >>> document.place_cursor(cursor_iter)
+    >>> prefix = controller.getWordPrefix(document)
+    >>> print_prefix(prefix)
+    ('is', 5, 7)
+
+When the cursor is in the middle of a word, such as 'is', the leading
+characters are the prefix.
+
+    >>> cursor_iter.backward_cursor_positions(1)
+    True
+    >>> document.place_cursor(cursor_iter)
+    >>> prefix = controller.getWordPrefix(document)
+    >>> print_prefix(prefix)
+    ('i', 5, 6)
+    
+A space is not a word character. There is no prefix. The start and end
+positions are identical.
+
+    >>> cursor_iter.backward_cursor_positions(1)
+    True
+    >>> document.place_cursor(cursor_iter)
+    >>> prefix = controller.getWordPrefix(document)
+    >>> print_prefix(prefix)
+    (None, 5, 5)
+
+Period and other symbols that end a word are not a part of the word.
+The first sentence of the test document ends with 'Snark.' at position
+64. 'Snark' is the word before position 63. There is no word before
+position 64 ('.').
+
+    >>> document.place_cursor(document.get_start_iter())
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> cursor_iter.forward_cursor_positions(63)
+    True
+    >>> document.place_cursor(cursor_iter)
+    >>> prefix = controller.getWordPrefix(document)
+    >>> print_prefix(prefix)
+    ('Snark', 58, 63)
+
+    >>> cursor_iter.forward_cursor_position()
+    True
+    >>> document.place_cursor(cursor_iter)
+    >>> prefix = controller.getWordPrefix(document)
+    >>> print_prefix(prefix)
+    (None, 64, 64)
+
+
+insertWord()
+~~~~~~~~~~~~
+
+This method inserts a word into the document. It will raise an error
+if the word is None or an empty string.
+
+    >>> controller.insertWord(None, cursor_iter)
+    Traceback (most recent call last):
+    ...
+    AssertionError: The word cannot be None or an empty string.
+
+    >>> controller.insertWord('', cursor_iter)
+    Traceback (most recent call last):
+    ...
+    AssertionError: The word cannot be None or an empty string.
+
+Continuing from the document demonstrated in the getWordPrefix()
+section, words can be inserted into the first sentence. Inserting
+happens when the start iterator is None or it is the same position
+as the cursor.
+
+    >>> sentence_mark = document.create_mark('sentence_end', cursor_iter)
+    >>> cursor_iter = document.get_start_iter()
+    >>> cursor_iter.forward_cursor_positions(12)
+    True
+    >>> document.place_cursor(cursor_iter)
+    >>> controller.insertWord('Est ', cursor_iter)
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_iter_at_mark(sentence_mark))
+    'This is the Est Project Gutenberg Etext of The Hunting of the Snark.'
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> cursor_iter.backward_cursor_positions(1)
+    True
+    >>> document.place_cursor(cursor_iter)
+    >>> controller.insertWord('e', None)
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_iter_at_mark(sentence_mark))
+    'This is the Este Project Gutenberg Etext of The Hunting of the Snark.'
+    
+The method can replace text in the document when a start iter is
+provided, and it is not the same position at the cursor. The text
+between the start and the cursor is deleted, and the word is inserted
+at the cursor position.
+
+    >>> start = document.get_iter_at_mark(document.get_insert())
+    >>> start.backward_chars(4)
+    True
+    >>> controller.insertWord('esteem', start)
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_iter_at_mark(sentence_mark))
+    'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'
+
+
+deactivate()
+~~~~~~~~~~~~
+
+The deactivate() method removes the detaches the signals and removes
+view.
+
+    >>> controller.view
+    <View object (GtkSourceView) at ...>
+    >>> controller.deactivate()
+    >>> literal(controller.view)
+    None

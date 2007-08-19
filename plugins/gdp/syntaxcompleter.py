@@ -416,9 +416,8 @@ class SyntaxController(object):
         start = end.copy()
         word = None
 
-        # When the preceding character is a space, there can be
-        # no word before the cursor. When the character is not
-        # alphanumeric, 
+        # When the preceding character is a space or is not alphanumeric,
+        # there can be no word before the cursor.
         start_char = start.copy()
         if start_char.backward_char():
             char = start_char.get_char()
@@ -432,15 +431,17 @@ class SyntaxController(object):
 
         return (word, start, end)
 
-    def insertWord(self, word, start=None, end=None):
-        """Insert the word into the Document."""
-        if not word:
-            return False
-
+    def insertWord(self, word, start=None):
+        """Return True when the word is inserted into the Document.
+        
+        The word cannot be None or an empty string
+        """
+        assert word, "The word cannot be None or an empty string."
         document = self.view.get_buffer()
-        document.delete(start, end)
+        if start:
+            document.delete(
+                start, document.get_iter_at_mark(document.get_insert()))
         document.insert_at_cursor(word)
-        return True
 
     # Callbacks
 
@@ -450,9 +451,11 @@ class SyntaxController(object):
 
     def on_syntaxview_row_activated(self, syntax_view, word):
         """Insert the word into the Document."""
+        if not word:
+            return
         document = self.view.get_buffer()
         (ignored, start, end) = self.getWordPrefix(document)
-        self.insertWord(word, start, end)
+        self.insertWord(word, start)
 
     def on_notify_language(self, document, spec):
         """Update the controller when the Document's language changes."""
