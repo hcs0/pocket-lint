@@ -307,23 +307,14 @@ class SyntaxController(object):
 
     def __init__(self, view):
         """Initialize the controller for the gedit.View."""
-        self.view = None
         self.signal_ids = {}
-        self.language_id = 0
-
+        self.view = None
         self.setView(view)
-
-    def updateLanguage(self):
-        """Set the language to the language used by the Document."""
-        lang = self.view.get_buffer().get_language()
-        if not lang:
-            return
-        self.language_id = lang.get_id()
 
     def setView(self, view, is_reset=False):
         """Set the view to be controlled.
 
-        Installs signal handlers and sets current language. Calling
+        Installs signal handlers for the view. Calling
         self.setView(None) will effectively remove all the control from
         the current view. when is_reset is True, the current view's
         signals will be reset.
@@ -333,16 +324,12 @@ class SyntaxController(object):
 
         if self.view:
             # Unregister the current view before assigning the new one.
-            self._disconnectSignal(self.view.get_buffer(), 'notify::language')
             self._disconnectSignal(self.view, 'destroy')
             self._disconnectSignal(self.view, 'notify::editable')
             self._disconnectSignal(self.view, 'key-press-event')
 
         self.view = view
         if view != None:
-            self.updateLanguage()
-            self.signal_ids['notify::language'] = view.get_buffer().connect(
-                'notify::language', self.on_notify_language)
             self.signal_ids['destroy'] = view.connect(
                 'destroy', self.on_view_destroy)
             self.signal_ids['notify::editable'] = view.connect(
@@ -456,10 +443,6 @@ class SyntaxController(object):
         document = self.view.get_buffer()
         (ignored, start, end) = self.getWordPrefix(document)
         self.insertWord(word, start)
-
-    def on_notify_language(self, document, spec):
-        """Update the controller when the Document's language changes."""
-        self.updateLanguage()
 
     def on_notify_editable(self, view, spec):
         """Update the controller when the view editable state changes."""

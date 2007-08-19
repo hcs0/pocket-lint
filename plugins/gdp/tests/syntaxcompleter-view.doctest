@@ -59,6 +59,10 @@ in the vocabulary.
     >>> view.model.visible_words
     ['backwards', 'bade', 'bags', 'bake', 'Baker', 'BAKER', ...]
 
+
+GSignals
+~~~~~~~~
+
 SyntaxView provides a gsignal, 'syntax-activated', for client code to
 register a callback with. The gsignal is activated when the user has
 selected a word, thus activating the row in the TreeView. The method
@@ -86,6 +90,9 @@ thus disconnects the signal.
     >>> view.handler_is_connected(handler_id)
     False
 
+Compatability with snippets.CompleteView
+----------------------------------------
+
 SyntaxView is compatible with its parent class SnippetComplete. Calling
 snippet_activated will emit the 'syntax-activated' signal.
 
@@ -93,7 +100,7 @@ snippet_activated will emit the 'syntax-activated' signal.
     >>> signal_tester.word = None
     >>> handler_id = view.connect('syntax-activated', signal_tester.receiver)
     >>> view.snippet_activated(view.model.visible_words[3])
-    >>> proof(view is signal_tester.view)
+    >>> view is signal_tester.view
     True
     >>> signal_tester.word
     'bake'

@@ -31,6 +31,10 @@ vocabulary.
     >>> model
     <SyntaxModel object (PyGtkGenericTreeModel) at ...>
 
+
+filterWords()
+~~~~~~~~~~~~~
+
 The model can filter the vocabulary to match the prefix provided.
 
     >>> len(model.words)

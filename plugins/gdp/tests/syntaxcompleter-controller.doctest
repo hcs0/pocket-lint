@@ -33,28 +33,6 @@ requests to complete words.
     <gdp.syntaxcompleter.SyntaxController object at ...>
 
 
-updateLanguage()
-~~~~~~~~~~~~~~~~
-
-The updateLanguage() method sets the controller.language_id to the
-Document's language
-
-    >>> from gtksourceview import SourceLanguagesManager
-    >>> literal(controller.language_id)
-    0
-    >>> language_manager = SourceLanguagesManager()
-    >>> python_language = language_manager.get_language_from_mime_type(
-    ...     'text/x-python')
-    >>> python_language.get_name()
-    'Python'
-    >>> mock.data['Document_set_language'] = None
-    >>> controller.view.get_buffer().set_language(python_language)
-    >>> mock.data['Document_get_language'] = python_language
-    >>> controller.updateLanguage()
-    >>> literal(controller.language_id)
-    Python
-
-
 gtk.main()
 ~~~~~~~~~~
 Prove it still runs.
@@ -266,6 +244,13 @@ as the cursor.
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the Este Project Gutenberg Etext of The Hunting of the Snark.'
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> document.place_cursor(cursor_iter)
+    >>> controller.insertWord('e')
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_iter_at_mark(sentence_mark))
+    'This is the Estee Project Gutenberg Etext of The Hunting of the Snark.'
     
 The method can replace text in the document when a start iter is
 provided, and it is not the same position at the cursor. The text
@@ -273,12 +258,17 @@ between the start and the cursor is deleted, and the word is inserted
 at the cursor position.
 
     >>> start = document.get_iter_at_mark(document.get_insert())
-    >>> start.backward_chars(4)
+    >>> start.backward_chars(5)
     True
     >>> controller.insertWord('esteem', start)
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'
+
+GSignals
+~~~~~~~~
+
+The SyntaxController relies on GSignals to
 
 
 deactivate()
