@@ -96,8 +96,9 @@ it to the SyntaxView.
 
     >>> # The widget can only be observed to work when gtk.main()
     >>> # is run.
-    >>> controller.showSyntaxView()
-    True
+    >>> syntax_view = controller.showSyntaxView()
+    >>> syntax_view
+    <SyntaxView object (GtkWindow) at ...>
 
 
 _calculateSyntaxViewPosition()
@@ -108,9 +109,7 @@ coordinate to align the SyntaxView widget with the cursor. When there
 is not enough space to display the widget it returns a coordinate to
 fit the it to the bottom right of the screen.
         
-    >>> from gdp.syntaxcompleter import SyntaxView
     >>> end = document.get_iter_at_mark(document.get_insert())
-    >>> syntax_view = SyntaxView((None, document), None, False)
     >>> controller._calculateSyntaxViewPosition(syntax_view, end)
     (15, 301)
     
@@ -121,6 +120,7 @@ fit the it to the bottom right of the screen.
     >>> # Window managers treat window postions as suggestions.
     >>> # This test can be unreliable. The top-left and bottom-right
     >>> # corners of the desktop should be visible for this test.
+    >>> # Uncomment the coordinate below to run this test.
     >>> right_aligned = controller.view.get_screen().get_width() - 350
     >>> bottom_aligned = controller.view.get_screen().get_height() - 300
     >>> win.move(right_aligned, bottom_aligned)
@@ -359,10 +359,13 @@ Control-Shift-Space key combination. When the combination is True,
 it calls the showSyntaxView() method.
 
     # Reset the state of the view and syntax_view
-    >>> controller.syntax_view.destroy()
-    >>> controller.syntax_view = None
-    >>> literal(controller.syntax_view)
-    None
+    >>> def mockShowSyntaxView():
+    ...     controller.syntax_view = True
+    >>> real_showSyntaxView = controller.showSyntaxView
+    >>> controller.showSyntaxView = mockShowSyntaxView
+    >>> controller.syntax_view = False
+    >>> controller.syntax_view
+    False
 
     >>> from gtk import gdk
     >>> event = gdk.Event(gtk.gdk.KEY_PRESS)
@@ -371,10 +374,9 @@ it calls the showSyntaxView() method.
     >>> event.keyval = gtk.keysyms.space
     >>> signal_tester.emitter('key-press-event', controller.view, event)
     >>> controller.syntax_view
-    <SyntaxView object (GtkWindow) at ...>
+    True
 
-    >>> controller.syntax_view.destroy()
-    >>> controller.syntax_view = None
+    >>> controller.syntax_view = False
 
 Bad combinations include the state is the wrong bit mask, or the wrong
 key was pressed.
@@ -384,16 +386,18 @@ key was pressed.
     >>> event.state =  gdk.CONTROL_MASK | gdk.SHIFT_MASK | gdk.MOD1_MASK
     >>> event.keyval = gtk.keysyms.space
     >>> signal_tester.emitter('key-press-event', controller.view, event)
-    >>> literal(controller.syntax_view)
-    None
+    >>> controller.syntax_view
+    False
     
     >>> event = gdk.Event(gtk.gdk.KEY_PRESS)
     >>> event.window = controller.view.window
     >>> event.state =  gdk.CONTROL_MASK | gdk.SHIFT_MASK
     >>> event.keyval = gtk.keysyms.Tab
     >>> signal_tester.emitter('key-press-event', controller.view, event)    
-    >>> literal(controller.syntax_view)
-    None
+    >>> controller.syntax_view
+    False
+
+    >>> controller.showSyntaxView = real_showSyntaxView
 
 
 on_view_destroy() and deactivate()
