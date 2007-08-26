@@ -33,12 +33,6 @@ requests to complete words.
     <gdp.syntaxcompleter.SyntaxController object at ...>
 
 
-gtk.main()
-~~~~~~~~~~
-Prove it still runs.
-    >>> #gtk.main()
-
-
 setView()
 ~~~~~~~~~
 

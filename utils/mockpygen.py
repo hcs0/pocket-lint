@@ -11,12 +11,14 @@ import optparse
 from string import Template
 import sys
 
+
 class MockBoxedDef(BoxedDef):
     """Convert of GObjects to PyObjects."""
 
     def write_code(self, fp=sys.stdout):
         """Unimpelmented."""
         pass
+
 
 class MockEnumDef(EnumDef):
     """Enumerated constants."""
@@ -71,6 +73,7 @@ def $name($params):
 
 class MockInterfaceDef(InterfaceDef):
     """A python interface."""
+
     def write_code(self, fp=sys.stdout):
         """Write mock python implemention."""
 
@@ -115,14 +118,14 @@ class $name($parent):
             method.write_code(fp)
 
 class MockPointerDef(PointerDef):
-    """."""
+    """A mock pointer generator."""
 
     def write_code(self, fp=sys.stdout):
         """Write mock python implemention."""
 
 
 class MockVirtualDef(VirtualDef):
-    """."""
+    """A Mock virtual generator."""
 
     def write_code(self, fp=sys.stdout):
         """Write mock python implemention."""
@@ -130,7 +133,6 @@ class MockVirtualDef(VirtualDef):
 
 class MockDefsParser(DefsParser):
     """Module and class generator from def files."""
-
 
     def define_object(self, *args):
         """Add a new object to the defs."""
@@ -193,7 +195,6 @@ class MockDefsParser(DefsParser):
 import gobject
 from gobject import *
 import gtk
-#from gtk import *
 import gtk.gdk
 from gtk.gdk import *
 import gtksourceview
@@ -264,7 +265,10 @@ def parse_args():
     parser = optparse.OptionParser(
         usage="usage: %prog [options] defs-file source-file")
     parser.add_option(
-        "-f", "--force", help="Overwrite file if it exists", default=False)
+        "-s", "--source", help="Copy the defs from a gedit source directory",
+        default=False)
+    parser.add_option(
+        "-o", "--override", help="The override selected defs", default=False)
     (options, args) = parser.parse_args()
     if len(args) != 2:
         parser.error("wrong number of arguments")
@@ -273,7 +277,13 @@ def parse_args():
 
 if __name__ == '__main__':
     (options, args) = parse_args()
-    module_file = open(args[1], 'w')
-    parser = MockDefsParser(args[0])
+    for opt, arg in opts:
+        if opt in ('-o', '--override'):
+            overrides = override.Overrides(arg)
+    def_file_name = args[0]
+    module_file_name = args[1]
+
+    module_file = open(module_file_nam, 'w')
+    parser = MockDefsParser(def_file_name)
     parser.startParsing()
     parser.write_code(module_file)

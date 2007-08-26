@@ -1,0 +1,47 @@
+SyntaxCompleterPlugin
+=====================
+
+The SyntaxCompleterPlugin is a gedit plugin that will suggest words
+to complete the word at the cursor. The word may come from the
+vaocabulary of the document, or from the syntax of the document's
+language.
+
+The plugin, like the gedit.Plugin objec it decends from does not
+require any parameters during initialization.
+
+    >>> from syntaxcompleterplugin import SyntaxCompleterPlugin
+    >>> plugin = SyntaxCompleterPlugin()
+    >>> plugin
+    <SyntaxCompleterPlugin object (GObject) ...>
+
+
+Gedit Plugin API
+----------------
+
+activate()
+~~~~~~~~~~
+
+Whenever a new gedit window is created the activate() method of the
+plugin is called with one argument, the gedit.Window.
+
+    >>> from testing.helpers import get_mock, get_window
+    >>> import gtk
+    >>> import gedit
+    >>> mock = get_mock()
+    >>> mock.data['app_get_default'] = gedit.App()
+    >>> window, view, document = get_window('plugins/gdp/data/snark12.txt') 
+    >>> plugin.activate(window)
+
+
+deactivate()
+~~~~~~~~~~~~
+
+when a window is destroyed the deactivate function is called.
+
+
+update_ui()
+~~~~~~~~~~~
+
+The update_ui function is called when the plugin is requested to see if
+it needs to update its UI.
+

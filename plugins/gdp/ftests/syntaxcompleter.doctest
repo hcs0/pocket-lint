@@ -1,7 +1,7 @@
 SyntaxCompleter
 ===============
 
-The SyntaxCompleter is a gedit plugin that will suggest complete words
+The SyntaxCompleter is a gedit plugin that will suggest words
 that match the part of a word at the cursor.
 
     >>> from gdp.syntaxcompleter import SyntaxView
