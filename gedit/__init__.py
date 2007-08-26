@@ -3,7 +3,6 @@
 import gobject
 from gobject import *
 import gtk
-#from gtk import *
 import gtk.gdk
 from gtk.gdk import *
 import gtksourceview

@@ -264,11 +264,12 @@ def parse_args():
     """Parse the command line arguments and return the options."""
     parser = optparse.OptionParser(
         usage="usage: %prog [options] defs-file source-file")
+    parser.set_defaults(overrides=False)
     parser.add_option(
         "-s", "--source", help="Copy the defs from a gedit source directory",
         default=False)
     parser.add_option(
-        "-o", "--override", help="The override selected defs", default=False)
+        "-o", "--override", help="The override selected defs")
     (options, args) = parser.parse_args()
     if len(args) != 2:
         parser.error("wrong number of arguments")
@@ -277,13 +278,10 @@ def parse_args():
 
 if __name__ == '__main__':
     (options, args) = parse_args()
-    for opt, arg in opts:
-        if opt in ('-o', '--override'):
-            overrides = override.Overrides(arg)
+    overrides = options.overrides
     def_file_name = args[0]
     module_file_name = args[1]
-
-    module_file = open(module_file_nam, 'w')
+    module_file = open(module_file_name, 'w')
     parser = MockDefsParser(def_file_name)
     parser.startParsing()
     parser.write_code(module_file)
