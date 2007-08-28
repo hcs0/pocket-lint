@@ -18,11 +18,11 @@ requests to complete words.
     ...
     TypeError: __init__() takes exactly 2 arguments (1 given)
 
-    >>> from testing.helpers import get_mock, get_window, literal
+    >>> from testing.helpers import get_fake, get_window, literal
     >>> from syntaxcompleterplugin import SyntaxCompleterPlugin
     >>> import gtk
     >>> import gedit
-    >>> mock = get_mock()
+    >>> mock = get_fake()
     >>> mock.data['app_get_default'] = gedit.App()
     >>> win, view, document = get_window('plugins/gdp/data/snark12.txt')    
     >>> mock.data['App_get_active_window'] = win

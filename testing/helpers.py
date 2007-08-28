@@ -5,7 +5,7 @@ __metaclass__ = type
 
 
 __ALL__ = ['get_sourcebuffer',
-           'get_mock',
+           'get_fake',
            'proof',
            'SignalTester']
 
@@ -18,7 +18,7 @@ import gtk
 from gtksourceview import SourceBuffer, SourceLanguagesManager
 
 import gedit
-from gedit import Mock
+from gedit import Fake
 
 
 def get_sourcebuffer(file_path, mime_type='text/plain'):
@@ -80,12 +80,12 @@ def get_window(file_path, document=None):
     return window, view, document
 
 
-def get_mock():
-    """Return a mock gedit object.
+def get_fake():
+    """Return a fake gedit object.
     
     Store data in keys named after the class and the <class>_<methods>.
     """
-    return Mock()
+    return Fake()
 
 
 def AssertEquals(outcome, expected):
