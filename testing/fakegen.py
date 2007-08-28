@@ -49,7 +49,7 @@ class FakeFunctionDef(FunctionDef):
 def $name($params):
     \"\"\"A fake implementation of $name.\"\"\"
     key = '%s' % '$name'
-    return Fake().data.get(key, None)
+    return Dummy().get(key, None)
 """)
 
     class_template = Template ("""
@@ -88,7 +88,7 @@ class FakeMethodDef(MethodDef):
     def $name(self$params):
         \"\"\"A fake implementation of $name.\"\"\"
         key = '%s_%s' % (self.__class__.__name__, '$name')
-        return Fake().data.get(key, None)
+        return Dummy().get(key, None)
 """)
 
     def write_code(self, fp=sys.stdout):
@@ -209,11 +209,14 @@ class DefOverridesMixer(object):
     def write_code(self, fp=sys.stdout):
         """Write the top-level objects and functions."""
         fp.write('''"""A fake implemetation of objects."""''')
+        fp.write('\n\n')
         if self.overrides.headers:
             fp.write('%s\n\n' % self.overrides.headers)
+        fp.write("from testing import Dummy")
+        fp.write('\n\n')
         if self.overrides.imports:
-            fp.write('%s\n\n' % '\n'.join(
-                imp[0] for imp in self.overrides.imports))
+            fp.write('\n'.join(imp[0] for imp in self.overrides.imports))
+            fp.write('\n\n')
 
         for enum in self.defs.enums:
             enum.write_code(fp)
@@ -257,13 +260,13 @@ def safe_name(name):
 def parse_args():
     """Parse the command line arguments and return the options."""
     parser = optparse.OptionParser(
-        usage="usage: %prog [options] defs-file [python-file]")
+        usage="Usage: %prog [options] defs-file [python-file]")
     parser.add_option(
-        "-s", "--source", help="Copy the defs from a gedit source directory",
+        "-s", "--source", help="Copy the defs from a gedit source directory.",
         default=False)
     (options, args) = parser.parse_args()
     if len(args) < 1:
-        parser.error("wrong number of arguments")
+        parser.error("Wrong number of arguments.")
     return (options, args)
 
 
@@ -272,7 +275,8 @@ if __name__ == '__main__':
     dir_name = os.path.dirname(args[0])
     defs_file_name = os.path.basename(args[0])
     overrides_file_name = defs_file_name.replace('.defs', '.overrides')
-    os.chdir(dir_name)
+    if dir_name:
+        os.chdir(dir_name)
     # Replace the import pattern to include 'from' statements.
     override.import_pat = re.compile(r'((from|import).*)')
     if os.path.exists(overrides_file_name):

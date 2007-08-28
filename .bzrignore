@@ -1,0 +1,4 @@
+gedit/__init__.py
+gedit/geditcommands.py
+gedit/geditutils.py
+gdp.xml

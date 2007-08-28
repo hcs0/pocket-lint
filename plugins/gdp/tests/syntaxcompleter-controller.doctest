@@ -18,16 +18,17 @@ requests to complete words.
     ...
     TypeError: __init__() takes exactly 2 arguments (1 given)
 
-    >>> from testing.helpers import get_fake, get_window, literal
+    >>> from testing import Dummy
+    >>> from testing.helpers import get_window, literal
     >>> from syntaxcompleterplugin import SyntaxCompleterPlugin
     >>> import gtk
     >>> import gedit
-    >>> mock = get_fake()
-    >>> mock.data['app_get_default'] = gedit.App()
+    >>> dummy = Dummy()
+    >>> dummy['app_get_default'] = gedit.App()
     >>> win, view, document = get_window('plugins/gdp/data/snark12.txt')    
-    >>> mock.data['App_get_active_window'] = win
-    >>> mock.data['Window_get_group'] = gtk.WindowGroup()
-    >>> mock.data['Window.get_views'] = [view]
+    >>> dummy['App_get_active_window'] = win
+    >>> dummy['Window_get_group'] = gtk.WindowGroup()
+    >>> dummy['Window.get_views'] = [view]
     >>> controller = SyntaxController(view)
     >>> controller
     <gdp.syntaxcompleter.SyntaxController object at ...>
@@ -353,10 +354,10 @@ Control-Shift-Space key combination. When the combination is True,
 it calls the showSyntaxView() method.
 
     # Reset the state of the view and syntax_view
-    >>> def mockShowSyntaxView():
+    >>> def dummyShowSyntaxView():
     ...     controller.syntax_view = True
     >>> real_showSyntaxView = controller.showSyntaxView
-    >>> controller.showSyntaxView = mockShowSyntaxView
+    >>> controller.showSyntaxView = dummyShowSyntaxView
     >>> controller.syntax_view = False
     >>> controller.syntax_view
     False

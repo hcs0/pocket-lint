@@ -18,7 +18,8 @@ import gtk
 from gtksourceview import SourceBuffer, SourceLanguagesManager
 
 import gedit
-from gedit import Fake
+
+from testing import Dummy
 
 
 def get_sourcebuffer(file_path, mime_type='text/plain'):
@@ -80,12 +81,12 @@ def get_window(file_path, document=None):
     return window, view, document
 
 
-def get_fake():
-    """Return a fake gedit object.
+def get_dummy():
+    """Return a dummy gedit object.
     
     Store data in keys named after the class and the <class>_<methods>.
     """
-    return Fake()
+    return Dummy()
 
 
 def AssertEquals(outcome, expected):

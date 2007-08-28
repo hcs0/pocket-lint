@@ -23,16 +23,17 @@ return when they are called in the next test.
     ...
     TypeError: __init__() takes at least 2 arguments (1 given)
 
-    >>> from testing.helpers import get_document, get_fake
+    >>> from testing import Dummy
+    >>> from testing.helpers import get_document
     >>> source_buffer = get_document('plugins/gdp/data/snark12.txt')
     >>> sources = ('', source_buffer)
     >>> # SnippetComplete.__init__ calls gedit behaviours that must
     >>> # return sensible data for this test.
     >>> import gtk
     >>> import gedit
-    >>> mock = get_fake()
-    >>> mock.data['app_get_default'] = gedit.App()
-    >>> mock.data['App_get_active_window'] = gtk.Window()
+    >>> dummy = Dummy()
+    >>> dummy['app_get_default'] = gedit.App()
+    >>> dummy['App_get_active_window'] = gtk.Window()
     >>> view = SyntaxView(sources)
     >>> view
     <SyntaxView object (GtkWindow) at ...>
