@@ -5,9 +5,13 @@
 from codegen.definitions import (BoxedDef, EnumDef, FlagsDef,
      FunctionDef, InterfaceDef, MethodDef, ObjectDef, PointerDef, VirtualDef)
 from codegen.defsparser import DefsParser
+from codegen import override
+from codegen.override import Overrides
 
 import keyword
 import optparse
+import os
+import re
 from string import Template
 import sys
 
@@ -187,56 +191,46 @@ class FakeDefsParser(DefsParser):
         vdef = FakeVirtualDef(*args)
         self.virtuals.append(vdef)
 
+
+class DefOverridesMixer(object):
+    """Write a python source file from a pair of defs and overides files."""
+
+    def __init__(self, defs, overrides=None):
+        """Initialize the DefOverridesMixer with the defs and overrides.
+        
+        When overrides is none, the defs are used exclusively to create the
+        python source file.
+        """
+        if not overrides:
+            overrides = Overrides()
+        self.overrides = overrides
+        self.defs = defs
+
     def write_code(self, fp=sys.stdout):
         """Write the top-level objects and functions."""
         fp.write('''"""A fake implemetation of objects."""''')
-        fp.write("""
+        if self.overrides.headers:
+            fp.write('%s\n\n' % self.overrides.headers)
+        if self.overrides.imports:
+            fp.write('%s\n\n' % '\n'.join(
+                imp[0] for imp in self.overrides.imports))
 
-import gobject
-from gobject import *
-import gtk
-import gtk.gdk
-from gtk.gdk import *
-import gtksourceview
-from gtksourceview import *
-import gnome
-from gnome import *
-""")
-
-        fp.write("""
-
-
-class Fake(object):
-    \"\"\"A class for passing fake data between the test and the testee.\"\"\"
-
-    # A dictionary to store data by <class>_<attribute> name
-    data = {}
-
-    def __new__(cls, *args, **kwargs):
-        \"\"\"Create a Singleton class.\"\"\"
-        if '_inst' not in vars(cls):
-            cls._inst = super(Fake, cls).__new__(cls, *args, **kwargs)
-        return cls._inst
-
-
-""")
-
-        for enum in self.enums:
+        for enum in self.defs.enums:
             enum.write_code(fp)
-        if self.enums:
+        if self.defs.enums:
             fp.write('\n')
-        functions = [func for func in self.functions
+        functions = [func for func in self.defs.functions
                      if not hasattr(func, 'of_object')]
         for func in functions:
             func.write_code(fp)
-        for obj in self.objects:
-            methods = [meth for meth in self.functions
+        for obj in self.defs.objects:
+            methods = [meth for meth in self.defs.functions
                          if (hasattr(meth, 'of_object')
                             and meth.of_object == obj.c_name)]
             obj.write_code(fp, methods=methods)
-#         for boxed in self.boxes:
+#         for boxed in self.defs.boxes:
 #             boxed.write_defs(fp)
-#         for pointer in self.pointers:
+#         for pointer in self.defs.pointers:
 #             pointer.write_defs(fp)
 
 
@@ -263,25 +257,38 @@ def safe_name(name):
 def parse_args():
     """Parse the command line arguments and return the options."""
     parser = optparse.OptionParser(
-        usage="usage: %prog [options] defs-file source-file")
-    parser.set_defaults(overrides=False)
+        usage="usage: %prog [options] defs-file [python-file]")
     parser.add_option(
         "-s", "--source", help="Copy the defs from a gedit source directory",
         default=False)
-    parser.add_option(
-        "-o", "--override", help="The override selected defs")
     (options, args) = parser.parse_args()
-    if len(args) != 2:
+    if len(args) < 1:
         parser.error("wrong number of arguments")
     return (options, args)
 
 
 if __name__ == '__main__':
     (options, args) = parse_args()
-    overrides = options.overrides
-    def_file_name = args[0]
-    module_file_name = args[1]
+    dir_name = os.path.dirname(args[0])
+    defs_file_name = os.path.basename(args[0])
+    overrides_file_name = defs_file_name.replace('.defs', '.overrides')
+    os.chdir(dir_name)
+    # Replace the import pattern to include 'from' statements.
+    override.import_pat = re.compile(r'((from|import).*)')
+    if os.path.exists(overrides_file_name):
+        overrides = Overrides(overrides_file_name)
+    else:
+        overrides = Overrides()
+
+    if len(args) == 2:
+        module_file_name = '%s.py' % args[1]
+    elif overrides.modulename:
+        module_file_name = '%s.py' % overrides.modulename
+    else:
+        module_file_name = defs_file_name.replace('.defs', '.py')
     module_file = open(module_file_name, 'w')
-    parser = FakeDefsParser(def_file_name)
-    parser.startParsing()
-    parser.write_code(module_file)
+
+    defs = FakeDefsParser(defs_file_name)
+    defs.startParsing()
+    mixer = DefOverridesMixer(defs, overrides)
+    mixer.write_code(module_file)

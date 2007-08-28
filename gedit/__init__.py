@@ -1,15 +1,6 @@
 """A fake implemetation of objects."""
-
-import gobject
-from gobject import *
-import gtk
-import gtk.gdk
-from gtk.gdk import *
-import gtksourceview
-from gtksourceview import *
-import gnome
-from gnome import *
-
+#line 3 "gedit.overrides"
+__metaclass__ = type
 
 
 class Fake(object):
@@ -24,6 +15,18 @@ class Fake(object):
             cls._inst = super(Fake, cls).__new__(cls, *args, **kwargs)
         return cls._inst
 
+
+
+
+import gobject
+from gobject import *
+import gtk
+import gtk.gdk
+from gtk.gdk import *
+import gtksourceview
+from gtksourceview import *
+import gnome
+from gnome import *
 
 
 GEDIT_TAB_STATE_NORMAL = 'normal'

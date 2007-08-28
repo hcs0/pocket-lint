@@ -1,0 +1,31 @@
+%%
+headers
+__metaclass__ = type
+
+
+class Fake(object):
+    """A class for passing fake data between the test and the testee."""
+
+    # A dictionary to store data by <class>_<attribute> name
+    data = {}
+
+    def __new__(cls, *args, **kwargs):
+        """Create a Singleton class."""
+        if '_inst' not in vars(cls):
+            cls._inst = super(Fake, cls).__new__(cls, *args, **kwargs)
+        return cls._inst
+
+
+%%
+modulename __init__
+%%
+import gobject
+from gobject import *
+import gtk
+import gtk.gdk
+from gtk.gdk import *
+import gtksourceview
+from gtksourceview import *
+import gnome
+from gnome import *
+%%
