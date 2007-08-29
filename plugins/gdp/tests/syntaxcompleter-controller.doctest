@@ -26,7 +26,6 @@ requests to complete words.
     >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
     >>> dummy = Dummy()
     >>> dummy['App.get_active_window'] = window
-    >>> dummy['Window.get_group'] = gtk.WindowGroup()
     >>> dummy['Window.get_views'] = [view]
     >>> controller = SyntaxController(view)
     >>> controller

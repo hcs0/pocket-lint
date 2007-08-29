@@ -20,14 +20,16 @@ def app_get_default():
     
     Return a Gedit.App.
     """
-    if 'app_get_default' in dummy:
-        return dummy['app_get_default']
-    else:
-        return App()
+    return App()
+%%
+define Window.get_group
+    def get_group(self):
+        """A fake initialization of gedit.Window.get_group."""
+        return gtk.WindowGroup()
 %%
 define Document.__init__
     def __init__(self):
-        """A fake initialization of Document."""
+        """A fake initialization of gedit.Document."""
         super(Document, self).__init__()
         self.language = None
 %%

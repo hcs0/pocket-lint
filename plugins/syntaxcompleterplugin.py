@@ -36,9 +36,9 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         window.connect('tab-added', self.on_tab_added)
         for view in self.window.get_views():
             if isinstance(view, gedit.View) and not self.hasController(view):
-                view._syntax_controller = SyntaxController(self, view)
+                view._syntax_controller = SyntaxController(view)
 
-        self.update_ui()
+        self.update_ui(window)
 
     def deactivate(self, window):
         """Deactivate the plugin in the current top-level window.
@@ -68,7 +68,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
 
     def hasController(self, view):
         """Return True when the view has a SyntaxControler."""
-        return hasattr(view, '_syntax_controller') and view._snytax_controller
+        return hasattr(view, '_syntax_controller') and view._syntax_controller
 
     # Callbacks    
 
@@ -76,5 +76,5 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         """Create a new SyntaxController for this tab."""
         view = tab.get_view()
         if isinstance(view, gedit.View) and not self.hasController(view):
-            view._syntax_controller = SyntaxController(self, view)
+            view._syntax_controller = SyntaxController(view)
 

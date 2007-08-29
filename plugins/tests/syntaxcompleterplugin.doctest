@@ -28,7 +28,10 @@ plugin is called with one argument, the gedit.Window.
     >>> import gtk
     >>> import gedit
     >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
-    >>> #plugin.activate(window)
+    >>> dummy = Dummy()
+    >>> dummy['Window.get_views'] = [view]
+    >>> dummy['Window.get_active_view'] = view
+    >>> plugin.activate(window)
 
 
 deactivate()

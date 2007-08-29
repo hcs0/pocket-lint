@@ -233,25 +233,29 @@ class DefOverridesMixer(object):
         fp.write('dummy = Dummy()')
         fp.write('\n\n')
 
-        functions = [func for func in self.defs.functions
-                     if not hasattr(func, 'of_object')]
-        for func in functions:
-            func.write_code(fp)
+        functions = [function for function in self.defs.functions
+                     if (not hasattr(function, 'of_object')
+                        and function.name not in overrides.functions)]
+        for function in functions:
+            function.write_code(fp)
         fp.write('\n')
+        for function in overrides.functions:
+            fp.write(overrides.functions[function])
+            fp.write('\n')
 
         for obj in self.defs.objects:
             if obj.name in overrides.defines:
-                defines = overrides.defines[obj.name]
+                method_defines = overrides.defines[obj.name]
             else:
-                defines = {}
-            methods = [meth for meth in self.defs.functions
-                       if (hasattr(meth, 'of_object')
-                           and meth.of_object == obj.c_name
-                           and meth.name not in defines)]
+                method_defines = {}
+            methods = [method for method in self.defs.functions
+                       if (hasattr(method, 'of_object')
+                           and method.of_object == obj.c_name
+                           and method.name not in method_defines)]
             obj.write_code(fp, methods=methods)
-            for meth in defines:
+            for method in method_defines:
                 fp.write('\n')
-                fp.write(defines[meth])
+                fp.write(method_defines[method])
         fp.write('\n')
 
         if overrides.body:
