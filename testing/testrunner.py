@@ -12,6 +12,7 @@ import sys
 import unittest
 from unittest import _WritelnDecorator
 
+from testing import Dummy, SignalTester, literal, proof
 
 class Env(object):
     """The test environment properties."""
@@ -128,6 +129,13 @@ def setup_env(params=None):
         Env.test_pattern = options.test_pattern
 
 
+def get_globs():
+    """Return a dictionary of test objects and functions for doctests."""
+    return dict(
+        Dummy=Dummy, SignalTester=SignalTester,
+        literal=literal, proof=proof)
+
+
 def find_tests(root_dir, skip_dir_re='sourcecode', test_pattern='.*'):
     """Generate a list of matching test files below a directory."""
     file_re = re.compile(r'.*(%s).*' % test_pattern)
@@ -159,10 +167,11 @@ def main(params=None):
     setup_env(params)
     os.chdir(project_dir())
     doctest.set_unittest_reportflags(doctest.REPORT_NDIFF)
+    globs = get_globs()
     option_flags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
     tests = [test for test in find_tests('./' , Env.dir_re, Env.test_pattern)]
     suite = doctest.DocFileSuite(
-        module_relative=False, optionflags=option_flags, *tests)
+        module_relative=False, globs=globs, optionflags=option_flags, *tests)
     # Format the output.
     unittest._WritelnDecorator = Env.write_decorator
     unittest.TextTestRunner(verbosity=Env.verbosity).run(suite)

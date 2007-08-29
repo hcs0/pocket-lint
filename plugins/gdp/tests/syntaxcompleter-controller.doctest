@@ -18,8 +18,7 @@ requests to complete words.
     ...
     TypeError: __init__() takes exactly 2 arguments (1 given)
 
-    >>> from testing import Dummy
-    >>> from testing.helpers import get_window, literal
+    >>> from testing.gedithelpers import get_window
     >>> from syntaxcompleterplugin import SyntaxCompleterPlugin
     >>> import gtk
     >>> import gedit
@@ -271,7 +270,6 @@ and the SyntaxView.
 Signal test requires some help to isolate the emission and reception
 of the sginals.
 
-    >>> from testing.helpers import SignalTester
     >>> signal_tester = SignalTester()
     >>> signal_tester.attachReceptionHarness(controller)
     >>> controller.testeeConnect(

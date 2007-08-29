@@ -24,8 +24,7 @@ activate()
 Whenever a new gedit window is created the activate() method of the
 plugin is called with one argument, the gedit.Window.
 
-    >>> from testing import Dummy
-    >>> from testing.helpers import get_window
+    >>> from testing.gedithelpers import get_window
     >>> import gtk
     >>> import gedit
     >>> dummy = Dummy()

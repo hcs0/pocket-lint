@@ -24,7 +24,7 @@ vocabulary.
     ...
     TypeError: __init__() takes at least 2 arguments (1 given)
 
-    >>> from testing.helpers import get_sourcebuffer
+    >>> from testing.gedithelpers import get_sourcebuffer
     >>> source_buffer = get_sourcebuffer('plugins/gdp/data/snark12.txt')
     >>> sources = ('', source_buffer)
     >>> model = SyntaxModel(sources)
