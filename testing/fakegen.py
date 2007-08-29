@@ -49,7 +49,11 @@ class FakeFunctionDef(FunctionDef):
 def $name($params):
     \"\"\"A fake implementation of $name.\"\"\"
     key = '%s' % '$name'
-    return Dummy().get(key, None)
+    dummy = Dummy()
+    if key in dummy:
+        return dummy[key]
+    else:
+        raise NotImplementedError
 """)
 
     class_template = Template ("""
@@ -87,8 +91,12 @@ class FakeMethodDef(MethodDef):
     template = Template ("""
     def $name(self$params):
         \"\"\"A fake implementation of $name.\"\"\"
-        key = '%s_%s' % (self.__class__.__name__, '$name')
-        return Dummy().get(key, None)
+        key = '%s.%s' % (self.__class__.__name__, '$name')
+        dummy = Dummy()
+        if key in dummy:
+            return dummy[key]
+        else:
+            raise NotImplementedError
 """)
 
     def write_code(self, fp=sys.stdout):
@@ -111,7 +119,6 @@ class FakeObjectDef(ObjectDef):
 
 class $name($parent):
     \"\"\"A fake implementation of $name.\"\"\"
-
 """)
 
     def write_code(self, fp=sys.stdout, methods=None):
@@ -193,7 +200,7 @@ class FakeDefsParser(DefsParser):
 
 
 class DefOverridesMixer(object):
-    """Write a python source file from a pair of defs and overides files."""
+    """Write a python source file from a pair of defs and overrides files."""
 
     def __init__(self, defs, overrides=None):
         """Initialize the DefOverridesMixer with the defs and overrides.
@@ -210,8 +217,10 @@ class DefOverridesMixer(object):
         """Write the top-level objects and functions."""
         fp.write('''"""A fake implemetation of objects."""''')
         fp.write('\n\n')
+
         if self.overrides.headers:
             fp.write('%s\n\n' % self.overrides.headers)
+
         fp.write("from testing import Dummy")
         fp.write('\n\n')
         if self.overrides.imports:
@@ -221,16 +230,33 @@ class DefOverridesMixer(object):
         for enum in self.defs.enums:
             enum.write_code(fp)
         if self.defs.enums:
-            fp.write('\n')
+            fp.write('\n\n')
+
         functions = [func for func in self.defs.functions
                      if not hasattr(func, 'of_object')]
         for func in functions:
             func.write_code(fp)
+        fp.write('\n')
+
         for obj in self.defs.objects:
+            if obj.name in overrides.defines:
+                defines = overrides.defines[obj.name]
+            else:
+                defines = {}
             methods = [meth for meth in self.defs.functions
-                         if (hasattr(meth, 'of_object')
-                            and meth.of_object == obj.c_name)]
+                       if (hasattr(meth, 'of_object')
+                           and meth.of_object == obj.c_name
+                           and meth.name not in defines)]
             obj.write_code(fp, methods=methods)
+            for meth in defines:
+                fp.write('\n')
+                fp.write(defines[meth])
+        fp.write('\n')
+
+        if overrides.body:
+            fp.write(overrides.body)
+            fp.write('\n\n')
+
 #         for boxed in self.defs.boxes:
 #             boxed.write_defs(fp)
 #         for pointer in self.defs.pointers:
@@ -239,6 +265,9 @@ class DefOverridesMixer(object):
 
 def parent_name(name):
     """Strip the G/Gtk namespace prefix to move the name from C to Python."""
+    # XXX sinzui 2007-08-28:
+    # This name calculation method is too brittle to work for other projects.
+    # Consider mapping the rename rules in the overrides file.
     if name.startswith('GtkSource'):
         name = name[3:]
     elif name.startswith('Gtk'):

@@ -29,7 +29,7 @@ class Dummy(object):
 
     def __contains__(cls, key):
         """Return True when the key is present in Dummy."""
-        return name in cls.data[key]
+        return key in cls.data
 
     def __len__(cls):
         """Return number of items in Dummy."""

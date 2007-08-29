@@ -14,3 +14,33 @@ from gtksourceview import *
 import gnome
 from gnome import *
 %%
+define Document.__init__
+    def __init__(self):
+        """A fake initialization of Document."""
+        super(Document, self).__init__()
+        self.language = None
+%%
+define Document.set_language
+    def set_language(self, val):
+        """A fake implementation of set_language."""
+        key = '%s_%s' % (self.__class__.__name__, 'set_language')
+        dummy = Dummy()
+        if key in dummy:
+            dummy[key] = val
+        else:
+            self.language = val
+%%
+define Document.get_language
+    def get_language(self):
+        """A fake implementation of get_language."""
+        key = '%s_%s' % (self.__class__.__name__, 'set_language')
+        dummy = Dummy()
+        if key in dummy:
+            return dummy[key]
+        else:
+            return self.language
+%%
+body
+gobject.signal_new(
+    'tab-added', Window, gobject.SIGNAL_RUN_LAST,
+    gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))

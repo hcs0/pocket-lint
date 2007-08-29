@@ -26,8 +26,8 @@ requests to complete words.
     >>> dummy = Dummy()
     >>> dummy['app_get_default'] = gedit.App()
     >>> win, view, document = get_window('plugins/gdp/data/snark12.txt')    
-    >>> dummy['App_get_active_window'] = win
-    >>> dummy['Window_get_group'] = gtk.WindowGroup()
+    >>> dummy['App.get_active_window'] = win
+    >>> dummy['Window.get_group'] = gtk.WindowGroup()
     >>> dummy['Window.get_views'] = [view]
     >>> controller = SyntaxController(view)
     >>> controller
@@ -91,6 +91,7 @@ it to the SyntaxView.
 
     >>> # The widget can only be observed to work when gtk.main()
     >>> # is run.
+    >>> dummy['Document.get_uri'] = None
     >>> syntax_view = controller.showSyntaxView()
     >>> syntax_view
     <SyntaxView object (GtkWindow) at ...>
