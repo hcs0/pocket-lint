@@ -1,5 +1,6 @@
 SyntaxControler for SyntaxCompleter
 ===================================
+
 The SyntaxControler manages the interaction between the SyntaxView
 and the gedit.View classes. The SyntaxControler is is the public
 interface of the SyntaxCompleter. It is used by the
@@ -22,10 +23,9 @@ requests to complete words.
     >>> from syntaxcompleterplugin import SyntaxCompleterPlugin
     >>> import gtk
     >>> import gedit
+    >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
     >>> dummy = Dummy()
-    >>> dummy['app_get_default'] = gedit.App()
-    >>> win, view, document = get_window('plugins/gdp/data/snark12.txt')    
-    >>> dummy['App.get_active_window'] = win
+    >>> dummy['App.get_active_window'] = window
     >>> dummy['Window.get_group'] = gtk.WindowGroup()
     >>> dummy['Window.get_views'] = [view]
     >>> controller = SyntaxController(view)
@@ -103,12 +103,12 @@ The _calculateSyntaxViewPosition() method will return the x and y
 coordinate to align the SyntaxView widget with the cursor. When there
 is not enough space to display the widget it returns a coordinate to
 fit the it to the bottom right of the screen.
-        
+
     >>> end = document.get_iter_at_mark(document.get_insert())
     >>> controller._calculateSyntaxViewPosition(syntax_view, end)
     (15, 301)
-    
-    >>> win.move(100, 100)
+
+    >>> window.move(100, 100)
     >>> controller._calculateSyntaxViewPosition(syntax_view, end)
     (15, 301)
 
@@ -118,7 +118,7 @@ fit the it to the bottom right of the screen.
     >>> # Uncomment the coordinate below to run this test.
     >>> right_aligned = controller.view.get_screen().get_width() - 350
     >>> bottom_aligned = controller.view.get_screen().get_height() - 300
-    >>> win.move(right_aligned, bottom_aligned)
+    >>> window.move(right_aligned, bottom_aligned)
     >>> pos = controller._calculateSyntaxViewPosition(syntax_view, end)
     >>> #(107, 377)
 
@@ -132,7 +132,7 @@ iterator.
 
     >>> def print_prefix(prefix):
     ...     return (
-    ...         prefix[0], prefix[1].get_offset(), prefix[2].get_offset())     
+    ...         prefix[0], prefix[1].get_offset(), prefix[2].get_offset())
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_end_iter())
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
@@ -167,7 +167,7 @@ characters are the prefix.
     >>> prefix = controller.getWordPrefix(document)
     >>> print_prefix(prefix)
     ('i', 5, 6)
-    
+
 A space is not a word character. There is no prefix. The start and end
 positions are identical.
 
@@ -246,7 +246,7 @@ as the cursor.
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the Estee Project Gutenberg Etext of The Hunting of the Snark.'
-    
+
 The method can replace text in the document when a start iter is
 provided, and it is not the same position at the cursor. The text
 between the start and the cursor is deleted, and the word is inserted
@@ -299,12 +299,12 @@ When the word is None or an empty string, the Document is no changed.
     >>> signal_tester.emitter('syntax-activated', syntax_view, None)
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
-    'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'    
+    'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'
 
     >>> signal_tester.emitter('syntax-activated', syntax_view, '')
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
-    'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'      
+    'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'
 
 When the word is a string (as it should be), the word is inserted into
 the document. According the rules of insertWord(), when a space or
@@ -314,13 +314,13 @@ characters before the cursor are replaced.
     >>> signal_tester.emitter('syntax-activated', syntax_view, 'ed')
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
-    'This is the edesteem Project Gutenberg Etext of The Hunting of the Sn...' 
+    'This is the edesteem Project Gutenberg Etext of The Hunting of the Sn...'
 
     >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
     >>> cursor_iter.forward_chars(6)
     True
     >>> document.place_cursor(cursor_iter)
-    
+
     >>> signal_tester.emitter('syntax-activated', syntax_view, 'esteemed')
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
@@ -374,7 +374,7 @@ it calls the showSyntaxView() method.
 
 Bad combinations include the state is the wrong bit mask, or the wrong
 key was pressed.
-    
+
     >>> event = gdk.Event(gtk.gdk.KEY_PRESS)
     >>> event.window = controller.view.window
     >>> event.state =  gdk.CONTROL_MASK | gdk.SHIFT_MASK | gdk.MOD1_MASK
@@ -382,12 +382,12 @@ key was pressed.
     >>> signal_tester.emitter('key-press-event', controller.view, event)
     >>> controller.syntax_view
     False
-    
+
     >>> event = gdk.Event(gtk.gdk.KEY_PRESS)
     >>> event.window = controller.view.window
     >>> event.state =  gdk.CONTROL_MASK | gdk.SHIFT_MASK
     >>> event.keyval = gtk.keysyms.Tab
-    >>> signal_tester.emitter('key-press-event', controller.view, event)    
+    >>> signal_tester.emitter('key-press-event', controller.view, event)
     >>> controller.syntax_view
     False
 
@@ -402,7 +402,7 @@ view. The method is called by on_view_destroy() for the destroy signal.
 
     >>> controller.view
     <View object (GtkSourceView) at ...>
-    >>> signal_tester.emitter('destroy', controller.view)   
+    >>> signal_tester.emitter('destroy', controller.view)
     >>> literal(controller.view)
     None
 

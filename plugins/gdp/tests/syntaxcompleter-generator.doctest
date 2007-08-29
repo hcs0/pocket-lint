@@ -18,7 +18,7 @@ and properties.
     >>> generator = BaseSyntaxGenerator()
     >>> generator
     <gdp.syntaxcompleter.BaseSyntaxGenerator object at ...>
-    
+
     >>> generator.file_path is None
     True
     >>> generator.buffer_text is None
@@ -46,7 +46,7 @@ punctuation and line ends.
 
     >>> text_generator.file_path
     'plugins/gdp/data/snark12.txt'
-    
+
     >>> text_generator.buffer_text
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
 
@@ -59,7 +59,7 @@ The getWords method returns all words in the generator, unordered.
     ['aided', 'limited', 'writings', 'yellow', 'protest', ...]
 
 When the generator is created with a prefix, the generator will only
-contain words that start with the prefix. Matching is 
+contain words that start with the prefix. Matching is
 case-insensitive.
 
     >>> text_generator = TextGenerator(
@@ -69,7 +69,7 @@ case-insensitive.
     16
     >>> words
     ['bags', 'backwards', 'based', 'bands', 'Bandersnatch', ...]
-    
+
     >>> text_generator = TextGenerator(
     ...     file_path=hunting_the_snark, prefix='Snar')
     >>> words = text_generator.getWords()

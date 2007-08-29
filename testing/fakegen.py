@@ -48,10 +48,8 @@ class FakeFunctionDef(FunctionDef):
     module_template = Template ("""
 def $name($params):
     \"\"\"A fake implementation of $name.\"\"\"
-    key = '%s' % '$name'
-    dummy = Dummy()
-    if key in dummy:
-        return dummy[key]
+    if '$name' in dummy:
+        return dummy['$name']
     else:
         raise NotImplementedError
 """)
@@ -91,8 +89,7 @@ class FakeMethodDef(MethodDef):
     template = Template ("""
     def $name(self$params):
         \"\"\"A fake implementation of $name.\"\"\"
-        key = '%s.%s' % (self.__class__.__name__, '$name')
-        dummy = Dummy()
+        key = '%s.$name' % self.__class__.__name__
         if key in dummy:
             return dummy[key]
         else:
@@ -127,6 +124,7 @@ class $name($parent):
         fp.write(self.template.substitute(params))
         for method in methods:
             method.write_code(fp)
+
 
 class FakePointerDef(PointerDef):
     """A fake pointer generator."""
@@ -231,6 +229,9 @@ class DefOverridesMixer(object):
             enum.write_code(fp)
         if self.defs.enums:
             fp.write('\n\n')
+
+        fp.write('dummy = Dummy()')
+        fp.write('\n\n')
 
         functions = [func for func in self.defs.functions
                      if not hasattr(func, 'of_object')]

@@ -27,9 +27,7 @@ plugin is called with one argument, the gedit.Window.
     >>> from testing.gedithelpers import get_window
     >>> import gtk
     >>> import gedit
-    >>> dummy = Dummy()
-    >>> dummy['app_get_default'] = gedit.App()
-    >>> window, view, document = get_window('plugins/gdp/data/snark12.txt') 
+    >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
     >>> #plugin.activate(window)
 
 

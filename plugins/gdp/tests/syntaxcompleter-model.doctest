@@ -10,7 +10,7 @@ SyntaxModel
 
 SyntaxModel is responsible for selecting a SyntaxModel that provides
 the words. SyntaxModel controls the filtering and retrieval of the
-words. 
+words.
 
 The complete model requires a tuple of sources that identify and
 provide the data. The sources tuple contains the file_path, and
@@ -168,7 +168,7 @@ get_iter_root() are equivalent.
 
 The word 'Baker' is the at index 5 in the preceding examples
 of the model's words.
-    
+
     >>> model.words[5]
     'Baker'
     >>> tree_iter = model.get_iter(5)

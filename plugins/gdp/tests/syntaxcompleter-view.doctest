@@ -85,7 +85,7 @@ thus disconnects the signal.
     True
     >>> signal_tester.word
     'Baker'
-   
+
     >>> view.handler_is_connected(handler_id)
     False
 
