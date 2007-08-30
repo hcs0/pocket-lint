@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # Copyright (C) 2007 - Curtis Hovey <sinzui.is at verizon.net>
-"""Generate fake python implementations from a defs file."""
+"""Generate dummy python implementations from a defs file."""
 
 from codegen.definitions import (BoxedDef, EnumDef, FlagsDef,
      FunctionDef, InterfaceDef, MethodDef, ObjectDef, PointerDef, VirtualDef)
@@ -16,7 +16,7 @@ from string import Template
 import sys
 
 
-class FakeBoxedDef(BoxedDef):
+class DummyBoxedDef(BoxedDef):
     """Convert of GObjects to PyObjects."""
 
     def write_code(self, fp=sys.stdout):
@@ -24,30 +24,30 @@ class FakeBoxedDef(BoxedDef):
         pass
 
 
-class FakeEnumDef(EnumDef):
+class DummyEnumDef(EnumDef):
     """Enumerated constants."""
     template = Template ("""
 $val = '$name'""")
 
     def write_code(self, fp=sys.stdout):
-        """Write fake python implemention."""
+        """Write dummy python implemention."""
         for name, val in self.values:
             params = {'name' : name, 'val' : val}
             fp.write(self.template.substitute(params))
 
 
-class FakeFlagsDef(FlagsDef):
+class DummyFlagsDef(FlagsDef):
     """Python flags defined at the start of the block."""
     def write_code(self, fp=sys.stdout):
-        """Write fake python implemention."""
+        """Write dummy python implemention."""
 
 
-class FakeFunctionDef(FunctionDef):
-    """A fake python function that returns data from the test environment."""
+class DummyFunctionDef(FunctionDef):
+    """A dummy python function that returns data from the test environment."""
 
     module_template = Template ("""
 def $name($params):
-    \"\"\"A fake implementation of $name.\"\"\"
+    \"\"\"A dummy implementation of $name.\"\"\"
     if '$name' in dummy:
         return dummy['$name']
     else:
@@ -56,11 +56,11 @@ def $name($params):
 
     class_template = Template ("""
     def $name($params):
-        \"\"\"A fake implementation of $name.\"\"\"
+        \"\"\"A dummy implementation of $name.\"\"\"
 """)
 
     def write_code(self, fp=sys.stdout):
-        """Write fake python implemention."""
+        """Write dummy python implemention."""
         if hasattr(self, 'of_object'):
             template = self.class_template
         else:
@@ -77,18 +77,18 @@ def $name($params):
         fp.write(template.substitute(params))
 
 
-class FakeInterfaceDef(InterfaceDef):
+class DummyInterfaceDef(InterfaceDef):
     """A python interface."""
 
     def write_code(self, fp=sys.stdout):
-        """Write fake python implemention."""
+        """Write dummy python implemention."""
 
 
-class FakeMethodDef(MethodDef):
-    """A fake python method that returns data from the test environment."""
+class DummyMethodDef(MethodDef):
+    """A dummy python method that returns data from the test environment."""
     template = Template ("""
     def $name(self$params):
-        \"\"\"A fake implementation of $name.\"\"\"
+        \"\"\"A dummy implementation of $name.\"\"\"
         key = '%s.$name' % self.__class__.__name__
         if key in dummy:
             return dummy[key]
@@ -97,7 +97,7 @@ class FakeMethodDef(MethodDef):
 """)
 
     def write_code(self, fp=sys.stdout):
-        """Write fake python implemention."""
+        """Write dummy python implemention."""
         if self.params:
             symbols = []
             for param in self.params:
@@ -110,90 +110,90 @@ class FakeMethodDef(MethodDef):
         fp.write(self.template.substitute(subs))
 
 
-class FakeObjectDef(ObjectDef):
-    """A fake Python class."""
+class DummyObjectDef(ObjectDef):
+    """A dummy Python class."""
     template = Template ("""
 
 class $name($parent):
-    \"\"\"A fake implementation of $name.\"\"\"
+    \"\"\"A dummy/fake implementation of $name.\"\"\"
 """)
 
     def write_code(self, fp=sys.stdout, methods=None):
-        """Write fake python implemention."""
+        """Write dummy python implemention."""
         params = {'name' : self.name, 'parent' : parent_name(self.parent)}
         fp.write(self.template.substitute(params))
         for method in methods:
             method.write_code(fp)
 
 
-class FakePointerDef(PointerDef):
-    """A fake pointer generator."""
+class DummyPointerDef(PointerDef):
+    """A dummy pointer generator."""
 
     def write_code(self, fp=sys.stdout):
-        """Write fake python implemention."""
+        """Write dummy python implemention."""
 
 
-class FakeVirtualDef(VirtualDef):
-    """A Fake virtual generator."""
+class DummyVirtualDef(VirtualDef):
+    """A dummy virtual generator."""
 
     def write_code(self, fp=sys.stdout):
-        """Write fake python implemention."""
+        """Write dummy python implemention."""
 
 
-class FakeDefsParser(DefsParser):
+class DummyDefsParser(DefsParser):
     """Module and class generator from def files."""
 
     def define_object(self, *args):
         """Add a new object to the defs."""
-        odef = FakeObjectDef(*args)
+        odef = DummyObjectDef(*args)
         self.objects.append(odef)
         self.c_name[odef.c_name] = odef
 
     def define_interface(self, *args):
         """Add a new interface to the defs."""
-        idef = FakeInterfaceDef(*args)
+        idef = DummyInterfaceDef(*args)
         self.interfaces.append(idef)
         self.c_name[idef.c_name] = idef
 
     def define_enum(self, *args):
         """Add a new enum to the defs."""
-        edef = FakeEnumDef(*args)
+        edef = DummyEnumDef(*args)
         self.enums.append(edef)
         self.c_name[edef.c_name] = edef
 
     def define_flags(self, *args):
         """Add new flags to the defs."""
-        fdef = FakeFlagsDef(*args)
+        fdef = DummyFlagsDef(*args)
         self.enums.append(fdef)
         self.c_name[fdef.c_name] = fdef
 
     def define_boxed(self, *args):
         """Add a new boxed type to the defs."""
-        bdef = FakeBoxedDef(*args)
+        bdef = DummyBoxedDef(*args)
         self.boxes.append(bdef)
         self.c_name[bdef.c_name] = bdef
 
     def define_pointer(self, *args):
         """Add a new pointer type to the defs."""
-        pdef = FakePointerDef(*args)
+        pdef = DummyPointerDef(*args)
         self.pointers.append(pdef)
         self.c_name[pdef.c_name] = pdef
 
     def define_function(self, *args):
         """Add a new function to the defs."""
-        fdef = FakeFunctionDef(*args)
+        fdef = DummyFunctionDef(*args)
         self.functions.append(fdef)
         self.c_name[fdef.c_name] = fdef
 
     def define_method(self, *args):
         """Add a new method to the defs."""
-        mdef = FakeMethodDef(*args)
+        mdef = DummyMethodDef(*args)
         self.functions.append(mdef)
         self.c_name[mdef.c_name] = mdef
 
     def define_virtual(self, *args):
         """Add a new virtual class to the defs."""
-        vdef = FakeVirtualDef(*args)
+        vdef = DummyVirtualDef(*args)
         self.virtuals.append(vdef)
 
 
@@ -213,7 +213,7 @@ class DefOverridesMixer(object):
 
     def write_code(self, fp=sys.stdout):
         """Write the top-level objects and functions."""
-        fp.write('''"""A fake implemetation of objects."""''')
+        fp.write('''"""A dummy implemetation of objects."""''')
         fp.write('\n\n')
 
         if self.overrides.headers:
@@ -235,7 +235,7 @@ class DefOverridesMixer(object):
 
         functions = [function for function in self.defs.functions
                      if (not hasattr(function, 'of_object')
-                        and function.name not in overrides.functions)]
+                        and function not in overrides.functions)]
         for function in functions:
             function.write_code(fp)
         fp.write('\n')
@@ -326,7 +326,7 @@ if __name__ == '__main__':
         module_file_name = defs_file_name.replace('.defs', '.py')
     module_file = open(module_file_name, 'w')
 
-    defs = FakeDefsParser(defs_file_name)
+    defs = DummyDefsParser(defs_file_name)
     defs.startParsing()
     mixer = DefOverridesMixer(defs, overrides)
     mixer.write_code(module_file)

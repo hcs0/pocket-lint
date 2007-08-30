@@ -101,11 +101,11 @@ fit the it to the bottom right of the screen.
 
     >>> end = document.get_iter_at_mark(document.get_insert())
     >>> controller._calculateSyntaxViewPosition(syntax_view, end)
-    (15, 301)
+    (15, 298)
 
     >>> window.move(100, 100)
     >>> controller._calculateSyntaxViewPosition(syntax_view, end)
-    (15, 301)
+    (15, 298)
 
     >>> # Window managers treat window postions as suggestions.
     >>> # This test can be unreliable. The top-left and bottom-right

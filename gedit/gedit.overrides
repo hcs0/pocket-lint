@@ -12,7 +12,7 @@ from gtk.gdk import *
 import gtksourceview
 from gtksourceview import *
 import gnome
-from gnome import *
+#from gnome import *
 %%
 define app_get_default
 def app_get_default():
@@ -21,26 +21,6 @@ def app_get_default():
     Return a Gedit.App.
     """
     return App()
-%%
-define App.__init__
-    def __init__(self):
-        """A fake initialization of gedit.App."""
-        self.windows = []
-        self.active_window = None
-        self.documents = []
-        self.views = []
-%%
-define App.create_window
-    def create_window(self, screen=None):
-        """A fake implementation of create_window."""
-        window = Window()
-        self.windows + window
-        self.active_window = window
-%%
-define Window.get_group
-    def get_group(self):
-        """A fake initialization of gedit.Window.get_group."""
-        return gtk.WindowGroup()
 %%
 define Document.__init__
     def __init__(self):
@@ -129,6 +109,168 @@ define Document.get_language
             return dummy[key]
         else:
             return self.language
+%%
+define View.__init__
+    def __init__(self, document=None):
+        """A fake initialization of gedit.View."""
+        if not document:
+            document = Document()
+        super(View, self).__init__(document)
+%%
+define Tab.__init__
+    def __init__(self):
+        """A fake initialization of gedit.Tab."""
+        super(Tab, self).__init__()
+%%
+define Tab.get_view
+    def get_view(self):
+        """A fake implementation of get_view."""
+        children = self.get_children()
+        if children:
+            return children[0]
+        return None
+%%
+define Tab.get_document
+    def get_document(self):
+        """A fake implementation of get_document."""
+        view = self.get_view()
+        if view:
+            return view.get_buffer()
+        return None
+%%
+define Window.__init__
+    def __init__(self):
+        """A fake initialization of gedit.Tab."""
+        super(Window, self).__init__()
+        self.add(gtk.Notebook())
+        self.connect("destroy", gtk.main_quit)
+        self.resize(300, 250)
+%%
+define Window.create_tab
+    def create_tab(self, jump_to):
+        """A fake implementation of create_tab."""
+        self.create_tab_from_uri(None, None, 0, True, jump_to)
+%%
+define Window.create_tab_from_uri
+    def create_tab_from_uri(self, uri, encoding, line_pos, create, jump_to):
+        """A fake implementation of create_tab_from_uri."""
+        document = Document()
+        tab_label = gtk.Label('Untitled')
+        if uri:
+            from os.path import basename
+            document.load(uri, encoding, line_pos, create)
+            tab_label = gtk.Label(basename(document.get_uri_for_display()))
+        view = View(document)
+        tab = Tab()
+        tab.pack_start(view)
+        n = self.get_child().append_page(tab, tab_label)
+        tab.show()
+        if n == 0 or jump_to:
+            self.get_child().set_current_page(n)
+%%
+define Window.set_active_tab
+    def set_active_tab(self, tab):
+        """A fake implementation of set_active_tab."""
+        n = self.get_child().page_num(tab)
+        self.get_child().set_current_page(n)
+%%
+define Window.get_active_tab
+    def get_active_tab(self):
+        """A fake implementation of get_active_tab."""
+        n = self.get_child().get_current_page()
+        return self.get_child().get_nth_page(n)
+%%
+define Window.get_active_view
+    def get_active_view(self):
+        """A fake implementation of get_active_view."""
+        tab = self.get_active_tab()
+        return tab.get_view()
+%%
+define Window.get_active_document
+    def get_active_document(self):
+        """A fake implementation of get_active_document."""
+        tab = self.get_active_tab()
+        return tab.get_document()
+%%
+define Window.get_views
+    def get_views(self):
+        """A fake implementation of get_views."""
+        return [tab.get_view() for tab in self._tabs]
+%%
+define Window.get_documents
+    def get_documents(self):
+        """A fake implementation of get_documents."""
+        return [tab.get_document() for tab in self._tabs]
+%%
+define Window.get_group
+    def get_group(self):
+        """A fake initialization of gedit.Window.get_group."""
+        return gtk.WindowGroup()
+%%
+define Window._tabs
+    @property
+    def _tabs(self):
+        """A testing property to access all tabs (do not use)."""
+        n_pages = self.get_child().get_n_pages()
+        tabs = []
+        for n in range(0, n_pages):
+            tabs.append(self.get_child().get_nth_page(n))
+        return tabs
+%%
+define App.__new__
+    def __new__(cls, *args, **kwargs):
+        """Create a Singleton class."""
+        if '_inst' not in vars(cls):
+            cls._inst = super(App, cls).__new__(cls, *args, **kwargs)
+        return cls._inst
+%%
+define App.__init__
+    def __init__(self):
+        """A fake initialization of gedit.App."""
+        super(App, self).__init__()
+        self.windows = []
+        self.active_window = None
+        self.create_window()
+%%
+define App.create_window
+    def create_window(self, screen=None):
+        """A fake implementation of create_window."""
+        window = Window()
+        window.create_tab(True)
+        self.windows.append(window)
+        self.active_window = window
+        return window
+%%
+define App.get_windows
+    def get_windows(self):
+        """A fake implementation of get_windows."""
+        return self.windows
+%%
+define App.get_active_window
+    def get_active_window(self):
+        """A fake implementation fo get_active_window."""
+        for window in self.windows:
+            if window.is_active():
+                return window
+        # No window is active, meaning that either there are no Gedit windows
+        # or that no gedit windows are in the active window group.
+        return self.active_window
+%%
+define App.get_views
+    def get_views(self):
+        """A fake implementation fo get_views."""
+        views = []
+        for window in self.windows:
+            views.extend(window.get_views())
+        return views
+%%
+define App.get_documents
+    def get_documents(self):
+        """A fake implementation fo get_views."""
+        documents = []
+        for window in self.windows:
+            documents.extend(window.get_documents())
+        return documents
 %%
 body
 gobject.signal_new(

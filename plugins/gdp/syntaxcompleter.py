@@ -314,7 +314,7 @@ class SyntaxController(object):
     def setView(self, view, is_reset=False):
         """Set the view to be controlled.
 
-        Installs signal handlers for the view. Calling
+        Installs signal handlers for the view. Callingdocument.get_uri()
         self.setView(None) will effectively remove all the control from
         the current view. when is_reset is True, the current view's
         signals will be reset.
@@ -348,11 +348,7 @@ class SyntaxController(object):
         """Show the SyntaxView widget."""
         document = self.view.get_buffer()
         (prefix, ignored, end) = self.getWordPrefix(document)
-        if document.get_uri():
-            file_path = os.path.basename(document.get_uri())
-        else:
-            file_path = ''
-        sources = (file_path, document)
+        sources = (document.get_uri(), document)
         syntax_view = SyntaxView(sources, prefix, False)
         syntax_view.connect(
             'syntax-activated', self.on_syntaxview_row_activated)
