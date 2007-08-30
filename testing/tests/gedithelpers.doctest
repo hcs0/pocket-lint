@@ -1,0 +1,50 @@
+Gedit Helpers
+=============
+
+This is a set of tests to ensure the test infrastructure works well
+enough to be trusted.
+
+
+Fake objects
+------------
+
+This set of tests provide general testing of the fake gedit objects
+used in testing. The fake object are not intended to be robust. They
+exist to mimic basic gedit object behaviours and collaborations.
+Dummy value may and are used inplace of the basic functions when
+needed.
+
+
+Document
+~~~~~~~~
+
+The fake document provides simple document loading and getter/setters
+for working with the file's metadata.
+
+    >>> import gedit
+    >>> from urllib import pathname2url
+    >>> from os.path import abspath
+    >>> from gtksourceview import SourceLanguagesManager
+    >>> uri = 'file://%s' % pathname2url(
+    ...     abspath('plugins/gdp/data/snark12.txt'))
+    >>> document = gedit.Document()
+    >>> document.load(uri, encoding=None, line_pos=0, create=False)
+    >>> document.get_text(document.get_start_iter(),
+    ...     document.get_end_iter())
+    'This is the Project Gutenberg Etext of The Hunting of the Snark...'
+    >>> document.get_mime_type()
+    'text/plain'
+    >>> literal(document.get_language())
+    None
+    >>> document.get_uri()
+    'file:///.../plugins/gdp/data/snark12.txt'
+    >>> document.get_uri_for_display()
+    '/.../plugins/gdp/data/snark12.txt'
+
+    >>> lang_manager = SourceLanguagesManager()
+    >>> language = lang_manager.get_language_from_mime_type('text/x-python')
+    >>> document.set_language(language)
+    >>> document.get_language()
+    <gtksourceview.SourceLanguage (id="Python") at ...
+    >>> document.get_mime_type()
+    'text/x-python'

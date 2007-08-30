@@ -22,6 +22,21 @@ def app_get_default():
     """
     return App()
 %%
+define App.__init__
+    def __init__(self):
+        """A fake initialization of gedit.App."""
+        self.windows = []
+        self.active_window = None
+        self.documents = []
+        self.views = []
+%%
+define App.create_window
+    def create_window(self, screen=None):
+        """A fake implementation of create_window."""
+        window = Window()
+        self.windows + window
+        self.active_window = window
+%%
 define Window.get_group
     def get_group(self):
         """A fake initialization of gedit.Window.get_group."""
@@ -31,7 +46,71 @@ define Document.__init__
     def __init__(self):
         """A fake initialization of gedit.Document."""
         super(Document, self).__init__()
+        self.uri = None
+        self.encoding = None
         self.language = None
+%%
+define Document.get_uri
+    def get_uri(self):
+        """A fake implementation of get_uri."""
+        key = '%s.get_uri' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
+        else:
+            return self.uri
+%%
+define Document.get_uri_for_display
+    def get_uri_for_display(self):
+        """A fake implementation of get_uri_for_display."""
+        key = '%s.get_uri_for_display' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
+        else:
+            if self.uri.startswith('file:'):
+                from urllib import url2pathname
+                return url2pathname(self.uri[7:])
+            else:
+                return self.uri
+%%
+define Document.get_mime_type
+    def get_mime_type(self):
+        """A fake implementation of get_mime_type."""
+        key = '%s.get_mime_type' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
+        elif self.language:
+            mime_types = self.language.get_mime_types()
+            if mime_types:
+                return mime_types[0]
+        else:
+            # There is no information about the mime-type.
+            pass
+        return 'text/plain'
+%%
+define Document.load
+    def load(self, uri, encoding, line_pos, create):
+        """A fake implementation of load.
+        
+        The encoding, line_pos, and create args are ignored.
+        The uri must use the file:// protocol.
+        """
+        from mimetypes import MimeTypes
+        from urllib import urlopen
+        try:
+            source_file = urlopen(uri)
+            text = ''.join(source_file.readlines())
+        except IOError:
+            raise ValueError, _(u'%s cannot be read' % uri)
+        else:
+            source_file.close()
+        self.set_text(text)
+        self.uri = uri
+        self.encoding = encoding
+        mt = MimeTypes()
+        mime_type, encoding = mt.guess_type(uri)
+        language_manager = SourceLanguagesManager()
+        language = language_manager.get_language_from_mime_type(mime_type)
+        self.set_language(language)
 %%
 define Document.set_language
     def set_language(self, val):
