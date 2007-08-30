@@ -51,7 +51,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
                 view._syntax_controller = None
 
         self.window = None
-        self.controler = None
+        self.controller = None
 
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window.

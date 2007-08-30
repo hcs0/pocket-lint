@@ -31,7 +31,6 @@ return when they are called in the next test.
     >>> import gtk
     >>> import gedit
     >>> dummy = Dummy()
-    >>> dummy['app_get_default'] = gedit.App()
     >>> dummy['App.get_active_window'] = gtk.Window()
     >>> view = SyntaxView(sources)
     >>> view

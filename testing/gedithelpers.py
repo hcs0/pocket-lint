@@ -15,6 +15,7 @@ from gtksourceview import SourceBuffer, SourceLanguagesManager
 
 import gedit
 
+from testing import Dummy
 
 def get_sourcebuffer(file_path, mime_type='text/plain'):
     """return a gtk.TextBuffer for the provided file_path."""
@@ -72,5 +73,13 @@ def get_window(file_path, document=None):
     window.connect("destroy", gtk.main_quit)
     window.resize(300, 250)
     window.show_all()
+    # The fake objects will differ to dummy to get the relevant data.
+    # These could be setup as defines in gedit.overrides to wire the
+    # observed behaviour into the fake objects for tests.
+    dummy = Dummy()
+    dummy['App.get_active_window'] = window
+    dummy['Window.get_views'] = [view]
+    dummy['Window.get_active_view'] = view
+    dummy['Document.get_uri'] = None
     return window, view, document
 

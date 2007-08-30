@@ -24,9 +24,6 @@ requests to complete words.
     >>> import gtk
     >>> import gedit
     >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
-    >>> dummy = Dummy()
-    >>> dummy['App.get_active_window'] = window
-    >>> dummy['Window.get_views'] = [view]
     >>> controller = SyntaxController(view)
     >>> controller
     <gdp.syntaxcompleter.SyntaxController object at ...>
@@ -89,7 +86,6 @@ it to the SyntaxView.
 
     >>> # The widget can only be observed to work when gtk.main()
     >>> # is run.
-    >>> dummy['Document.get_uri'] = None
     >>> syntax_view = controller.showSyntaxView()
     >>> syntax_view
     <SyntaxView object (GtkWindow) at ...>

@@ -22,27 +22,44 @@ activate()
 ~~~~~~~~~~
 
 Whenever a new gedit window is created the activate() method of the
-plugin is called with one argument, the gedit.Window.
+plugin is called with one argument, the gedit.Window. The plugin
+creates the SyntaxController, and binds it and the window to itself.
+It also adds the controller to the view.
 
     >>> from testing.gedithelpers import get_window
     >>> import gtk
     >>> import gedit
     >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
-    >>> dummy = Dummy()
-    >>> dummy['Window.get_views'] = [view]
-    >>> dummy['Window.get_active_view'] = view
     >>> plugin.activate(window)
-
-
-deactivate()
-~~~~~~~~~~~~
-
-when a window is destroyed the deactivate function is called.
+    >>> plugin.window is window
+    True
+    >>> view._syntax_controller is plugin.controller
+    True
+    >>> plugin.controller
+    <gdp.syntaxcompleter.SyntaxController object at ...>
 
 
 update_ui()
 ~~~~~~~~~~~
 
-The update_ui function is called when the plugin is requested to see if
-it needs to update its UI.
+The update_ui function is called when the plugin is requested to update
+the application's UI. In the case when a document is loaded into an
+existing tab, the view is replaced, and the plugin must bind itself
+
+
+deactivate()
+~~~~~~~~~~~~
+
+When a window is destroyed the deactivate function is called by the
+app, passing the window to the function. The plugin unbinds the
+controller from the views, then removes its own bindings to the window
+and the controller.
+
+    >>> plugin.deactivate(window)
+    >>> literal(plugin.window)
+    None
+    >>> literal(plugin.controller)
+    None
+    >>> literal(view._syntax_controller)
+    None
 
