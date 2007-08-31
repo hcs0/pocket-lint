@@ -12,7 +12,7 @@ from gtk.gdk import *
 import gtksourceview
 from gtksourceview import *
 import gnome
-#from gnome import *
+from gettext import gettext as _
 %%
 define app_get_default
 def app_get_default():
@@ -176,7 +176,7 @@ define Window.create_tab_from_uri
         tab = Tab()
         tab.pack_start(view)
         n = self.get_child().append_page(tab, tab_label)
-        tab.show()
+        tab.show_all()
         if n == 0 or jump_to:
             self.get_child().set_current_page(n)
         self.emit('tab-added', tab)

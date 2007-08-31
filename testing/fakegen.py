@@ -262,11 +262,6 @@ class DefOverridesMixer(object):
             fp.write(overrides.body)
             fp.write('\n\n')
 
-#         for boxed in self.defs.boxes:
-#             boxed.write_defs(fp)
-#         for pointer in self.defs.pointers:
-#             pointer.write_defs(fp)
-
 
 def parent_name(name):
     """Strip the G/Gtk namespace prefix to move the name from C to Python."""

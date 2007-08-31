@@ -22,10 +22,11 @@ def get_window(file_path):
     will be used with the window.
     """
     window = gedit.app_get_default().create_window()
+    if file_path:
+        window.get_child().remove_page(0)
+        window.create_tab_from_uri(file_path, None, 0, False, True)
     view = window.get_active_view()
     document = window.get_active_document()
-    if file_path:
-        document.load(file_path, None, 0, False)
     window.show_all()
     return window, view, document
 
