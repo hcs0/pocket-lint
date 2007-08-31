@@ -63,7 +63,7 @@ class SignalTester(object):
     assert signal_tester.testee is testee
     assert signal_tester.data == data
     
-    target = targatEmitterClass()
+    target = targetEmitterClass()
     testee = Testee()
     Signal Reception testing:
     signal_tester = SignalTester()

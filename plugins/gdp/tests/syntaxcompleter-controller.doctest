@@ -277,6 +277,7 @@ of the sginals.
     ...     controller, controller.view, 'view', 'destroy',
     ...     controller.on_view_destroy)
 
+
 on_syntaxview_row_activated()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

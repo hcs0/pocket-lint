@@ -19,7 +19,6 @@ from gdp.syntaxcompleter import SyntaxController
 
 class SyntaxCompleterPlugin(gedit.Plugin):
     """Automatically complete words from the list of words in the document."""
-    #handler_ids = []
 
     def __init__(self):
         """Initialize the plugin the whole Gedit application."""
@@ -49,6 +48,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
             if isinstance(view, gedit.View) and self.hasController(view):
                 view._syntax_controller.deactivate()
                 view._syntax_controller = None
+                del view._syntax_controller
 
         self.window = None
         self.controller = None
@@ -58,13 +58,11 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         
         Set the current controler.
         """
-        view = self.window.get_active_view()
-        if not view or not self.hasController(view):
-            return
-
-        controller = view._syntax_controller
-        if controller != self.controller:
-            self.controller = controller
+        view = window.get_active_view()
+        if isinstance(view, gedit.View) and self.hasController(view):
+            self.controller = view._syntax_controller
+        else:
+            self.controller = None
 
     def hasController(self, view):
         """Return True when the view has a SyntaxControler."""
@@ -77,4 +75,5 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         view = tab.get_view()
         if isinstance(view, gedit.View) and not self.hasController(view):
             view._syntax_controller = SyntaxController(view)
+            self.update_ui(window)
 

@@ -36,8 +36,7 @@ define Document.get_uri
         key = '%s.get_uri' % self.__class__.__name__
         if key in dummy:
             return dummy[key]
-        else:
-            return self.uri
+        return self.uri
 %%
 define Document.get_uri_for_display
     def get_uri_for_display(self):
@@ -45,12 +44,11 @@ define Document.get_uri_for_display
         key = '%s.get_uri_for_display' % self.__class__.__name__
         if key in dummy:
             return dummy[key]
+        if self.uri.startswith('file:'):
+            from urllib import url2pathname
+            return url2pathname(self.uri[7:])
         else:
-            if self.uri.startswith('file:'):
-                from urllib import url2pathname
-                return url2pathname(self.uri[7:])
-            else:
-                return self.uri
+            return self.uri
 %%
 define Document.get_mime_type
     def get_mime_type(self):
@@ -98,8 +96,8 @@ define Document.set_language
         key = '%s.set_language' % self.__class__.__name__
         if key in dummy:
             dummy[key] = val
-        else:
-            self.language = val
+            return
+        self.language = val
 %%
 define Document.get_language
     def get_language(self):
@@ -107,8 +105,7 @@ define Document.get_language
         key = '%s.get_language' % self.__class__.__name__
         if key in dummy:
             return dummy[key]
-        else:
-            return self.language
+        return self.language
 %%
 define View.__init__
     def __init__(self, document=None):
@@ -125,6 +122,9 @@ define Tab.__init__
 define Tab.get_view
     def get_view(self):
         """A fake implementation of get_view."""
+        key = '%s.get_view' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         children = self.get_children()
         if children:
             return children[0]
@@ -167,6 +167,7 @@ define Window.create_tab_from_uri
         tab.show()
         if n == 0 or jump_to:
             self.get_child().set_current_page(n)
+        self.emit('tab-added', tab)
 %%
 define Window.set_active_tab
     def set_active_tab(self, tab):
