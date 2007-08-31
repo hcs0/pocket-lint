@@ -235,7 +235,7 @@ class DefOverridesMixer(object):
 
         functions = [function for function in self.defs.functions
                      if (not hasattr(function, 'of_object')
-                        and function not in overrides.functions)]
+                        and function.name not in overrides.functions)]
         for function in functions:
             function.write_code(fp)
         fp.write('\n')

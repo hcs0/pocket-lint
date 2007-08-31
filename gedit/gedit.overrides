@@ -72,6 +72,9 @@ define Document.load
         The encoding, line_pos, and create args are ignored.
         The uri must use the file:// protocol.
         """
+        key = '%s.load' % self.__class__.__name__
+        if key in dummy:
+            return
         from mimetypes import MimeTypes
         from urllib import urlopen
         try:
@@ -133,6 +136,9 @@ define Tab.get_view
 define Tab.get_document
     def get_document(self):
         """A fake implementation of get_document."""
+        key = '%s.get_document' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         view = self.get_view()
         if view:
             return view.get_buffer()
@@ -149,11 +155,17 @@ define Window.__init__
 define Window.create_tab
     def create_tab(self, jump_to):
         """A fake implementation of create_tab."""
+        key = '%s.create_tab' % self.__class__.__name__
+        if key in dummy:
+            return
         self.create_tab_from_uri(None, None, 0, True, jump_to)
 %%
 define Window.create_tab_from_uri
     def create_tab_from_uri(self, uri, encoding, line_pos, create, jump_to):
         """A fake implementation of create_tab_from_uri."""
+        key = '%s.create_tab_from_uri' % self.__class__.__name__
+        if key in dummy:
+            return
         document = Document()
         tab_label = gtk.Label('Untitled')
         if uri:
@@ -172,40 +184,62 @@ define Window.create_tab_from_uri
 define Window.set_active_tab
     def set_active_tab(self, tab):
         """A fake implementation of set_active_tab."""
+        key = '%s.set_active_tab' % self.__class__.__name__
+        if key in dummy:
+            dummy[key] = tab
+            return
         n = self.get_child().page_num(tab)
         self.get_child().set_current_page(n)
 %%
 define Window.get_active_tab
     def get_active_tab(self):
         """A fake implementation of get_active_tab."""
+        key = '%s.get_active_tab' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         n = self.get_child().get_current_page()
         return self.get_child().get_nth_page(n)
 %%
 define Window.get_active_view
     def get_active_view(self):
         """A fake implementation of get_active_view."""
+        key = '%s.get_active_view' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         tab = self.get_active_tab()
         return tab.get_view()
 %%
 define Window.get_active_document
     def get_active_document(self):
         """A fake implementation of get_active_document."""
+        key = '%s.get_active_document' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         tab = self.get_active_tab()
         return tab.get_document()
 %%
 define Window.get_views
     def get_views(self):
         """A fake implementation of get_views."""
+        key = '%s.get_views' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         return [tab.get_view() for tab in self._tabs]
 %%
 define Window.get_documents
     def get_documents(self):
         """A fake implementation of get_documents."""
+        key = '%s.get_views' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         return [tab.get_document() for tab in self._tabs]
 %%
 define Window.get_group
     def get_group(self):
         """A fake initialization of gedit.Window.get_group."""
+        key = '%s.get_group' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         return gtk.WindowGroup()
 %%
 define Window._tabs
@@ -236,6 +270,9 @@ define App.__init__
 define App.create_window
     def create_window(self, screen=None):
         """A fake implementation of create_window."""
+        key = '%s.create_window' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         window = Window()
         window.create_tab(True)
         self.windows.append(window)
@@ -245,11 +282,17 @@ define App.create_window
 define App.get_windows
     def get_windows(self):
         """A fake implementation of get_windows."""
+        key = '%s.get_windows' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         return self.windows
 %%
 define App.get_active_window
     def get_active_window(self):
         """A fake implementation fo get_active_window."""
+        key = '%s.get_active_window' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         for window in self.windows:
             if window.is_active():
                 return window
@@ -260,6 +303,9 @@ define App.get_active_window
 define App.get_views
     def get_views(self):
         """A fake implementation fo get_views."""
+        key = '%s.get_views' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         views = []
         for window in self.windows:
             views.extend(window.get_views())
@@ -268,6 +314,9 @@ define App.get_views
 define App.get_documents
     def get_documents(self):
         """A fake implementation fo get_views."""
+        key = '%s.get_documents' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
         documents = []
         for window in self.windows:
             documents.extend(window.get_documents())

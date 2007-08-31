@@ -153,6 +153,10 @@ It can be retrieved using a factory function app_get_default()
     >>> app = gedit.app_get_default()
     >>> app
     <App object (GObject) at ...>
+    >>> new_app = gedit.app_get_default()
+    >>> new_app is app
+    True
+
     >>> window_1 = app.create_window()
     >>> window_1.create_tab(False)
     >>> window_1
