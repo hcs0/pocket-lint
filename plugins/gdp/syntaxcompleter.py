@@ -24,11 +24,10 @@ from snippets.SnippetComplete import SnippetComplete, CompleteModel
 
 class BaseSyntaxGenerator(object):
     """An abstract class representing the source of a word prefix."""
-    def __init__(self, prefix=None, text_buffer=None, file_path=None):
+    def __init__(self, document, prefix=None):
         """Create a new SyntaxGenerator."""
         self._prefix = prefix
-        self._text_buffer = text_buffer
-        self._file_path = file_path
+        self._document = document
 
     def getWords(self, prefix=None):
         """Return an orders list of words that match the prefix."""
@@ -42,71 +41,44 @@ class BaseSyntaxGenerator(object):
     @property
     def file_path(self):
         """The path to the file that is the word source."""
-        return self._file_path
+        return self._document.get_uri()
 
     @property
-    def buffer_text(self):
-        """Return the text of the TextBuffer or None."""
-        if not self._text_buffer:
+    def text(self):
+        """Return the text of the gedit.Document or None."""
+        if not self._document:
             return None
-        start_iter = self._text_buffer.get_start_iter()
-        end_iter = self._text_buffer.get_end_iter()
-        return self._text_buffer.get_text(start_iter , end_iter)
+        start_iter = self._document.get_start_iter()
+        end_iter = self._document.get_end_iter()
+        return self._document.get_text(start_iter , end_iter)
 
 
 class TextGenerator(BaseSyntaxGenerator):
     """Generate a list of words that match a given prefix for a document."""
-    def __init__(self, prefix=None, text_buffer=None, file_path=None):
+
+    def __init__(self, document, prefix=None):
         """Create a TextGenerator
 
         :prefix string: The word prefix used to locate complete words.
-        :text_buffer gtk.TextBuffer: The source of words to search.
-        :file_path string: The path to the file that contains the words to
-                           search.
+        :document gedit.Document: The source of words to search.
         """
         self._prefix = prefix
-        self._text_buffer = text_buffer
-        self._file_path = file_path
-        if not self._text_buffer and self.file_path:
-            self.file_path = self._file_path
+        self._document = document
 
     @property
     def prefix(self):
         """The prefix use to match words to."""
         return self._prefix
 
-    def file_path(self):
-        """The path to the file that is the source of this TextGenerator.
-
-        Setting file_path will load the file into the text_buffer.
-        """
-        return self._file_path
-
-    def _set_file_path(self, file_path):
-        """See file_path."""
-        self._file_path = file_path
-        try:
-            source_file = open(self._file_path)
-            text = ''.join(source_file.readlines())
-        except IOError:
-            raise ValueError, _(u'%s cannot be read' % file_path)
-        else:
-            source_file.close()
-        self._text_buffer = gtk.TextBuffer()
-        self._text_buffer.set_text(text)
-
-    file_path = property(
-        fget=file_path, fset=_set_file_path, doc=file_path.__doc__)
-
     def getWords(self, prefix=None):
         """Return an orders list of words that match the prefix."""
         if not prefix and self._prefix:
             prefix = self._prefix
         else:
-            # Match all words in the buffer_text.
+            # Match all words in the text.
             prefix = ""
         word_re = re.compile(r'\b(%s[\w-]+)' % re.escape(prefix), re.I)
-        words = word_re.findall(self.buffer_text)
+        words = word_re.findall(self.text)
         # Find the unique words that do not have psuedo m-dashed in them.
         words[:] = set(word for word in words if '--' not in word)
         return words
@@ -169,40 +141,37 @@ class SyntaxModel(CompleteModel):
     """
     column_types = (str, str)
 
-    def __init__(self, sources, prefix=None, description_only=False):
+    def __init__(self, document, prefix=None, description_only=False):
         """Create, sort, and display the model.
 
         The sources parameter is a tuple of mime_type, file_path, and
-        text_buffer.
+        document.
         """
-        file_path, source_buffer = sources
         gtk.GenericTreeModel.__init__(self)
-        self.words = self.createList(file_path, source_buffer, prefix)
+        self.words = self.createList(document, prefix)
         self.words.sort(lambda a, b: cmp(a.lower(), b.lower()))
         self.visible_words = list(self.words)
         # Map this classes methods to the parent class
         self.display_snippet = self.displayWord
         self.do_filter = self.filterWords
 
-    def createList(self, file_path, source_buffer, prefix):
+    def createList(self, document, prefix):
         """Return a list of words for the provides sources.
 
-        Sources is a dictionary of the GtkSourceView type and data. The type
-        key must be a supported parser (text or Python). The data value may
-        be string that is passed to the parser
+        :document: a gedit.Document.
+        :prefix: a string that the start of the word must match.
         """
-        language = source_buffer.get_language()
+        language = document.get_language()
         if language:
             mime_types = language.get_mime_types()
         else:
             mime_types = ['text/plain']
         words = []
         if 'python' in mime_types:
-            pass #words.extend(parse_python(text_buffer, fileprefix))
+            pass #words.extend(parse_python(document, fileprefix))
         else:
             # We use assume the buffer is text/plain.
-            syntax_generator = TextGenerator(
-                prefix=prefix, text_buffer=source_buffer)
+            syntax_generator = TextGenerator(document, prefix=prefix)
             words.extend(syntax_generator.getWords())
         return words
 
@@ -271,14 +240,10 @@ class SyntaxView(SnippetComplete):
     using the vocabulary of the document.
     """
 
-    def __init__(self, sources, prefix=None, description_only=False):
+    def __init__(self, document, prefix=None, description_only=False):
         """Initialize the syntax view widget.
 
-        :sources: A `tuple` of a file path and a source_buffer from which
-                  the vocabulary can be generated. The SyntaxGenerator
-                  required one or both to create the vocabulary.
-                  :file_path: a `str` or None.
-                  :source_buffer: a gtksourceview.sourcebuffer or None
+        :document: A gedit.document.
         :prefix: A `str` that each word in the vocabulary but start with.
         :description_only: Not used.
         """
@@ -289,7 +254,7 @@ class SyntaxView(SnippetComplete):
         from snippets import SnippetComplete
         SnippetComplete.CompleteModel = SyntaxModel
         super(SyntaxView, self).__init__(
-            nodes=sources, prefix=prefix, description_only=description_only)
+            nodes=document, prefix=prefix, description_only=description_only)
 
     def syntaxActivated(self, word):
         """Signal that the word (snippet) was selected."""
@@ -348,8 +313,7 @@ class SyntaxController(object):
         """Show the SyntaxView widget."""
         document = self.view.get_buffer()
         (prefix, ignored, end) = self.getWordPrefix(document)
-        sources = (document.get_uri(), document)
-        syntax_view = SyntaxView(sources, prefix, False)
+        syntax_view = SyntaxView(document, prefix, False)
         syntax_view.connect(
             'syntax-activated', self.on_syntaxview_row_activated)
         syntax_view.move(*self._calculateSyntaxViewPosition(syntax_view, end))

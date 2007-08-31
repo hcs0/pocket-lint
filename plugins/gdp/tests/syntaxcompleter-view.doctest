@@ -24,10 +24,9 @@ return when they are called in the next test.
     TypeError: __init__() takes at least 2 arguments (1 given)
 
     >>> import gedit
-    >>> source_buffer = gedit.Document()
-    >>> source_buffer.load('plugins/gdp/data/snark12.txt', None, 0, False)
-    >>> sources = ('', source_buffer)
-    >>> view = SyntaxView(sources)
+    >>> document = gedit.Document()
+    >>> document.load('plugins/gdp/data/snark12.txt', None, 0, False)
+    >>> view = SyntaxView(document)
     >>> view
     <SyntaxView object (GtkWindow) at ...>
 
@@ -49,7 +48,7 @@ Note that the visible_words lists are sorted somewhat
 differently--this appears to relate to the starting set of words
 in the vocabulary.
 
-    >>> view = SyntaxView(sources, 'ba')
+    >>> view = SyntaxView(document, 'ba')
     >>> view.model.visible_words
     ['backwards', 'bade', 'bags', 'bake', 'Baker', 'BAKER', ...]
 

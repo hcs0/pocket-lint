@@ -3,8 +3,7 @@ SyntaxGenerators
 
 The a SyntaxGenerators class represents a word source and syntax rules.
 It can build a list of matching words when provided a word prefix.
-Some syntax completers require a buffer or a file path to as
-their word source.
+Some syntax completers require a gedit.Document as their word source.
 
 
 SyntaxGenerator
@@ -12,19 +11,29 @@ SyntaxGenerator
 
 The base SyntaxGenerator class defines the core methods that all
 subclasses may choose override. It also provides several helper methods
-and properties.
+and properties. The __init__ method requires a gedit.Document.
 
     >>> from gdp.syntaxcompleter import BaseSyntaxGenerator
     >>> generator = BaseSyntaxGenerator()
+    Traceback (most recent call last):
+    ...
+    TypeError: __init__() takes at least 2 arguments (1 given)
+
+    >>> import gedit
+    >>> document = gedit.Document()
+    >>> hunting_the_snark = 'plugins/gdp/data/snark12.txt'
+    >>> document.load(hunting_the_snark, None, 0, False)
+    >>> generator = BaseSyntaxGenerator(document)
     >>> generator
     <gdp.syntaxcompleter.BaseSyntaxGenerator object at ...>
 
-    >>> generator.file_path is None
-    True
-    >>> generator.buffer_text is None
+    >>> generator.file_path
+    'plugins/gdp/data/snark12.txt'
+    >>> generator.text == document.get_text(document.get_start_iter(),
+    ...     document.get_end_iter())
     True
 
-    >>> BaseSyntaxGenerator().getWords('Ba')
+    >>> generator.getWords('Ba')
     Traceback (most recent call last):
     ...
     NotImplementedError
@@ -39,16 +48,17 @@ applied. Words are identified by common word boundaries like
 punctuation and line ends.
 
     >>> from gdp.syntaxcompleter import TextGenerator
-    >>> hunting_the_snark = 'plugins/gdp/data/snark12.txt'
-    >>> text_generator = TextGenerator(file_path=hunting_the_snark)
+    >>> text_generator = TextGenerator(document)
     >>> text_generator
     <gdp.syntaxcompleter.TextGenerator object at ...>
 
     >>> text_generator.file_path
     'plugins/gdp/data/snark12.txt'
 
-    >>> text_generator.buffer_text
+    >>> text_generator.text
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
+
+    >>> text_generator = TextGenerator(document)
 
 The getWords method returns all words in the generator, unordered.
 
@@ -62,32 +72,28 @@ When the generator is created with a prefix, the generator will only
 contain words that start with the prefix. Matching is
 case-insensitive.
 
-    >>> text_generator = TextGenerator(
-    ...     file_path=hunting_the_snark, prefix='Ba')
+    >>> text_generator = TextGenerator(document, prefix='Ba')
     >>> words = text_generator.getWords()
     >>> len(words)
     16
     >>> words
     ['bags', 'backwards', 'based', 'bands', 'Bandersnatch', ...]
 
-    >>> text_generator = TextGenerator(
-    ...     file_path=hunting_the_snark, prefix='Snar')
+    >>> text_generator = TextGenerator(document, prefix='Snar')
     >>> words = text_generator.getWords()
     >>> len(words)
     5
     >>> words
     ['SNARK', 'snark12', 'Snark', 'Snarks', 'snarked']
 
-    >>> text_generator = TextGenerator(
-    ...     file_path=hunting_the_snark, prefix='snar')
+    >>> text_generator = TextGenerator(document, prefix='snar')
     >>> lowercase_words = text_generator.getWords()
     >>> lowercase_words == words
     True
     >>> lowercase_words
     ['SNARK', 'snark12', 'Snark', 'Snarks', 'snarked']
 
-    >>> text_generator = TextGenerator(
-    ...     file_path=hunting_the_snark, prefix='SNAR')
+    >>> text_generator = TextGenerator(document, prefix='SNAR')
     >>> uppercase_words = text_generator.getWords()
     >>> lowercase_words == uppercase_words == words
     True
@@ -96,8 +102,7 @@ case-insensitive.
 
 Hypenated words are
 
-    >>> text_generator = TextGenerator(
-    ...     file_path=hunting_the_snark, prefix='What-')
+    >>> text_generator = TextGenerator(document, prefix='What-')
     >>> words = text_generator.getWords()
     >>> text_generator.getWords()
     ['What-you-may-call-um', 'What-was-his-name']
