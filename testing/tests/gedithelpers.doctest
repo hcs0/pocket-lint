@@ -78,12 +78,17 @@ Tab
 
 The gedit Tab is a widget that holds a view. The Tab is always present,
 even when the Gedit UI is set to not display tabs. Tabs inherrit from
-gtk.VBox.
+gtk.VBox, and in this implementation, it uses a scrolledwindow and
+viewport.
 
     >>> tab = gedit.Tab()
     >>> tab
     <Tab object (GtkVBox) at ...>
-    >>> tab.pack_start(view)
+    >>> import gtk
+    >>> scrolled_win = gtk.ScrolledWindow()
+    >>> scrolled_win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+    >>> scrolled_win.add_with_viewport(view)
+    >>> tab.pack_start(scrolled_win)
     >>> view_2 = tab.get_view()
     >>> view_2 is view
     True

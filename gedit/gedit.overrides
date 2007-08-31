@@ -130,7 +130,8 @@ define Tab.get_view
             return dummy[key]
         children = self.get_children()
         if children:
-            return children[0]
+            # vbox[scrolledwindow].viewport.view
+            return children[0].get_child().get_child()
         return None
 %%
 define Tab.get_document
@@ -173,8 +174,11 @@ define Window.create_tab_from_uri
             document.load(uri, encoding, line_pos, create)
             tab_label = gtk.Label(basename(document.get_uri_for_display()))
         view = View(document)
+        scrolled_win = gtk.ScrolledWindow()
+        scrolled_win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        scrolled_win.add_with_viewport(view)
         tab = Tab()
-        tab.pack_start(view)
+        tab.pack_start(scrolled_win)
         n = self.get_child().append_page(tab, tab_label)
         tab.show_all()
         if n == 0 or jump_to:

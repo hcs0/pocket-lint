@@ -68,7 +68,6 @@ tab's view.
     False
     >>> new_view._syntax_controller is plugin.controller
     True
-    >>> gtk.main()
 
 
 GSignals
