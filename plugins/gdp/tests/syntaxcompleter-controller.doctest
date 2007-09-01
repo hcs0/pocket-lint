@@ -99,23 +99,53 @@ coordinate to align the SyntaxView widget with the cursor. When there
 is not enough space to display the widget it returns a coordinate to
 fit the it to the bottom right of the screen.
 
-    >>> end = document.get_iter_at_mark(document.get_insert())
-    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
-    (15, 300)
-
-    >>> window.move(100, 100)
-    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
-    (15, 300)
-
     >>> # Window managers treat window postions as suggestions.
-    >>> # This test can be unreliable. The top-left and bottom-right
-    >>> # corners of the desktop should be visible for this test.
-    >>> # Uncomment the coordinate below to run this test.
-    >>> right_aligned = controller.view.get_screen().get_width() - 350
-    >>> bottom_aligned = controller.view.get_screen().get_height() - 300
-    >>> window.move(right_aligned, bottom_aligned)
-    >>> pos = controller._calculateSyntaxViewPosition(syntax_view, end)
-    >>> #(107, 377)
+    >>> # This test can be unreliable. A dummy window with a dummy
+    >>> # get_origin is needed to fake the position of the gedit window
+    >>> # on the screen. We would prefer to call window.move(200, 200).
+    >>> class DummyWindow(object):
+    ...     @classmethod
+    ...     def get_origin(self):
+    ...         return dummy['DummyWindow.get_origin']
+    >>> dummy = Dummy()
+    >>> dummy['View.get_window'] = DummyWindow
+    
+    >>> end = document.get_iter_at_mark(document.get_insert())
+    >>> rect = controller.view.get_iter_location(end)
+    >>> cursor_pos = controller.view.buffer_to_window_coords(
+    ...     gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
+    >>> cursor_pos
+    (2, 225)
+    
+    >>> # The cursor + the window position it to close to the left margin.
+    >>> dummy['DummyWindow.get_origin'] = (0, 0)
+    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
+    (15, 225)
+
+    >>> # The cursor + the window fit on the screen.
+    >>> dummy['DummyWindow.get_origin'] = (200, 200)
+    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
+    (202, 425)
+
+    >>> # Position the window to the bottom-left so that there is not
+    >>> # enough room to display the SyntaxView within the 15px margin.
+    >>> width, height = window.get_size()
+    >>> dummy['DummyWindow.get_origin'] = (-(width + 2), -(height + 225))
+    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
+    (15, 15)
+
+    >>> # Position the window to the bottom-right so that there is not
+    >>> # enough room to display the SyntaxView. The height position
+    >>> # will less than the 225px that is preferred.
+    >>> window_pos = (gtk.gdk.screen_width() - width, 
+    ...     gtk.gdk.screen_height() - height)
+    >>> dummy['DummyWindow.get_origin'] = (window_pos)
+    >>> view_pos = controller._calculateSyntaxViewPosition(syntax_view, end)
+    >>> proof(view_pos[1] < window_pos[1] + cursor_pos[1])
+    True
+
+    >>> del dummy['DummyWindow.get_origin']
+    >>> del dummy['View.get_window']
 
 
 getWordPrefix()

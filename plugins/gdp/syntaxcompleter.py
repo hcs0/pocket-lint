@@ -331,11 +331,11 @@ class SyntaxController(object):
         screen.
         """
 
-        def sane_x_or_y(ordinate, parent_length, child_length):
+        def sane_x_or_y(ordinate, screen_length, view_length):
             """Return a x or y ordinate that is visible on the screen."""
             MARGIN = 15
-            if ordinate + child_length > parent_length:
-                return child_length - MARGIN
+            if ordinate + view_length > screen_length:
+                return view_length - MARGIN
             elif ordinate < MARGIN:
                 return MARGIN
             else:
