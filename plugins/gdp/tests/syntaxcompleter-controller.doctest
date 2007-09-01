@@ -100,9 +100,9 @@ is not enough space to display the widget it returns a coordinate to
 fit the it to the bottom right of the screen.
 
     >>> # Window managers treat window postions as suggestions.
-    >>> # This test can be unreliable. A dummy window with a dummy
-    >>> # get_origin is needed to fake the position of the gedit window
-    >>> # on the screen. We would prefer to call window.move(200, 200).
+    >>> # This test could be unreliable is window.move(x, y) was used.
+    >>> # A dummy window, with a dummy get_origin, is needed to fake the
+    >>> # position of the gedit window on the screen. We would prefer to call.
     >>> class DummyWindow(object):
     ...     @classmethod
     ...     def get_origin(self):
