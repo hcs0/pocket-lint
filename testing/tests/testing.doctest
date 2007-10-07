@@ -10,15 +10,15 @@ A review of some insanity that must expand to values.
     >>> groucho = [foo, bar, baz]
     >>> harpo = (foo, bar, baz)
     >>> chico = set([foo, bar, baz, baz, bar, foo])
-    >>> proof((foo >= baz and len(bar) < foo) 
+    >>> proof((foo >= baz and len(bar) < foo)
     ...     or groucho == harpo and harpo[2] in chico)
     (32768 >= <object object at ...>
     and len('Darling facist bank manager') < 32768)
         or [32768, 'Darling facist bank manager', <object object at ...>] ==
         (32768, 'Darling facist bank manager', <object object at ...>)
             and (32768, 'Darling facist bank manager',
-            <object object at ...>)[2] in 
-                set([32768, <object object at ...>, 
+            <object object at ...>)[2] in
+                set([32768, <object object at ...>,
                     'Darling facist bank manager'])
 
 David Allouche: Out of curiousity, how would it handle something like this:
@@ -37,5 +37,5 @@ David Allouche: Or something like this:
     >>> cheezburger = Cheezburger()
     >>> kitten = str.lower
     >>> proof(cheezburger.get_mallow() == kitten)
-    <Cheezburger object at ...>.get_mallow() == 
+    <Cheezburger object at ...>.get_mallow() ==
     <method 'lower' of 'str' objects>

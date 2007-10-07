@@ -46,6 +46,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         """
         for view in window.get_views():
             if isinstance(view, gedit.View) and self.hasController(view):
+                view.set_buffer = None
                 view._syntax_controller.deactivate()
                 view._syntax_controller = None
                 del view._syntax_controller

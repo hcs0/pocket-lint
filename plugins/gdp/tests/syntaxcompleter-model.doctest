@@ -28,7 +28,7 @@ provided to filter the words in the vocabulary.
     >>> document.load('plugins/gdp/data/snark12.txt', None, 0, False)
     >>> model = SyntaxModel(document)
     >>> model
-    <SyntaxModel object (PyGtkGenericTreeModel) at ...>
+    <SyntaxModel object at ... (PyGtkGenericTreeModel at ...)>
 
 
 filterWords()

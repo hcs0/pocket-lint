@@ -269,7 +269,7 @@ def parent_name(name):
     # This name calculation method is too brittle to work for other projects.
     # Consider mapping the rename rules in the overrides file.
     if name.startswith('GtkSource'):
-        name = name[3:]
+        name = 'gtksourceview2.%s' % name[9:]
     elif name.startswith('Gtk'):
         name = 'gtk.%s' % name[3:]
     return name

@@ -95,6 +95,8 @@ class PythonGenerator(BaseSyntaxGenerator):
         """
         #import rpdb2; rpdb2.start_embedded_debugger('password')
         locald = {}
+        # Add a def to get the imports from the file.
+        imports = []
         if imports is not None:
             for stmt in imports:
                 try:
@@ -102,6 +104,9 @@ class PythonGenerator(BaseSyntaxGenerator):
                 except TypeError:
                     raise TypeError, "invalid type: %s" % stmt
 
+        s = ''
+        if prefix:
+            s = prefix
         dots = s.split('.')
         if len(dots) == 1:
             keys = set()

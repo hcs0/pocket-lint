@@ -12,7 +12,7 @@ require any parameters during initialization.
     >>> from syntaxcompleterplugin import SyntaxCompleterPlugin
     >>> plugin = SyntaxCompleterPlugin()
     >>> plugin
-    <SyntaxCompleterPlugin object (GObject) ...>
+    <SyntaxCompleterPlugin object at ... (GObject at ...)>
 
 
 Gedit plugin API part 1
@@ -54,7 +54,7 @@ tab's view.
     >>> window.get_child().get_current_page()
     0
     
-    >>> window.create_tab_from_uri('/home/chovey/Desktop/wrap-test.html',
+    >>> window.create_tab_from_uri('plugins/gdp/data/snark12.txt',
     ...     None, 0, False, True)
     >>> window.get_child().get_current_page()
     1

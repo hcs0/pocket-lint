@@ -28,13 +28,13 @@ return when they are called in the next test.
     >>> document.load('plugins/gdp/data/snark12.txt', None, 0, False)
     >>> view = SyntaxView(document)
     >>> view
-    <SyntaxView object (GtkWindow) at ...>
+    <SyntaxView object at ... (GtkWindow at ...)>
 
 SyntaxView overrides the snippets.SnippetComplete's initialization to
 replace the model with SyntaxModel.
 
     >>> view.model
-    <SyntaxModel object (PyGtkGenericTreeModel) at ...>
+    <SyntaxModel object at ... (PyGtkGenericTreeModel at ...)>
     >>> len(view.model.words)
     1987
     >>> view.model.visible_words

@@ -1,5 +1,7 @@
 %%
 headers
+# pylint: disable-msg=C0301,C0302,E1002,R0904
+
 __metaclass__ = type
 %%
 modulename __init__
@@ -9,8 +11,8 @@ from gobject import *
 import gtk
 import gtk.gdk
 from gtk.gdk import *
-import gtksourceview
-from gtksourceview import *
+import gtksourceview2
+from gtksourceview2 import *
 import gnome
 from gettext import gettext as _
 %%
@@ -89,8 +91,12 @@ define Document.load
         self.encoding = encoding
         mt = MimeTypes()
         mime_type, encoding = mt.guess_type(uri)
-        language_manager = SourceLanguagesManager()
-        language = language_manager.get_language_from_mime_type(mime_type)
+        lang_id = MIME_TYPES.get(mime_type, None)
+        if lang_id:
+            language_manager = LanguageManager()
+            language = language_manager.get_language(lang_id)
+        else:
+            language = None
         self.set_language(language)
 %%
 define Document.set_language
@@ -240,7 +246,7 @@ define Window.get_views
         key = '%s.get_views' % self.__class__.__name__
         if key in dummy:
             return dummy[key]
-        return [tab.get_view() for tab in self._tabs]
+        return [tab.get_view() for tab in self.tabs_]
 %%
 define Window.get_documents
     def get_documents(self):
@@ -248,7 +254,7 @@ define Window.get_documents
         key = '%s.get_views' % self.__class__.__name__
         if key in dummy:
             return dummy[key]
-        return [tab.get_document() for tab in self._tabs]
+        return [tab.get_document() for tab in self.tabs_]
 %%
 define Window.get_group
     def get_group(self):
@@ -258,9 +264,9 @@ define Window.get_group
             return dummy[key]
         return gtk.WindowGroup()
 %%
-define Window._tabs
+define Window.tabs_
     @property
-    def _tabs(self):
+    def tabs_(self):
         """A testing property to access all tabs (do not use)."""
         n_pages = self.get_child().get_n_pages()
         tabs = []
@@ -339,6 +345,18 @@ define App.get_documents
         return documents
 %%
 body
+def dummy_mime_types():
+    """Return a dictionary mime-types and gtksourceview2 Language ids."""
+    mime_types = {}
+    language_manager = gtksourceview2.LanguageManager()
+    for lang_id in language_manager.get_language_ids():
+        lang = language_manager.get_language(lang_id)
+        for mime_type in lang.get_mime_types():
+            mime_types[mime_type] = lang_id
+    return mime_types
+
+MIME_TYPES = dummy_mime_types()
+
 gobject.signal_new(
     'tab-added', Window, gobject.SIGNAL_RUN_LAST,
     gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))

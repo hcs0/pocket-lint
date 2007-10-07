@@ -38,12 +38,14 @@ current view, for example, when a document's editability changes.
 
     >>> current_view = controller.view
     >>> current_view
-    <View object (GtkSourceView) at ...>
+    <View object at ... (GtkSourceView at ...)>
 
-    >>> new_view = gedit.View(document)
+    >>> window2, view2, document2 = get_window('plugins/gdp/data/snark12.txt')
+
+    >>> new_view = gedit.View(document2)
     >>> controller.setView(new_view)
     >>> controller.view
-    <View object (GtkSourceView) at ...>
+    <View object at ... (GtkSourceView at ...)>
     >>> new_view is controller.view
     True
     >>> new_view is current_view
@@ -88,7 +90,7 @@ it to the SyntaxView.
     >>> # is run.
     >>> syntax_view = controller.showSyntaxView()
     >>> syntax_view
-    <SyntaxView object (GtkWindow) at ...>
+    <SyntaxView object at ... (GtkWindow at ...)>
 
 
 _calculateSyntaxViewPosition()
@@ -137,7 +139,7 @@ fit the it to the bottom right of the screen.
     >>> # Position the window to the bottom-right so that there is not
     >>> # enough room to display the SyntaxView. The height position
     >>> # will less than the 225px that is preferred.
-    >>> window_pos = (gtk.gdk.screen_width() - width, 
+    >>> window_pos =at ... (Gtk.gdk.screen_width() - width, 
     ...     gtk.gdk.screen_height() - height)
     >>> dummy['DummyWindow.get_origin'] = (window_pos)
     >>> view_pos = controller._calculateSyntaxViewPosition(syntax_view, end)
@@ -427,7 +429,7 @@ The deactivate() method removes the detaches the signals and removes
 view. The method is called by on_view_destroy() for the destroy signal.
 
     >>> controller.view
-    <View object (GtkSourceView) at ...>
+    <View object at ... (GtkSourceView at ...)>
     >>> signal_tester.emitter('destroy', controller.view)
     >>> literal(controller.view)
     None

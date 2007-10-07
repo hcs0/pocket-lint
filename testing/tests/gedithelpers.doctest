@@ -29,7 +29,7 @@ for working with the file's metadata.
     ...     abspath('plugins/gdp/data/snark12.txt'))
     >>> document = gedit.Document()
     >>> document
-    <Document object (GtkSourceBuffer) at ...>
+    <Document object at ... (GtkSourceBuffer at ...)>
     >>> document.load(uri, None, 0, False)
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_end_iter())
@@ -60,7 +60,7 @@ as an initialization argument.
 
     >>> view = gedit.View(document)
     >>> view
-    <View object (GtkSourceView) at ...>
+    <View object at ... (GtkSourceView at ...)>
     >>> document_1 = view.get_buffer()
     >>> document_1 is document
     True
@@ -68,7 +68,7 @@ as an initialization argument.
     >>> view_2 = gedit.View()
     >>> document_2 = view_2.get_buffer()
     >>> document_2
-    <Document object (GtkSourceBuffer) at ...>
+    <Document object at ... (GtkSourceBuffer at ...)>
     >>> document_2 is document_1
     False
 
@@ -83,7 +83,7 @@ viewport.
 
     >>> tab = gedit.Tab()
     >>> tab
-    <Tab object (GtkVBox) at ...>
+    <Tab object at ... (GtkVBox at ...)>
     >>> import gtk
     >>> scrolled_win = gtk.ScrolledWindow()
     >>> scrolled_win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -106,41 +106,42 @@ ther is only one tab, it is automatically made active.
 
     >>> window = gedit.Window()
     >>> window
-    <Window object (GtkWindow) at ...>
+    <Window object at ... (gedit+Window at ...)>
     >>> window.create_tab(False)
-    >>> window._tabs
-    [<Tab object (GtkVBox) at ...>]
-    >>> window.get_active_tab() == window._tabs[0]
+    >>> window.tabs_
+    [<Tab object at ... (GtkVBox at ...)>]
+    >>> window.get_active_tab() == window.tabs_[0]
     True
 
 Tabs may be created from a uri...passing the same parameters used
 by Document.load(). The jump_to flag is honored.
 
     >>> window.create_tab_from_uri(uri, None, 0, False, False)
-    >>> window._tabs
-    [<Tab object (GtkVBox) at ...>, <Tab object (GtkVBox) at ...>]
-    >>> window.get_active_tab() == window._tabs[0]
+    >>> window.tabs_
+    [<Tab object at ... (GtkVBox at ...)>,
+     <Tab object at ... (GtkVBox at ...)>]
+    >>> window.get_active_tab() == window.tabs_[0]
     True
 
 The active tab may be set. From the active tab, the active view
 and document can be retrieved. All views and all documnets are
 also accessible.
 
-    >>> window.set_active_tab(window._tabs[1])
-    >>> window.get_active_tab() == window._tabs[1]
+    >>> window.set_active_tab(window.tabs_[1])
+    >>> window.get_active_tab() == window.tabs_[1]
     True
     >>> view = window.get_active_view()
     >>> views = window.get_views()
     >>> views
-    [<View object (GtkSourceView) at ...>,
-     <View object (GtkSourceView) at ...>]
+    [<View object at ... (GtkSourceView at ...)>,
+     <View object at ... (GtkSourceView at ...)>]
     >>> view == views[1]
     True
     >>> document = window.get_active_document()
     >>> documents = window.get_documents()
     >>> documents
-    [<Document object (GtkSourceBuffer) at ...>,
-     <Document object (GtkSourceBuffer) at ...>]
+    [<Document object at ... (GtkSourceBuffer at ...)>,
+     <Document object at ... (GtkSourceBuffer at ...)>]
     >>> document == documents[1]
     True
     >>> document is view.get_buffer()
@@ -157,7 +158,7 @@ It can be retrieved using a factory function app_get_default()
 
     >>> app = gedit.app_get_default()
     >>> app
-    <App object (GObject) at ...>
+    <App object at ... (GObject at ...)>
     >>> new_app = gedit.app_get_default()
     >>> new_app is app
     True
@@ -165,26 +166,27 @@ It can be retrieved using a factory function app_get_default()
     >>> window_1 = app.create_window()
     >>> window_1.create_tab(False)
     >>> window_1
-    <Window object (GtkWindow) at ...>
+    <Window object at ... (gedit+Window at ...)>
 
     >>> window_2 = app.create_window()
     >>> window_2.create_tab(False)
     >>> window_2.create_tab_from_uri(uri, None, 0, False, True)
     >>> window_2
-    <Window object (GtkWindow) at ...>
-    
+    <Window object at ... (gedit+Window at ...)>
+
     >>> app.get_windows()
-    [<Window object (GtkWindow) at ...>, <Window object (GtkWindow) at ...>]
+    [<Window object at ... (gedit+Window at ...)>,
+     <Window object at ... (gedit+Window at ...)>]
 
     >>> app.get_views()
-    [<View object (GtkSourceView) at ...>,
-     <View object (GtkSourceView) at ...>,
-     <View object (GtkSourceView) at ...>]
-     
+    [<View object at ... (GtkSourceView at ...)>,
+     <View object at ... (GtkSourceView at ...)>,
+     <View object at ... (GtkSourceView at ...)>]
+
     >>> app.get_documents()
-    [<Document object (GtkSourceBuffer) at ...>,
-     <Document object (GtkSourceBuffer) at ...>,
-     <Document object (GtkSourceBuffer) at ...>]
+    [<Document object at ... (GtkSourceBuffer at ...)>,
+     <Document object at ... (GtkSourceBuffer at ...)>,
+     <Document object at ... (GtkSourceBuffer at ...)>]
 
 The current gedit window must be active top-level window. It is too
 awkward to test here.
