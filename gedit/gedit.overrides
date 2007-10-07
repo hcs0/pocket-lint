@@ -345,6 +345,9 @@ define App.get_documents
         return documents
 %%
 body
+# The Gedit python environment has gettext builtin
+__builtins__['_'] = _
+
 def dummy_mime_types():
     """Return a dictionary mime-types and gtksourceview2 Language ids."""
     mime_types = {}
