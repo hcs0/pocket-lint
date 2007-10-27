@@ -289,7 +289,7 @@ class SyntaxController(object):
         the current view. when is_reset is True, the current view's
         signals will be reset.
         """
-        if view == self.view and not is_reset:
+        if view is self.view and not is_reset:
             return
 
         if self.view:
@@ -299,7 +299,7 @@ class SyntaxController(object):
             self._disconnectSignal(self.view, 'key-press-event')
 
         self.view = view
-        if view != None:
+        if view is not None:
             self.signal_ids['destroy'] = view.connect(
                 'destroy', self.on_view_destroy)
             self.signal_ids['notify::editable'] = view.connect(

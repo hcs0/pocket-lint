@@ -53,7 +53,7 @@ tab's view.
     >>> old_controller = plugin.controller
     >>> window.get_child().get_current_page()
     0
-    
+
     >>> window.create_tab_from_uri('plugins/gdp/data/snark12.txt',
     ...     None, 0, False, True)
     >>> window.get_child().get_current_page()
@@ -89,7 +89,7 @@ tab's view.
     ...     plugin, window, 'window', 'tab-added', plugin.on_tab_added)
     >>> tab = gedit.Tab()
     >>> dummy = Dummy()
-    >>> dummy['Tab.get_view'] = gedit.View()
+    >>> dummy['Tab.get_view'] = gedit.View(document)
 
     >>> hasattr(tab.get_view(), '_syntax_controller')
     False
@@ -97,6 +97,7 @@ tab's view.
     >>> hasattr(tab.get_view(), '_syntax_controller')
     True
 
+    >>> dummy['Tab.get_view'].destroy()
     >>> del dummy['Tab.get_view']
     >>> plugin.testeeDisconnect(plugin, window, 'window', 'tab-added')
     >>> signal_tester.detachReceptionHarness(plugin)
@@ -123,4 +124,13 @@ and the controller.
     None
     >>> hasattr(view, '_syntax_controller')
     False
+
+
+Tear down
+---------
+
+gtksouceview2.View is not destroying itself. Call this manually.
+
+    >>> view.destroy()
+    >>> new_view.destroy()
 

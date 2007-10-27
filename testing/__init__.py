@@ -54,7 +54,7 @@ class Dummy(object):
 
 class SignalTester(object):
     """A simple class for GSignal emission and reception testing.
-    
+
     Signal emission testing:
     testee = Testee()
     signal_tester = SignalTester(['testee', 'data'])
@@ -62,10 +62,10 @@ class SignalTester(object):
     testee.emitDataMethodOrFunction(data)
     assert signal_tester.testee is testee
     assert signal_tester.data == data
-    
+
+    Signal reception testing:
     target = targetEmitterClass()
     testee = Testee()
-    Signal Reception testing:
     signal_tester = SignalTester()
     signal_tester.attachReceptionHarness(testee)
     testee.testeeConnect(
@@ -79,7 +79,7 @@ class SignalTester(object):
 
     def __init__(self, attrs=None):
         """Create instance attributes from a list of names.
-        
+
         The list of names are are used to create instance attributes that
         can be access by a controlling routine.
         """

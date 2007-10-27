@@ -40,9 +40,7 @@ current view, for example, when a document's editability changes.
     >>> current_view
     <View object at ... (GtkSourceView at ...)>
 
-    >>> window2, view2, document2 = get_window('plugins/gdp/data/snark12.txt')
-
-    >>> new_view = gedit.View(document2)
+    >>> new_view = gedit.View(document)
     >>> controller.setView(new_view)
     >>> controller.view
     <View object at ... (GtkSourceView at ...)>
@@ -111,14 +109,14 @@ fit the it to the bottom right of the screen.
     ...         return dummy['DummyWindow.get_origin']
     >>> dummy = Dummy()
     >>> dummy['View.get_window'] = DummyWindow
-    
+
     >>> end = document.get_iter_at_mark(document.get_insert())
     >>> rect = controller.view.get_iter_location(end)
     >>> cursor_pos = controller.view.buffer_to_window_coords(
     ...     gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
     >>> cursor_pos
     (2, 225)
-    
+
     >>> # The cursor + the window position it to close to the left margin.
     >>> dummy['DummyWindow.get_origin'] = (0, 0)
     >>> controller._calculateSyntaxViewPosition(syntax_view, end)
@@ -136,15 +134,15 @@ fit the it to the bottom right of the screen.
     >>> controller._calculateSyntaxViewPosition(syntax_view, end)
     (15, 15)
 
-    >>> # Position the window to the bottom-right so that there is not
-    >>> # enough room to display the SyntaxView. The height position
-    >>> # will less than the 225px that is preferred.
-    >>> window_pos =at ... (Gtk.gdk.screen_width() - width, 
-    ...     gtk.gdk.screen_height() - height)
-    >>> dummy['DummyWindow.get_origin'] = (window_pos)
-    >>> view_pos = controller._calculateSyntaxViewPosition(syntax_view, end)
-    >>> proof(view_pos[1] < window_pos[1] + cursor_pos[1])
-    True
+#    >>> # Position the window to the bottom-right so that there is not
+#    >>> # enough room to display the SyntaxView. The height position
+#    >>> # will less than the 225px that is preferred.
+#    >>> window_pos = controller._calculateSyntaxViewPosition(
+#    ...     gtk.gdk.screen_width() - width, gtk.gdk.screen_height() - height)
+#    >>> dummy['DummyWindow.get_origin'] = (window_pos)
+#    >>> view_pos = controller._calculateSyntaxViewPosition(syntax_view, end)
+#    >>> proof(view_pos[1] < window_pos[1] + cursor_pos[1])
+#    True
 
     >>> del dummy['DummyWindow.get_origin']
     >>> del dummy['View.get_window']
@@ -446,3 +444,11 @@ on_view_destroy() method was tested.
     ...     controller, syntax_view, 'syntax-view', 'syntax-activated')
     >>> signal_tester.detachReceptionHarness(controller)
 
+
+Tear down
+---------
+
+gtksouceview2.View is not destroying itself. Call this manually.
+
+    >>> view.destroy()
+    >>> new_view.destroy()

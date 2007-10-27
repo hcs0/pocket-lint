@@ -24,7 +24,7 @@ for working with the file's metadata.
     >>> import gedit
     >>> from urllib import pathname2url
     >>> from os.path import abspath
-    >>> from gtksourceview import SourceLanguagesManager
+    >>> from gtksourceview2 import LanguageManager
     >>> uri = 'file://%s' % pathname2url(
     ...     abspath('plugins/gdp/data/snark12.txt'))
     >>> document = gedit.Document()
@@ -43,11 +43,11 @@ for working with the file's metadata.
     >>> document.get_uri_for_display()
     '/.../plugins/gdp/data/snark12.txt'
 
-    >>> lang_manager = SourceLanguagesManager()
-    >>> language = lang_manager.get_language_from_mime_type('text/x-python')
+    >>> lang_manager = LanguageManager()
+    >>> language = lang_manager.get_language('python')
     >>> document.set_language(language)
     >>> document.get_language()
-    <gtksourceview.SourceLanguage (id="Python") at ...
+    <gtksourceview2.Language object at ... (GtkSourceLanguage at ...)>
     >>> document.get_mime_type()
     'text/x-python'
 
@@ -65,7 +65,7 @@ as an initialization argument.
     >>> document_1 is document
     True
 
-    >>> view_2 = gedit.View()
+    >>> view_2 = gedit.View(gedit.Document())
     >>> document_2 = view_2.get_buffer()
     >>> document_2
     <Document object at ... (GtkSourceBuffer at ...)>

@@ -9,11 +9,7 @@ modulename __init__
 import gobject
 from gobject import *
 import gtk
-import gtk.gdk
-from gtk.gdk import *
 import gtksourceview2
-from gtksourceview2 import *
-import gnome
 from gettext import gettext as _
 %%
 define app_get_default
@@ -93,7 +89,7 @@ define Document.load
         mime_type, encoding = mt.guess_type(uri)
         lang_id = MIME_TYPES.get(mime_type, None)
         if lang_id:
-            language_manager = LanguageManager()
+            language_manager = gtksourceview2.LanguageManager()
             language = language_manager.get_language(lang_id)
         else:
             language = None
