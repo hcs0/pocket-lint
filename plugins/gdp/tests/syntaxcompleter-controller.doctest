@@ -303,9 +303,6 @@ of the sginals.
     >>> controller.testeeConnect(
     ...     controller, controller.view, 'view', 'key-press-event',
     ...     controller.on_view_key_press)
-    >>> controller.testeeConnect(
-    ...     controller, controller.view, 'view', 'destroy',
-    ...     controller.on_view_destroy)
 
 
 on_syntaxview_row_activated()
@@ -428,7 +425,7 @@ view. The method is called by on_view_destroy() for the destroy signal.
 
     >>> controller.view
     <View object at ... (GtkSourceView at ...)>
-    >>> signal_tester.emitter('destroy', controller.view)
+    >>> view.destroy()
     >>> literal(controller.view)
     None
 

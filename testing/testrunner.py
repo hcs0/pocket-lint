@@ -167,8 +167,8 @@ def main(params=None):
     setup_env(params)
     os.chdir(project_dir())
     doctest.set_unittest_reportflags(doctest.REPORT_NDIFF)
-    globs = get_globs()
     option_flags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
+    globs = get_globs()
     tests = {}
     for test in find_tests('./' , Env.dir_re, Env.test_pattern):
         top_dir = test[2:test.find('/', 2,) - 1]
