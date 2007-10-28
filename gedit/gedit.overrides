@@ -6,11 +6,13 @@ __metaclass__ = type
 %%
 modulename __init__
 %%
+import __builtin__
+from gettext import gettext
+
 import gobject
 from gobject import *
 import gtk
 import gtksourceview2
-from gettext import gettext as _
 %%
 define app_get_default
 def app_get_default():
@@ -342,7 +344,7 @@ define App.get_documents
 %%
 body
 # The Gedit python environment has gettext builtin
-__builtins__['_'] = _
+__builtin__.__dict__['_'] = gettext
 
 def dummy_mime_types():
     """Return a dictionary mime-types and gtksourceview2 Language ids."""

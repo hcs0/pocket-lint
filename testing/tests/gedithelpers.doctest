@@ -72,6 +72,9 @@ as an initialization argument.
     >>> document_2 is document_1
     False
 
+    >>> # gtksourceview2.view (2.0) is not finalizing correctly.
+    view_2.destroy()
+
 
 Tab
 ~~~
@@ -91,6 +94,8 @@ viewport.
     >>> tab.pack_start(scrolled_win)
     >>> view_2 = tab.get_view()
     >>> view_2 is view
+    True
+    >>> view is view_2
     True
     >>> document_2 = tab.get_document()
     >>> document_2 is document
@@ -190,3 +195,12 @@ It can be retrieved using a factory function app_get_default()
 
 The current gedit window must be active top-level window. It is too
 awkward to test here.
+
+
+Tear down
+---------
+
+gtksouceview2.View (2.0)  is not destroying itself. Call this manually.
+
+    >>> for view in app.get_views():
+    ...     view.destroy()

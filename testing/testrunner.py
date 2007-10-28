@@ -169,12 +169,19 @@ def main(params=None):
     doctest.set_unittest_reportflags(doctest.REPORT_NDIFF)
     globs = get_globs()
     option_flags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
-    tests = [test for test in find_tests('./' , Env.dir_re, Env.test_pattern)]
-    suite = doctest.DocFileSuite(
-        module_relative=False, globs=globs, optionflags=option_flags, *tests)
+    tests = {}
+    for test in find_tests('./' , Env.dir_re, Env.test_pattern):
+        top_dir = test[2:test.find('/', 2,) - 1]
+        if top_dir not in tests:
+            tests[top_dir] = []
+        tests[top_dir].append(test)
     # Format the output.
     unittest._WritelnDecorator = Env.write_decorator
-    unittest.TextTestRunner(verbosity=Env.verbosity).run(suite)
+    for top_dir in tests:
+        suite = doctest.DocFileSuite(
+            module_relative=False, globs=globs, optionflags=option_flags,
+            *tests[top_dir])
+        unittest.TextTestRunner(verbosity=Env.verbosity).run(suite)
 
 
 if __name__ == '__main__':

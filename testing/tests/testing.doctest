@@ -21,7 +21,8 @@ A review of some insanity that must expand to values.
                 set([32768, <object object at ...>,
                     'Darling facist bank manager'])
 
-David Allouche: Out of curiousity, how would it handle something like this:
+David Allouche: Out of curiousity, how would it handle something like
+this:
 
     >>> noob = 'wacky'
     >>> def is_leet(peep):

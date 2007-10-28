@@ -10,8 +10,12 @@ test suite.
 
 # Add additional Python lib paths as needed.
 paths = ['/usr/lib/gedit-2/plugins/',
-         './plugins/',
-         './gedit/']
+         './plugins/']
+
+# Gedit has gettext compiled into builtins.
+import __builtin__
+from gettext import gettext
+__builtin__.__dict__['_'] = gettext
 
 # Exclude directories that match:
 dir_re = r'(sourcecode)'
