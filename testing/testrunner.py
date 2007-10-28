@@ -177,11 +177,12 @@ def main(params=None):
         tests[top_dir].append(test)
     # Format the output.
     unittest._WritelnDecorator = Env.write_decorator
+    suite = unittest.TestSuite()
     for top_dir in tests:
-        suite = doctest.DocFileSuite(
+        suite.addTest(doctest.DocFileSuite(
             module_relative=False, globs=globs, optionflags=option_flags,
-            *tests[top_dir])
-        unittest.TextTestRunner(verbosity=Env.verbosity).run(suite)
+            *tests[top_dir]))
+    unittest.TextTestRunner(verbosity=Env.verbosity).run(suite)
 
 
 if __name__ == '__main__':
