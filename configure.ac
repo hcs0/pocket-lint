@@ -14,6 +14,14 @@ PKG_CHECK_MODULES(PYGTK, pygtk-2.0)
 AC_SUBST(PYGTK_CFLAGS)
 AC_SUBST(PYGTK_LIBS)
 
+
+# i18n
+GETTEXT_PACKAGE=gedit-developer-plugins
+AC_SUBST([GETTEXT_PACKAGE])
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], "$GETTEXT_PACKAGE", [Gettext package])
+AM_GLIB_GNU_GETTEXT
+IT_PROG_INTLTOOL([0.35.0])
+
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -25,5 +33,6 @@ AC_CONFIG_FILES([
   testing/Makefile
   plugins/Makefile
   plugins/gdp/Makefile
+  po/Makefile.in
 ])
 AC_OUTPUT
