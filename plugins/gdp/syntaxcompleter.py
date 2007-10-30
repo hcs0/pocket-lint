@@ -166,7 +166,13 @@ class SyntaxModel(CompleteModel):
         :document: a gedit.Document.
         :prefix: a string that the start of the word must match.
         """
-        language = document.get_language()
+        if hasattr(document, 'get_language'):
+            language = document.get_language()
+        else:
+            # How can we not get a document?
+            # print document
+            language = None
+
         if language:
             mime_types = language.get_mime_types()
         else:
@@ -248,7 +254,7 @@ class SyntaxView(SnippetComplete):
     def __init__(self, document, prefix=None, description_only=False):
         """Initialize the syntax view widget.
 
-        :document: A gedit.document.
+        :document: A gedit.Document.
         :prefix: A `str` that each word in the vocabulary but start with.
         :description_only: Not used.
         """
@@ -257,6 +263,7 @@ class SyntaxView(SnippetComplete):
         # Replace the snippets.SnippetComplete.CompleteModel
         # with the SyntaxModel.
         from snippets import SnippetComplete
+        self.old_model = SnippetComplete.CompleteModel
         SnippetComplete.CompleteModel = SyntaxModel
         super(SyntaxView, self).__init__(
             nodes=document, prefix=prefix, description_only=description_only)
@@ -266,6 +273,11 @@ class SyntaxView(SnippetComplete):
         self.emit('syntax-activated', word)
         self.destroy()
 
+    def destroy(self):
+        """Restore the parent's model."""
+        from snippets import SnippetComplete
+        SnippetComplete.CompleteModel = self.old_model
+        super(SyntaxView, self).destroy()
 
 gobject.signal_new(
     'syntax-activated', SyntaxView, gobject.SIGNAL_RUN_LAST,
