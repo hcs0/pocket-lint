@@ -69,8 +69,7 @@ The getWords method returns all words in the generator, unordered.
     ['aided', 'limited', 'writings', 'yellow', 'protest', ...]
 
 When the generator is created with a prefix, the generator will only
-contain words that start with the prefix. Matching is
-case-insensitive.
+contain words that start with the prefix. Matching is case-insensitive.
 
     >>> text_generator = TextGenerator(document, prefix='Ba')
     >>> words = text_generator.getWords()
@@ -100,9 +99,23 @@ case-insensitive.
     >>> lowercase_words
     ['SNARK', 'snark12', 'Snark', 'Snarks', 'snarked']
 
-Hypenated words are
+Hyphenated words are included in the list of words.
 
     >>> text_generator = TextGenerator(document, prefix='What-')
     >>> words = text_generator.getWords()
     >>> text_generator.getWords()
     ['What-you-may-call-um', 'What-was-his-name']
+
+Underscores are considered word characters. Words that start with, or
+contain underscores are included in the list of words.
+
+    >>> hacker_doc = gedit.Document()
+    >>> hackerese = 'plugins/gdp/data/hackerese.txt'
+    >>> hacker_doc.load(hackerese, None, 0, False)
+    >>> print hacker_doc.get_text(hacker_doc.get_start_iter(),
+    ...     hacker_doc.get_end_iter())
+    H... syntax_generator syntax_completer __call__(self) __dict__ file_ _dict
+
+    >>> text_generator = TextGenerator(hacker_doc, prefix='_')
+    >>> text_generator.getWords()
+    ['_', '_private', '__dict__', '__init__', '__call__', '_dict']

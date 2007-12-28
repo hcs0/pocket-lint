@@ -76,8 +76,15 @@ class TextGenerator(BaseSyntaxGenerator):
             prefix = self._prefix
         else:
             # Match all words in the text.
-            prefix = ""
-        word_re = re.compile(r'\b(%s[\w-]+)' % re.escape(prefix), re.I)
+            prefix = ''
+
+        if len(prefix) > 0:
+            # Match words that are just the prefix too.
+            conditional = r'*'
+        else:
+            conditional = r'+'
+        pattern = r'\b(%s[\w-]%s)' % (re.escape(prefix), conditional)
+        word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
         # Find the unique words that do not have psuedo m-dashed in them.
         words[:] = set(word for word in words if '--' not in word)
@@ -375,22 +382,34 @@ class SyntaxController(object):
         identify the prefix and its starting and end position in the 
         document.
         """
+        word_char = re.compile(r'[\w_-]', re.I)
         end = document.get_iter_at_mark(document.get_insert())
         start = end.copy()
         word = None
 
-        # When the preceding character is a space or is not alphanumeric,
-        # there can be no word before the cursor.
+        # When the preceding character is not alphanumeric,
+        # there is be no word before the cursor.
         start_char = start.copy()
         if start_char.backward_char():
             char = start_char.get_char()
-            if char.isspace() or not char.isalnum():
+            if not word_char.match(char):
                 return (None, start, end)
 
-        if start.backward_word_start():
-            word_iter = start.copy()
-            word_iter.forward_word_end()
+        # GtkTextIter *_word_end() methods do not seek for '_' and '-', so
+        # we need to walk backwards through the iter to locate the word end.
+        count = 0
+        peek = start.copy()
+        while peek.backward_chars(1):
+            if not word_char.match(peek.get_char()):
+                break
+            else:
+                count += 1
+
+        if count > 0:
+            start.backward_chars(count)
             word = document.get_text(start, end)
+        else:
+            word = None
 
         return (word, start, end)
 

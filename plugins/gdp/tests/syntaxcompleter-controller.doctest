@@ -115,17 +115,17 @@ fit the it to the bottom right of the screen.
     >>> cursor_pos = controller.view.buffer_to_window_coords(
     ...     gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
     >>> cursor_pos
-    (2, 225)
+    (2, 22...)
 
     >>> # The cursor + the window position it to close to the left margin.
     >>> dummy['DummyWindow.get_origin'] = (0, 0)
     >>> controller._calculateSyntaxViewPosition(syntax_view, end)
-    (15, 225)
+    (15, 22...)
 
     >>> # The cursor + the window fit on the screen.
     >>> dummy['DummyWindow.get_origin'] = (200, 200)
     >>> controller._calculateSyntaxViewPosition(syntax_view, end)
-    (202, 425)
+    (202, 42...)
 
     >>> # Position the window to the bottom-left so that there is not
     >>> # enough room to display the SyntaxView within the 15px margin.
@@ -158,6 +158,7 @@ iterator.
     >>> def print_prefix(prefix):
     ...     return (
     ...         prefix[0], prefix[1].get_offset(), prefix[2].get_offset())
+
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_end_iter())
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
@@ -223,6 +224,32 @@ position 64 ('.').
     >>> prefix = controller.getWordPrefix(document)
     >>> print_prefix(prefix)
     (None, 64, 64)
+
+Underscores are considered word characters. Words that start with, or
+contain underscores are included in the list of words.
+
+    >>> hacker_window, hacker_view, hacker_doc = get_window(
+    ...     'plugins/gdp/data/hackerese.txt')
+    >>> hacker_controller = SyntaxController(hacker_view)
+    >>> print hacker_doc.get_text(hacker_doc.get_start_iter(),
+    ...     hacker_doc.get_end_iter())
+    H... syntax_generator syntax_completer __call__(self) __dict__ file_ _dict
+
+    >>> hacker_doc.place_cursor(hacker_doc.get_start_iter())
+    >>> h_cursor_iter = hacker_doc.get_iter_at_mark(hacker_doc.get_insert())
+    >>> h_cursor_iter.forward_cursor_positions(464)
+    True
+    >>> hacker_doc.place_cursor(h_cursor_iter)
+    >>> prefix = hacker_controller.getWordPrefix(hacker_doc)
+    >>> print_prefix(prefix)
+    ('syntax_completer', 448, 464)
+
+    >>> h_cursor_iter.forward_cursor_positions(48)
+    True
+    >>> hacker_doc.place_cursor(h_cursor_iter)
+    >>> prefix = hacker_controller.getWordPrefix(hacker_doc)
+    >>> print_prefix(prefix)
+    ('_', 511, 512)
 
 
 insertWord()
