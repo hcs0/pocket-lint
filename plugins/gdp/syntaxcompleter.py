@@ -226,6 +226,8 @@ class SyntaxModel(CompleteModel):
 
         This method is broken in the parent class.
         """
+        # XXX sinzui 2008-06-08 gnome-bug=537248:
+        # This method can be removed when this bug is fixed in GNOME.
         return len(self.column_types)
 
     # These properties maintain compatability with CompleteModel
