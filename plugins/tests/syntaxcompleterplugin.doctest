@@ -36,7 +36,7 @@ It also adds the controller to the view.
     >>> plugin.activate(window)
     >>> plugin.window is window
     True
-    >>> plugin.controller is window.get_active_view()._syntax_controller
+    >>> plugin.controller is window.get_active_view().gdp_syntax_controller
     True
     >>> plugin.controller
     <gdp.syntaxcompleter.SyntaxController object at ...>
@@ -60,13 +60,13 @@ tab's view.
     1
     >>> new_view = window.get_active_view()
 
-    >>> new_view._syntax_controller
+    >>> new_view.gdp_syntax_controller
     <gdp.syntaxcompleter.SyntaxController object at ...>
     >>> new_view is view
     False
-    >>> new_view._syntax_controller is old_controller
+    >>> new_view.gdp_syntax_controller is old_controller
     False
-    >>> new_view._syntax_controller is plugin.controller
+    >>> new_view.gdp_syntax_controller is plugin.controller
     True
 
 
@@ -91,10 +91,10 @@ tab's view.
     >>> dummy = Dummy()
     >>> dummy['Tab.get_view'] = gedit.View(document)
 
-    >>> hasattr(tab.get_view(), '_syntax_controller')
+    >>> hasattr(tab.get_view(), 'gdp_syntax_controller')
     False
     >>> signal_tester.emitter('tab-added', window, tab)
-    >>> hasattr(tab.get_view(), '_syntax_controller')
+    >>> hasattr(tab.get_view(), 'gdp_syntax_controller')
     True
 
     >>> dummy['Tab.get_view'].destroy()
@@ -122,7 +122,7 @@ and the controller.
     None
     >>> literal(plugin.controller)
     None
-    >>> hasattr(view, '_syntax_controller')
+    >>> hasattr(view, 'gdp_syntax_controller')
     False
 
 

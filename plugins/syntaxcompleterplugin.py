@@ -12,6 +12,13 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
 # GNU General Public License for more details.
 
+__metaclass__ = type
+
+__all__ = [
+    'SyntaxCompleterPlugin',
+    ]
+
+
 import gedit
 
 from gdp.syntaxcompleter import SyntaxController
@@ -19,6 +26,8 @@ from gdp.syntaxcompleter import SyntaxController
 
 class SyntaxCompleterPlugin(gedit.Plugin):
     """Automatically complete words from the list of words in the document."""
+    # This is a new-style class that call and old-style __init__().
+    # pylint: disable-msg=W0233
 
     def __init__(self):
         """Initialize the plugin the whole Gedit application."""
@@ -35,7 +44,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         window.connect('tab-added', self.on_tab_added)
         for view in self.window.get_views():
             if isinstance(view, gedit.View) and not self.hasController(view):
-                view._syntax_controller = SyntaxController(view)
+                view.gdp_syntax_controller = SyntaxController(view)
 
         self.update_ui(window)
 
@@ -46,9 +55,9 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         """
         for view in window.get_views():
             if isinstance(view, gedit.View) and self.hasController(view):
-                view._syntax_controller.deactivate()
-                view._syntax_controller = None
-                del view._syntax_controller
+                view.gdp_syntax_controller.deactivate()
+                view.gdp_syntax_controller = None
+                del view.gdp_syntax_controller
 
         self.window = None
         self.controller = None
@@ -60,13 +69,14 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         """
         view = window.get_active_view()
         if isinstance(view, gedit.View) and self.hasController(view):
-            self.controller = view._syntax_controller
+            self.controller = view.gdp_syntax_controller
         else:
             self.controller = None
 
     def hasController(self, view):
         """Return True when the view has a SyntaxControler."""
-        return hasattr(view, '_syntax_controller') and view._syntax_controller
+        has_controller = hasattr(view, 'gdp_syntax_controller')
+        return has_controller and view.gdp_syntax_controller
 
     # Callbacks    
 
@@ -74,6 +84,6 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         """Create a new SyntaxController for this tab."""
         view = tab.get_view()
         if isinstance(view, gedit.View) and not self.hasController(view):
-            view._syntax_controller = SyntaxController(view)
+            view.gdp_syntax_controller = SyntaxController(view)
             self.update_ui(window)
 

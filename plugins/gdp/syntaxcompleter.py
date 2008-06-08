@@ -1,15 +1,18 @@
 # Copyright (C) 2007 - Curtis Hovey <sinzui.is at verizon.net>
 """A syntax completer for document words and python symbols."""
-# pylint: disable-msg=R0901, E0202
+
 
 
 __metaclass__ = type
 
-__all__ = ['BaseSyntaxGenerator',
-           'SyntaxModel',
-           'SyntaxView',
-           'SyntaxController',
-           'TextGenerator',]
+__all__ = [
+    'BaseSyntaxGenerator',
+    'SyntaxModel',
+    'SyntaxView',
+    'SyntaxController',
+    'TextGenerator',
+    ]
+
 
 import re
 from xml.sax import saxutils
@@ -22,10 +25,15 @@ from gtk import gdk
 from snippets.SnippetComplete import SnippetComplete, CompleteModel
 
 
-class BaseSyntaxGenerator(object):
+class BaseSyntaxGenerator:
     """An abstract class representing the source of a word prefix."""
+
     def __init__(self, document, prefix=None):
-        """Create a new SyntaxGenerator."""
+        """Create a new SyntaxGenerator.
+
+        :prefix string: The word prefix used to locate complete words.
+        :document gedit.Document: The source of words to search.
+        """
         self._prefix = prefix
         self._document = document
 
@@ -56,20 +64,6 @@ class BaseSyntaxGenerator(object):
 class TextGenerator(BaseSyntaxGenerator):
     """Generate a list of words that match a given prefix for a document."""
 
-    def __init__(self, document, prefix=None):
-        """Create a TextGenerator
-
-        :prefix string: The word prefix used to locate complete words.
-        :document gedit.Document: The source of words to search.
-        """
-        self._prefix = prefix
-        self._document = document
-
-    @property
-    def prefix(self):
-        """The prefix use to match words to."""
-        return self._prefix
-
     def getWords(self, prefix=None):
         """Return an orders list of words that match the prefix."""
         if not prefix and self._prefix:
@@ -91,26 +85,20 @@ class TextGenerator(BaseSyntaxGenerator):
         return words
 
 
-# XXX sinzui 2007-07-18:
-# Convert this to PythonSyntaxGenerator.
-class PythonGenerator(BaseSyntaxGenerator):
+class PythonSyntaxGenerator(BaseSyntaxGenerator):
     """Generate a list of words that match a given prefix for a Python."""
+
     def getWords(self, prefix=None):
-        """Set the contextual completion of s (string of >= zero chars).
-
-        If given, imports is a list of import statements to be executed first.
-        """
+        """Return an ordered list of matching indentifiers."""
         #import rpdb2; rpdb2.start_embedded_debugger('password')
+        # XXX sinzui 2007-12-29:
+        # parse imports and top-level for globals
+        # parse above and below for locals
+        # id_filter = prefix
+        # look back from filter to find dotted path
+        # dir() dotted path
+        # fitler them
         locald = {}
-        # Add a def to get the imports from the file.
-        imports = []
-        if imports is not None:
-            for stmt in imports:
-                try:
-                    exec stmt in globals(), locald
-                except TypeError:
-                    raise TypeError, "invalid type: %s" % stmt
-
         s = ''
         if prefix:
             s = prefix
@@ -151,6 +139,9 @@ class SyntaxModel(CompleteModel):
     This model determine the words that can be inserted at the cursor.
     The model understands the free text in the document and the Python syntax.
     """
+    # The class intentionally skips CompleteModel.__init__().
+    # pylint: disable-msg=W0233
+
     column_types = (str, str)
 
     def __init__(self, document, prefix=None, description_only=False):
@@ -286,6 +277,7 @@ class SyntaxView(SnippetComplete):
         SnippetComplete.CompleteModel = self.old_model
         super(SyntaxView, self).destroy()
 
+
 gobject.signal_new(
     'syntax-activated', SyntaxView, gobject.SIGNAL_RUN_LAST,
     gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
@@ -303,7 +295,7 @@ class SyntaxController(object):
     def setView(self, view, is_reset=False):
         """Set the view to be controlled.
 
-        Installs signal handlers for the view. Callingdocument.get_uri()
+        Installs signal handlers for the view. Calling document.get_uri()
         self.setView(None) will effectively remove all the control from
         the current view. when is_reset is True, the current view's
         signals will be reset.
@@ -436,7 +428,7 @@ class SyntaxController(object):
         if not word:
             return
         document = self.view.get_buffer()
-        (ignored, start, end) = self.getWordPrefix(document)
+        (ignored, start, end_) = self.getWordPrefix(document)
         self.insertWord(word, start)
 
     def on_notify_editable(self, view, param_spec):
