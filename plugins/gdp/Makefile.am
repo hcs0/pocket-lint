@@ -1,9 +1,9 @@
-plugindir = $(libdir)/gedit-2/plugins/gdp
+plugindir = $(GEDIT_PLUGIN_DIR)/gdp
 
 plugin_PYTHON = \
 	__init__.py \
 	syntaxcompleter.py
 
-CLEANFILES = *.bak *.pyc
-DISTCLEANFILES = *.bak *.pyc
+CLEANFILES = *.bak *.pyc *.pyo
+DISTCLEANFILES = *.bak *.pyc *.pyo
 

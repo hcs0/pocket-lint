@@ -1,7 +1,7 @@
 DIST_DIRS = gdp
 SUBDIRS = gdp
 
-plugindir = $(libdir)/gedit-2/plugins
+plugindir = $(GEDIT_PLUGIN_DIR)
 
 plugin_PYTHON = \
 	syntaxcompleterplugin.py
@@ -13,5 +13,5 @@ plugin_DATA = $(plugin_in_files:.gedit-plugin.desktop.in=.gedit-plugin)
 
 EXTRA_DIST = $(plugin_in_files)
 
-CLEANFILES = *.bak *.pyc $(plugin_DATA)
-DISTCLEANFILES = *.bak *.pyc $(plugin_DATA)
+CLEANFILES = *.bak *.pyc *.pyo $(plugin_DATA)
+DISTCLEANFILES = *.bak *.pyc *.pyo $(plugin_DATA)
