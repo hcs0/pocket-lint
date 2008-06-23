@@ -1,0 +1,40 @@
+General Information
+===================
+
+This is version 2.22.0 of gedit-developer-plugins (GDP). GDP are a
+set of plugins for gedit that provide additional editing features
+for software development.
+
+
+Installation
+------------
+
+To install the plugins for personal use (in your home directory),
+run the following commands from a terminal:
+
+    ./configure
+    make
+    make install
+
+Or you may choose to install the plugins in another location.
+
+    ./configure --without-home --prefix=</path/to/location>
+    make
+    make install
+
+To install the plugins in the same location as the standard
+Gedit plugins, set the prefix path to the same as gedit (usually
+/usr).
+
+
+Working versions
+----------------
+
+The version number is synced to the Gedit version. Plugins may work
+with older versions of Gedit. Run the following command from a
+terminal to run the test suite.
+
+    make check
+
+If the test suite passes, the plugins will probably work.
+

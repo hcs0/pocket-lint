@@ -1,7 +1,13 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(gedit-developer-plugins, 0.1, sinzui.is@verizon.net)
+
+m4_define(gdp_major_version,  2)
+m4_define(gdp_minor_version, 20)
+m4_define(gdp_micro_version,  0)
+m4_define(gdp_version, gdp_major_version.gdp_minor_version.gdp_micro_version)
+
+AC_INIT(gedit-developer-plugins, gdp_version, sinzui.is@verizon.net)
 AM_INIT_AUTOMAKE
 
 AM_MAINTAINER_MODE

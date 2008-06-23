@@ -26,3 +26,4 @@ install-sh
 po/POTFILES
 missing
 plugins/syntaxcompleter.gedit-plugin
+ChangeLog
