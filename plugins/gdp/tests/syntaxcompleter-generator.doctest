@@ -66,7 +66,7 @@ The getWords method returns all words in the generator, unordered.
     >>> len(words)
     1987
     >>> words
-    ['aided', 'limited', 'writings', 'yellow', 'protest', ...]
+    ['000', '000x100', '03', '08', '1', '10', '1992', '2', '20', ...]
 
 When the generator is created with a prefix, the generator will only
 contain words that start with the prefix. Matching is case-insensitive.
@@ -76,35 +76,35 @@ contain words that start with the prefix. Matching is case-insensitive.
     >>> len(words)
     16
     >>> words
-    ['bags', 'backwards', 'based', 'bands', 'Bandersnatch', ...]
+    ['backwards', 'bade', 'bags', 'bake', 'Baker', 'BAKER', ...]
 
     >>> text_generator = TextGenerator(document, prefix='Snar')
     >>> words = text_generator.getWords()
     >>> len(words)
     5
     >>> words
-    ['SNARK', 'snark12', 'Snark', 'Snarks', 'snarked']
+    ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='snar')
     >>> lowercase_words = text_generator.getWords()
     >>> lowercase_words == words
     True
     >>> lowercase_words
-    ['SNARK', 'snark12', 'Snark', 'Snarks', 'snarked']
+    ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='SNAR')
     >>> uppercase_words = text_generator.getWords()
     >>> lowercase_words == uppercase_words == words
     True
     >>> lowercase_words
-    ['SNARK', 'snark12', 'Snark', 'Snarks', 'snarked']
+    ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
 Hyphenated words are included in the list of words.
 
     >>> text_generator = TextGenerator(document, prefix='What-')
     >>> words = text_generator.getWords()
     >>> text_generator.getWords()
-    ['What-you-may-call-um', 'What-was-his-name']
+    ['What-was-his-name', 'What-you-may-call-um']
 
 Underscores are considered word characters. Words that start with, or
 contain underscores are included in the list of words.
@@ -118,4 +118,4 @@ contain underscores are included in the list of words.
 
     >>> text_generator = TextGenerator(hacker_doc, prefix='_')
     >>> text_generator.getWords()
-    ['_', '_private', '__dict__', '__init__', '__call__', '_dict']
+    ['_', '__call__', '__dict__', '__init__', '_dict', '_private']

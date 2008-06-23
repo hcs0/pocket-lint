@@ -2,7 +2,6 @@
 """A syntax completer for document words and python symbols."""
 
 
-
 __metaclass__ = type
 
 __all__ = [
@@ -82,39 +81,30 @@ class TextGenerator(BaseSyntaxGenerator):
         words = word_re.findall(self.text)
         # Find the unique words that do not have psuedo m-dashed in them.
         words[:] = set(word for word in words if '--' not in word)
-        return words
+        return sorted(words, key=str.lower)
 
 
 class PythonSyntaxGenerator(BaseSyntaxGenerator):
-    """Generate a list of words that match a given prefix for a Python."""
+    """Generate a list of Python symbols that match a given prefix."""
 
     def getWords(self, prefix=None):
         """Return an ordered list of matching indentifiers."""
-        #import rpdb2; rpdb2.start_embedded_debugger('password')
-        # XXX sinzui 2007-12-29:
-        # parse imports and top-level for globals
-        # parse above and below for locals
-        # id_filter = prefix
-        # look back from filter to find dotted path
-        # dir() dotted path
-        # fitler them
+        if not prefix and self._prefix:
+            prefix = self._prefix
+        else:
+            # Match all words in the text.
+            prefix = ''
+        return []
         locald = {}
-        s = ''
-        if prefix:
-            s = prefix
-        dots = s.split('.')
+        dots = prefix.split('.')
         if len(dots) == 1:
-            keys = set()
-            keys.update(locald.keys())
-            keys.update(globals().keys())
+            symbols = set()
+            symbols.update(locald.keys())
+            symbols.update(globals().keys())
             import __builtin__
-            keys.update(dir(__builtin__))
-            keys = list(keys)
-            keys.sort()
-            if s:
-                return [k for k in keys if k.startswith(s)]
-            else:
-                return keys
+            symbols.update(dir(__builtin__))
+            symbols = [key for key in symbols if key.startswith(prefix)]
+            return sorted(symbols, key=str.lower)
 
         if len(dots) == 2:
             module = dots[0]
@@ -122,15 +112,18 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             module = '.'.join(dots[0:-1])
 
         try:
+            # Check this file first.
             symbol = eval(module, globals(), locald)
         except NameError:
+            # Try a true import.
             try:
                 symbol = __import__(module, globals(), locald, [])
             except ImportError:
                 return []
 
         suffix = dots[-1]
-        return [k for k in dir(symbol) if k.startswith(suffix)]
+        symbols = [key for key in dir(symbol) if key.startswith(suffix)]
+        return sorted(symbols, key=str.lower)
 
 
 class SyntaxModel(CompleteModel):
@@ -152,7 +145,6 @@ class SyntaxModel(CompleteModel):
         """
         gtk.GenericTreeModel.__init__(self)
         self.words = self.createList(document, prefix)
-        self.words.sort(lambda a, b: cmp(a.lower(), b.lower()))
         self.visible_words = list(self.words)
         # Map this classes methods to the parent class
         self.display_snippet = self.displayWord
@@ -168,20 +160,12 @@ class SyntaxModel(CompleteModel):
             language = document.get_language()
         else:
             # How can we not get a document?
-            # print document
             language = None
 
-        if language:
-            mime_types = language.get_mime_types()
-        else:
-            mime_types = ['text/plain']
         words = []
-        if 'python' in mime_types:
-            pass #words.extend(parse_python(document, fileprefix))
-        else:
-            # We use assume the buffer is text/plain.
-            syntax_generator = TextGenerator(document, prefix=prefix)
-            words.extend(syntax_generator.getWords())
+        if language and language.get_id() == 'python':
+            words += PythonSyntaxGenerator(document, prefix=prefix).getWords()
+        words += TextGenerator(document, prefix=prefix).getWords()
         return words
 
     def displayWord(self, word):
