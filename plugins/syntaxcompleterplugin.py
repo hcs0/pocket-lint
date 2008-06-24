@@ -43,7 +43,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         self.window = window
         window.connect('tab-added', self.on_tab_added)
         for view in self.window.get_views():
-            if isinstance(view, gedit.View) and not self.hasController(view):
+            if isinstance(view, gedit.View) and not self.has_controller(view):
                 view.gdp_syntax_controller = SyntaxController(view)
 
         self.update_ui(window)
@@ -54,7 +54,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         Remove the SyntaxControler from every view.
         """
         for view in window.get_views():
-            if isinstance(view, gedit.View) and self.hasController(view):
+            if isinstance(view, gedit.View) and self.has_controller(view):
                 view.gdp_syntax_controller.deactivate()
                 view.gdp_syntax_controller = None
                 del view.gdp_syntax_controller
@@ -68,12 +68,12 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         Set the current controler.
         """
         view = window.get_active_view()
-        if isinstance(view, gedit.View) and self.hasController(view):
+        if isinstance(view, gedit.View) and self.has_controller(view):
             self.controller = view.gdp_syntax_controller
         else:
             self.controller = None
 
-    def hasController(self, view):
+    def has_controller(self, view):
         """Return True when the view has a SyntaxControler."""
         has_controller = hasattr(view, 'gdp_syntax_controller')
         return has_controller and view.gdp_syntax_controller
@@ -83,7 +83,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
     def on_tab_added(self, window, tab):
         """Create a new SyntaxController for this tab."""
         view = tab.get_view()
-        if isinstance(view, gedit.View) and not self.hasController(view):
+        if isinstance(view, gedit.View) and not self.has_controller(view):
             view.gdp_syntax_controller = SyntaxController(view)
             self.update_ui(window)
 
