@@ -13,3 +13,9 @@ class private (__init__) methods or indentifier conflict resolution
     __dict__
     file_
     _dict
+
+The dot is often used to separate namespaces in programming languages.
+
+    re.compile('[\w_-]')
+    os.path.join('/usr', 'share')
+

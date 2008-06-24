@@ -233,7 +233,7 @@ contain underscores are included in the list of words.
     >>> hacker_controller = SyntaxController(hacker_view)
     >>> print hacker_doc.get_text(hacker_doc.get_start_iter(),
     ...     hacker_doc.get_end_iter())
-    H... syntax_generator syntax_completer __call__(self) __dict__ file_ _dict
+    H... syntax_generator syntax_completer __call__(self) __dict__ file_ ...
 
     >>> hacker_doc.place_cursor(hacker_doc.get_start_iter())
     >>> h_cursor_iter = hacker_doc.get_iter_at_mark(hacker_doc.get_insert())

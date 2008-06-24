@@ -24,6 +24,44 @@ from gtk import gdk
 from snippets.SnippetComplete import SnippetComplete, CompleteModel
 
 
+def get_word(document, word_pattern):
+    """Return a 3-tuple of the word fragment before the cursor.
+
+    The tuple contains the (word_fragement, start_iter, end_iter) to
+    identify the prefix and its starting and end position in the
+    document.
+    """
+    end = document.get_iter_at_mark(document.get_insert())
+    start = end.copy()
+    word = None
+
+    # When the preceding character is not alphanumeric,
+    # there is be no word before the cursor.
+    start_char = start.copy()
+    if start_char.backward_char():
+        char = start_char.get_char()
+        if not word_pattern.match(char):
+            return (None, start, end)
+
+    # GtkTextIter *_word_end() methods do not seek for '_' and '-', so
+    # we need to walk backwards through the iter to locate the word end.
+    count = 0
+    peek = start.copy()
+    while peek.backward_chars(1):
+        if not word_pattern.match(peek.get_char()):
+            break
+        else:
+            count += 1
+
+    if count > 0:
+        start.backward_chars(count)
+        word = document.get_text(start, end)
+    else:
+        word = None
+
+    return (word, start, end)
+
+
 class BaseSyntaxGenerator:
     """An abstract class representing the source of a word prefix."""
 
@@ -100,36 +138,37 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
         else:
             # Match all words in the text.
             prefix = ''
-
         locald = {}
-        dots = prefix.split('.')
-        if len(dots) == 1:
+        word_char = re.compile(r'[\w_.]', re.I)
+        (token, start_iter, end_iter) = get_word(self._document, word_char)
+        modules = token.split('.')
+        if len(modules) == 1:
+            # The identifier is scoped to this module (the document).
             symbols = set()
             symbols.update(locald.keys())
             symbols.update(globals().keys())
             import __builtin__
             symbols.update(dir(__builtin__))
-            symbols = [key for key in symbols if key.startswith(prefix)]
-            return set(symbols)
+            symbols = set(key for key in symbols
+                          if key.startswith(prefix))
+            return symbols
 
-        if len(dots) == 2:
-            module = dots[0]
-        else:
-            module = '.'.join(dots[0:-1])
-
+        # Remove the prefix to create the module's full name.
+        modules.pop()
+        module_name = '.'.join(modules)
         try:
             # Check this file first.
-            symbol = eval(module, globals(), locald)
+            module = eval(module_name, globals(), locald)
         except NameError:
             # Try a true import.
             try:
-                symbol = __import__(module, globals(), locald, [])
+                module = __import__(module_name, globals(), locald, [])
             except ImportError:
                 return set()
 
-        suffix = dots[-1]
-        symbols = [key for key in dir(symbol) if key.startswith(suffix)]
-        return set(symbols)
+        symbols = set(symbol for symbol in dir(module)
+                      if symbol.startswith(prefix))
+        return symbols
 
 
 class SyntaxModel(CompleteModel):
@@ -173,7 +212,8 @@ class SyntaxModel(CompleteModel):
 
         words = set()
         if language and language.get_id() == 'python':
-            words |= PythonSyntaxGenerator(document, prefix=prefix).get_words()
+            words |= PythonSyntaxGenerator(
+                document, prefix=prefix).get_words()
         words |= TextGenerator(document, prefix=prefix).get_words()
         return sorted(words, key=str.lower)
 
@@ -327,7 +367,8 @@ class SyntaxController(object):
         syntax_view = SyntaxView(document, prefix, False)
         syntax_view.connect(
             'syntax-activated', self.on_syntaxview_row_activated)
-        syntax_view.move(*self._calculate_syntax_view_position(syntax_view, end))
+        syntax_view.move(
+            *self._calculate_syntax_view_position(syntax_view, end))
         if syntax_view.run():
             return syntax_view
         else:
@@ -364,45 +405,17 @@ class SyntaxController(object):
 
     def get_word_prefix(self, document):
         """Return a 3-tuple of the word fragment before the cursor.
-        
+
         The tuple contains the (word_fragement, start_iter, end_iter) to
-        identify the prefix and its starting and end position in the 
+        identify the prefix and its starting and end position in the
         document.
         """
         word_char = re.compile(r'[\w_-]', re.I)
-        end = document.get_iter_at_mark(document.get_insert())
-        start = end.copy()
-        word = None
-
-        # When the preceding character is not alphanumeric,
-        # there is be no word before the cursor.
-        start_char = start.copy()
-        if start_char.backward_char():
-            char = start_char.get_char()
-            if not word_char.match(char):
-                return (None, start, end)
-
-        # GtkTextIter *_word_end() methods do not seek for '_' and '-', so
-        # we need to walk backwards through the iter to locate the word end.
-        count = 0
-        peek = start.copy()
-        while peek.backward_chars(1):
-            if not word_char.match(peek.get_char()):
-                break
-            else:
-                count += 1
-
-        if count > 0:
-            start.backward_chars(count)
-            word = document.get_text(start, end)
-        else:
-            word = None
-
-        return (word, start, end)
+        return get_word(document, word_char)
 
     def insert_word(self, word, start=None):
         """Return True when the word is inserted into the Document.
-        
+
         The word cannot be None or an empty string.
         """
         assert word, "The word cannot be None or an empty string."
@@ -428,7 +441,7 @@ class SyntaxController(object):
 
     def on_notify_editable(self, view, param_spec):
         """Update the controller when the view editable state changes.
-        
+
         This method is ultimately responsible for enabling and disabling
         the SyntaxView widget for syntax completion.
         """
