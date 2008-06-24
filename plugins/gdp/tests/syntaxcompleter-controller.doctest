@@ -29,10 +29,10 @@ requests to complete words.
     <gdp.syntaxcompleter.SyntaxController object at ...>
 
 
-setView()
+set_view()
 ~~~~~~~~~
 
-The view is bound and unbound to the controller using the setView()
+The view is bound and unbound to the controller using the set_view()
 method. It takes an optional reset parameter that rebinds the
 current view, for example, when a document's editability changes.
 
@@ -41,7 +41,7 @@ current view, for example, when a document's editability changes.
     <View object at ... (GtkSourceView at ...)>
 
     >>> new_view = gedit.View(document)
-    >>> controller.setView(new_view)
+    >>> controller.set_view(new_view)
     >>> controller.view
     <View object at ... (GtkSourceView at ...)>
     >>> new_view is controller.view
@@ -49,7 +49,7 @@ current view, for example, when a document's editability changes.
     >>> new_view is current_view
     False
 
-The setView connects and disconnects signals between the controller
+The set_view connects and disconnects signals between the controller
 and the view and document. When the document is editable, the
 key-press-event is connected.
 
@@ -58,7 +58,7 @@ key-press-event is connected.
     >>> 'key-press-event' in controller.signal_ids
     True
     >>> controller.view.set_editable(False)
-    >>> controller.setView(new_view, is_reset=True)
+    >>> controller.set_view(new_view, is_reset=True)
     >>> new_view is controller.view
     True
     >>> 'key-press-event' in controller.signal_ids
@@ -66,35 +66,35 @@ key-press-event is connected.
 
 Passing None will disconnect the signals and the view.
 
-    >>> controller.setView(None)
+    >>> controller.set_view(None)
     >>> literal(controller.view)
     None
 
 Passing an existing view connects the signals.
 
-    >>> controller.setView(current_view)
+    >>> controller.set_view(current_view)
     >>> current_view is controller.view
     True
 
 
-showSyntaxView()
+show_syntax_view()
 ~~~~~~~~~~~~~~~~
 
-The showSyntaxView() methods displays the SyntaxView widget at the
+The show_syntax_view() methods displays the SyntaxView widget at the
 cursor. It determines the prefix from the left adjacent word and passes
 it to the SyntaxView.
 
     >>> # The widget can only be observed to work when gtk.main()
     >>> # is run.
-    >>> syntax_view = controller.showSyntaxView()
+    >>> syntax_view = controller.show_syntax_view()
     >>> syntax_view
     <SyntaxView object at ... (GtkWindow at ...)>
 
 
-_calculateSyntaxViewPosition()
+_calculate_syntax_view_position()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The _calculateSyntaxViewPosition() method will return the x and y
+The _calculate_syntax_view_position() method will return the x and y
 coordinate to align the SyntaxView widget with the cursor. When there
 is not enough space to display the widget it returns a coordinate to
 fit the it to the bottom right of the screen.
@@ -119,28 +119,28 @@ fit the it to the bottom right of the screen.
 
     >>> # The cursor + the window position it to close to the left margin.
     >>> dummy['DummyWindow.get_origin'] = (0, 0)
-    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
+    >>> controller._calculate_syntax_view_position(syntax_view, end)
     (15, 22...)
 
     >>> # The cursor + the window fit on the screen.
     >>> dummy['DummyWindow.get_origin'] = (200, 200)
-    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
+    >>> controller._calculate_syntax_view_position(syntax_view, end)
     (202, 42...)
 
     >>> # Position the window to the bottom-left so that there is not
     >>> # enough room to display the SyntaxView within the 15px margin.
     >>> width, height = window.get_size()
     >>> dummy['DummyWindow.get_origin'] = (-(width + 2), -(height + 225))
-    >>> controller._calculateSyntaxViewPosition(syntax_view, end)
+    >>> controller._calculate_syntax_view_position(syntax_view, end)
     (15, 15)
 
 #    >>> # Position the window to the bottom-right so that there is not
 #    >>> # enough room to display the SyntaxView. The height position
 #    >>> # will less than the 225px that is preferred.
-#    >>> window_pos = controller._calculateSyntaxViewPosition(
+#    >>> window_pos = controller._calculate_syntax_view_position(
 #    ...     gtk.gdk.screen_width() - width, gtk.gdk.screen_height() - height)
 #    >>> dummy['DummyWindow.get_origin'] = (window_pos)
-#    >>> view_pos = controller._calculateSyntaxViewPosition(syntax_view, end)
+#    >>> view_pos = controller._calculate_syntax_view_position(syntax_view, end)
 #    >>> proof(view_pos[1] < window_pos[1] + cursor_pos[1])
 #    True
 
@@ -148,7 +148,7 @@ fit the it to the bottom right of the screen.
     >>> del dummy['View.get_window']
 
 
-getWordPrefix()
+get_word_prefix()
 ~~~~~~~~~~~~~~~
 
 This method will return the prefix before the cursor. The prefix is a
@@ -170,7 +170,7 @@ document.
     >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
     >>> cursor_iter.get_offset()
     0
-    >>> prefix = controller.getWordPrefix(document)
+    >>> prefix = controller.get_word_prefix(document)
     >>> print_prefix(prefix)
     (None, 0, 0)
 
@@ -180,7 +180,7 @@ characters are the prefix.
     >>> cursor_iter.forward_cursor_positions(7)
     True
     >>> document.place_cursor(cursor_iter)
-    >>> prefix = controller.getWordPrefix(document)
+    >>> prefix = controller.get_word_prefix(document)
     >>> print_prefix(prefix)
     ('is', 5, 7)
 
@@ -190,7 +190,7 @@ characters are the prefix.
     >>> cursor_iter.backward_cursor_positions(1)
     True
     >>> document.place_cursor(cursor_iter)
-    >>> prefix = controller.getWordPrefix(document)
+    >>> prefix = controller.get_word_prefix(document)
     >>> print_prefix(prefix)
     ('i', 5, 6)
 
@@ -200,7 +200,7 @@ positions are identical.
     >>> cursor_iter.backward_cursor_positions(1)
     True
     >>> document.place_cursor(cursor_iter)
-    >>> prefix = controller.getWordPrefix(document)
+    >>> prefix = controller.get_word_prefix(document)
     >>> print_prefix(prefix)
     (None, 5, 5)
 
@@ -214,14 +214,14 @@ position 64 ('.').
     >>> cursor_iter.forward_cursor_positions(63)
     True
     >>> document.place_cursor(cursor_iter)
-    >>> prefix = controller.getWordPrefix(document)
+    >>> prefix = controller.get_word_prefix(document)
     >>> print_prefix(prefix)
     ('Snark', 58, 63)
 
     >>> cursor_iter.forward_cursor_position()
     True
     >>> document.place_cursor(cursor_iter)
-    >>> prefix = controller.getWordPrefix(document)
+    >>> prefix = controller.get_word_prefix(document)
     >>> print_prefix(prefix)
     (None, 64, 64)
 
@@ -240,35 +240,35 @@ contain underscores are included in the list of words.
     >>> h_cursor_iter.forward_cursor_positions(464)
     True
     >>> hacker_doc.place_cursor(h_cursor_iter)
-    >>> prefix = hacker_controller.getWordPrefix(hacker_doc)
+    >>> prefix = hacker_controller.get_word_prefix(hacker_doc)
     >>> print_prefix(prefix)
     ('syntax_completer', 448, 464)
 
     >>> h_cursor_iter.forward_cursor_positions(48)
     True
     >>> hacker_doc.place_cursor(h_cursor_iter)
-    >>> prefix = hacker_controller.getWordPrefix(hacker_doc)
+    >>> prefix = hacker_controller.get_word_prefix(hacker_doc)
     >>> print_prefix(prefix)
     ('_', 511, 512)
 
 
-insertWord()
+insert_word()
 ~~~~~~~~~~~~
 
 This method inserts a word into the document. It will raise an error
 if the word is None or an empty string.
 
-    >>> controller.insertWord(None, cursor_iter)
+    >>> controller.insert_word(None, cursor_iter)
     Traceback (most recent call last):
     ...
     AssertionError: The word cannot be None or an empty string.
 
-    >>> controller.insertWord('', cursor_iter)
+    >>> controller.insert_word('', cursor_iter)
     Traceback (most recent call last):
     ...
     AssertionError: The word cannot be None or an empty string.
 
-Continuing from the document demonstrated in the getWordPrefix()
+Continuing from the document demonstrated in the get_word_prefix()
 section, words can be inserted into the first sentence. Inserting
 happens when the start iterator is None or it is the same position
 as the cursor.
@@ -278,7 +278,7 @@ as the cursor.
     >>> cursor_iter.forward_cursor_positions(12)
     True
     >>> document.place_cursor(cursor_iter)
-    >>> controller.insertWord('Est ', cursor_iter)
+    >>> controller.insert_word('Est ', cursor_iter)
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the Est Project Gutenberg Etext of The Hunting of the Snark.'
@@ -287,14 +287,14 @@ as the cursor.
     >>> cursor_iter.backward_cursor_positions(1)
     True
     >>> document.place_cursor(cursor_iter)
-    >>> controller.insertWord('e', None)
+    >>> controller.insert_word('e', None)
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the Este Project Gutenberg Etext of The Hunting of the Snark.'
 
     >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
     >>> document.place_cursor(cursor_iter)
-    >>> controller.insertWord('e')
+    >>> controller.insert_word('e')
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the Estee Project Gutenberg Etext of The Hunting of the Snark.'
@@ -307,7 +307,7 @@ at the cursor position.
     >>> start = document.get_iter_at_mark(document.get_insert())
     >>> start.backward_chars(5)
     True
-    >>> controller.insertWord('esteem', start)
+    >>> controller.insert_word('esteem', start)
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'
@@ -336,7 +336,7 @@ on_syntaxview_row_activated()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 SyntaxView sends a syntax-activated signal to return the user's chosen
-word. The method calls insertWord. Unlike the afore mentioned method,
+word. The method calls insert_word. Unlike the afore mentioned method,
 when the word is None or an empty string, there is no error
 
     >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
@@ -357,7 +357,7 @@ When the word is None or an empty string, the Document is no changed.
     'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'
 
 When the word is a string (as it should be), the word is inserted into
-the document. According the rules of insertWord(), when a space or
+the document. According the rules of insert_word(), when a space or
 symbol preceeds the cursor the word is inserted. Otherwise, the
 characters before the cursor are replaced.
 
@@ -400,13 +400,13 @@ on_view_key_press()
 
 SyntaxController uses the on_view_key_press to watch for the
 Control-Shift-Space key combination. When the combination is True,
-it calls the showSyntaxView() method.
+it calls the show_syntax_view() method.
 
     # Reset the state of the view and syntax_view
     >>> def dummyShowSyntaxView():
     ...     controller.syntax_view = True
-    >>> real_showSyntaxView = controller.showSyntaxView
-    >>> controller.showSyntaxView = dummyShowSyntaxView
+    >>> real_show_syntax_view = controller.show_syntax_view
+    >>> controller.show_syntax_view = dummyShowSyntaxView
     >>> controller.syntax_view = False
     >>> controller.syntax_view
     False
@@ -441,7 +441,7 @@ key was pressed.
     >>> controller.syntax_view
     False
 
-    >>> controller.showSyntaxView = real_showSyntaxView
+    >>> controller.show_syntax_view = real_show_syntax_view
 
 
 on_view_destroy() and deactivate()

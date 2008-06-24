@@ -33,7 +33,7 @@ and properties. The __init__ method requires a gedit.Document.
     ...     document.get_end_iter())
     True
 
-    >>> generator.getWords('Ba')
+    >>> generator.get_words('Ba')
     Traceback (most recent call last):
     ...
     NotImplementedError
@@ -60,50 +60,52 @@ punctuation and line ends.
 
     >>> text_generator = TextGenerator(document)
 
-The getWords method returns all words in the generator, unordered.
+The get_words method returns all words in the generator, unordered.
 
-    >>> words = text_generator.getWords()
+    >>> words = text_generator.get_words()
     >>> len(words)
     1987
-    >>> words
+    >>> type(words)
+    <type 'set'>
+    >>> sorted(words, key=str.lower)
     ['000', '000x100', '03', '08', '1', '10', '1992', '2', '20', ...]
 
 When the generator is created with a prefix, the generator will only
 contain words that start with the prefix. Matching is case-insensitive.
 
     >>> text_generator = TextGenerator(document, prefix='Ba')
-    >>> words = text_generator.getWords()
+    >>> words = text_generator.get_words()
     >>> len(words)
     16
-    >>> words
+    >>> sorted(words, key=str.lower)
     ['backwards', 'bade', 'bags', 'bake', 'Baker', 'BAKER', ...]
 
     >>> text_generator = TextGenerator(document, prefix='Snar')
-    >>> words = text_generator.getWords()
+    >>> words = text_generator.get_words()
     >>> len(words)
     5
-    >>> words
+    >>> sorted(words, key=str.lower)
     ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='snar')
-    >>> lowercase_words = text_generator.getWords()
+    >>> lowercase_words = text_generator.get_words()
     >>> lowercase_words == words
     True
-    >>> lowercase_words
+    >>> sorted(lowercase_words, key=str.lower)
     ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='SNAR')
-    >>> uppercase_words = text_generator.getWords()
+    >>> uppercase_words = text_generator.get_words()
     >>> lowercase_words == uppercase_words == words
     True
-    >>> lowercase_words
+    >>> sorted(lowercase_words, key=str.lower)
     ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
 Hyphenated words are included in the list of words.
 
     >>> text_generator = TextGenerator(document, prefix='What-')
-    >>> words = text_generator.getWords()
-    >>> text_generator.getWords()
+    >>> words = text_generator.get_words()
+    >>> sorted(text_generator.get_words())
     ['What-was-his-name', 'What-you-may-call-um']
 
 Underscores are considered word characters. Words that start with, or
@@ -117,5 +119,5 @@ contain underscores are included in the list of words.
     H... syntax_generator syntax_completer __call__(self) __dict__ file_ _dict
 
     >>> text_generator = TextGenerator(hacker_doc, prefix='_')
-    >>> text_generator.getWords()
+    >>> sorted(text_generator.get_words())
     ['_', '__call__', '__dict__', '__init__', '_dict', '_private']

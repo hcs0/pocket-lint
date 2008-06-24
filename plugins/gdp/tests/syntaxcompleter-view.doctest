@@ -39,7 +39,7 @@ replace the model with SyntaxModel.
     1987
     >>> view.model.visible_words
     ['000', '000x100', '03', '08', '1', '10', '1992', '2', ...]
-    >>> view.model.filterWords('ba')
+    >>> view.model.filter_words('ba')
     >>> view.model.visible_words
     ['backwards', 'bade', 'bags', 'bake', 'BAKER', 'Baker', ...]
 
@@ -73,7 +73,7 @@ thus disconnects the signal.
     True
     >>> view.model.visible_words[4]
     'Baker'
-    >>> view.syntaxActivated(view.model.visible_words[4])
+    >>> view.syntax_activated(view.model.visible_words[4])
     >>> view is signal_tester.view
     True
     >>> signal_tester.word

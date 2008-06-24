@@ -31,19 +31,35 @@ provided to filter the words in the vocabulary.
     <SyntaxModel object at ... (PyGtkGenericTreeModel at ...)>
 
 
-filterWords()
+create_list()
+~~~~~~~~~~~~~
+
+The model calls create_list() to generate the unqiue list of words
+that match the prefix. The list must be unique because the
+CompleteModel.on_iter_next() can enter an infinite loop.
+
+    >>> len(model.words)
+    1987
+    >>> model.words
+    ['000', '000x100', '03', '08', '1', '10', '1992', '2', ...]
+
+    >>> unique_words = set(model.words)
+    >>> sorted_words = sorted(unique_words, key=str.lower)
+    >>> len(sorted_words)
+    1987
+
+
+filter_words()
 ~~~~~~~~~~~~~
 
 The model can filter the vocabulary to match the prefix provided.
 
-    >>> len(model.words)
-    1987
     >>> model.words == model.visible_words
     True
     >>> model.visible_words
     ['000', '000x100', '03', '08', '1', '10', '1992', '2', ...]
 
-    >>> model.filterWords('B')
+    >>> model.filter_words('B')
     >>> model.words == model.visible_words
     False
     >>> len(model.visible_words)
@@ -51,13 +67,13 @@ The model can filter the vocabulary to match the prefix provided.
     >>> model.visible_words
     ['B', 'backwards', 'bade', 'bags', 'bake', 'BAKER', ...]
 
-    >>> model.filterWords('Be')
+    >>> model.filter_words('Be')
     >>> model.words == model.visible_words
     False
     >>> len(model.visible_words)
     38
     >>> model.visible_words
-    ['be', 'BE', 'Be', 'beach', 'beamish', 'bear', 'bearer', ...]
+    ['BE', 'be', 'Be', 'beach', 'beamish', 'bear', 'bearer', ...]
 
 When a prefix is provided to the model when it is created, the prefix
 restricts the vocabulary to only those words that match the prefix.
@@ -77,7 +93,7 @@ Matching is case-insensative.
 Words are always displayed in the UI escaped to avoid conflicts
 with Pango.
 
-    >>> model.displayWord('<b>')
+    >>> model.display_word('<b>')
     '&lt;b&gt;'
 
 
@@ -113,7 +129,7 @@ The property display_snippet is equivalent to display_word, and that
 attribute is display_word_default.
 
     >>> method1 = model.display_snippet
-    >>> method2 = model.displayWord
+    >>> method2 = model.display_word
     >>> method1 == method2
     True
     >>> model.display_snippet('<b>')
@@ -180,7 +196,7 @@ The get_value() method uses display_word return either the
 raw word or the displayable word.
 
     >>> model.words.append('<b>')
-    >>> model.filterWords('')
+    >>> model.filter_words('')
     >>> len(model.visible_words)
     110
     >>> model.get_value(model.iter_nth_child(None, 109), 0)

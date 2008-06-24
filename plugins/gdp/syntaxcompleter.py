@@ -30,14 +30,14 @@ class BaseSyntaxGenerator:
     def __init__(self, document, prefix=None):
         """Create a new SyntaxGenerator.
 
-        :prefix string: The word prefix used to locate complete words.
-        :document gedit.Document: The source of words to search.
+        :param prefix: A `str`. The word prefix used to locate complete words.
+        :param document: `gedit.Document`. The source of words to search.
         """
         self._prefix = prefix
         self._document = document
 
-    def getWords(self, prefix=None):
-        """Return an orders list of words that match the prefix."""
+    def get_words(self, prefix=None):
+        """An unique `set` of words that match the prefix."""
         raise NotImplementedError
 
     @property
@@ -52,7 +52,7 @@ class BaseSyntaxGenerator:
 
     @property
     def text(self):
-        """Return the text of the gedit.Document or None."""
+        """The text of the gedit.Document or None."""
         if not self._document:
             return None
         start_iter = self._document.get_start_iter()
@@ -63,8 +63,11 @@ class BaseSyntaxGenerator:
 class TextGenerator(BaseSyntaxGenerator):
     """Generate a list of words that match a given prefix for a document."""
 
-    def getWords(self, prefix=None):
-        """Return an orders list of words that match the prefix."""
+    def get_words(self, prefix=None):
+        """See `BaseSyntaxGenerator.get_words`.
+
+        :return: A set of words that match the prefix.
+        """
         if not prefix and self._prefix:
             prefix = self._prefix
         else:
@@ -80,21 +83,24 @@ class TextGenerator(BaseSyntaxGenerator):
         word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
         # Find the unique words that do not have psuedo m-dashed in them.
-        words[:] = set(word for word in words if '--' not in word)
-        return sorted(words, key=str.lower)
+        words = set(word for word in words if '--' not in word)
+        return words
 
 
 class PythonSyntaxGenerator(BaseSyntaxGenerator):
     """Generate a list of Python symbols that match a given prefix."""
 
-    def getWords(self, prefix=None):
-        """Return an ordered list of matching indentifiers."""
+    def get_words(self, prefix=None):
+        """See `BaseSyntaxGenerator.get_words`.
+
+        :return: A set of matching indentifiers.
+        """
         if not prefix and self._prefix:
             prefix = self._prefix
         else:
             # Match all words in the text.
             prefix = ''
-        return []
+
         locald = {}
         dots = prefix.split('.')
         if len(dots) == 1:
@@ -104,7 +110,7 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             import __builtin__
             symbols.update(dir(__builtin__))
             symbols = [key for key in symbols if key.startswith(prefix)]
-            return sorted(symbols, key=str.lower)
+            return set(symbols)
 
         if len(dots) == 2:
             module = dots[0]
@@ -119,11 +125,11 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             try:
                 symbol = __import__(module, globals(), locald, [])
             except ImportError:
-                return []
+                return set()
 
         suffix = dots[-1]
         symbols = [key for key in dir(symbol) if key.startswith(suffix)]
-        return sorted(symbols, key=str.lower)
+        return set(symbols)
 
 
 class SyntaxModel(CompleteModel):
@@ -140,21 +146,24 @@ class SyntaxModel(CompleteModel):
     def __init__(self, document, prefix=None, description_only=False):
         """Create, sort, and display the model.
 
-        The sources parameter is a tuple of mime_type, file_path, and
-        document.
+        :param document: A `gedit.Document`.
+        :param prefix: A `str`. The optional prefix that words begin with.
+        :param description_only: Not used.
         """
         gtk.GenericTreeModel.__init__(self)
-        self.words = self.createList(document, prefix)
-        self.visible_words = list(self.words)
+        # Words is a unique list, or else CompleteModel.on_iter_next() enters
+        # an infinite loop.
+        self.words = self.create_list(document, prefix)
+        self.visible_words = self.words
         # Map this classes methods to the parent class
-        self.display_snippet = self.displayWord
-        self.do_filter = self.filterWords
+        self.display_snippet = self.display_word
+        self.do_filter = self.filter_words
 
-    def createList(self, document, prefix):
-        """Return a list of words for the provides sources.
+    def create_list(self, document, prefix):
+        """Return a list of sorted and unique words for the provides source.
 
-        :document: a gedit.Document.
-        :prefix: a string that the start of the word must match.
+        :param document: A `gedit.Document`. The source document
+        :param prefix: `A str`. The begining of the word.
         """
         if hasattr(document, 'get_language'):
             language = document.get_language()
@@ -162,17 +171,17 @@ class SyntaxModel(CompleteModel):
             # How can we not get a document?
             language = None
 
-        words = []
+        words = set()
         if language and language.get_id() == 'python':
-            words += PythonSyntaxGenerator(document, prefix=prefix).getWords()
-        words += TextGenerator(document, prefix=prefix).getWords()
-        return words
+            words |= PythonSyntaxGenerator(document, prefix=prefix).get_words()
+        words |= TextGenerator(document, prefix=prefix).get_words()
+        return sorted(words, key=str.lower)
 
-    def displayWord(self, word):
+    def display_word(self, word):
         """Return the word escaped for Pango display."""
         return saxutils.escape(word)
 
-    def filterWords(self, prefix):
+    def filter_words(self, prefix):
         """Show only the words that start with the prefix."""
         new_words = []
         prefix = prefix.lower()
@@ -198,7 +207,7 @@ class SyntaxModel(CompleteModel):
                 path = (index,)
                 self.row_inserted(path, self.get_iter(path))
 
-    def getWord(self, path):
+    def get_word(self, path):
         """Return the word at the provided path."""
         try:
             return self.visible_nodes[path[0]]
@@ -238,11 +247,11 @@ class SyntaxView(SnippetComplete):
     def __init__(self, document, prefix=None, description_only=False):
         """Initialize the syntax view widget.
 
-        :document: A gedit.Document.
-        :prefix: A `str` that each word in the vocabulary but start with.
-        :description_only: Not used.
+        :param document: A `gedit.Document`.
+        :param prefix: A `str` that each word begins with.
+        :param description_only: Not used.
         """
-        self.snippet_activated = self.syntaxActivated
+        self.snippet_activated = self.syntax_activated
 
         # Replace the snippets.SnippetComplete.CompleteModel
         # with the SyntaxModel.
@@ -252,7 +261,7 @@ class SyntaxView(SnippetComplete):
         super(SyntaxView, self).__init__(
             nodes=document, prefix=prefix, description_only=description_only)
 
-    def syntaxActivated(self, word):
+    def syntax_activated(self, word):
         """Signal that the word (snippet) was selected."""
         self.emit('syntax-activated', word)
         self.destroy()
@@ -276,13 +285,13 @@ class SyntaxController(object):
         """Initialize the controller for the gedit.View."""
         self.signal_ids = {}
         self.view = None
-        self.setView(view)
+        self.set_view(view)
 
-    def setView(self, view, is_reset=False):
+    def set_view(self, view, is_reset=False):
         """Set the view to be controlled.
 
         Installs signal handlers for the view. Calling document.get_uri()
-        self.setView(None) will effectively remove all the control from
+        self.set_view(None) will effectively remove all the control from
         the current view. when is_reset is True, the current view's
         signals will be reset.
         """
@@ -311,20 +320,20 @@ class SyntaxController(object):
             obj.disconnect(self.signal_ids[signal])
             del self.signal_ids[signal]
 
-    def showSyntaxView(self):
+    def show_syntax_view(self):
         """Show the SyntaxView widget."""
         document = self.view.get_buffer()
-        (prefix, ignored, end) = self.getWordPrefix(document)
+        (prefix, ignored, end) = self.get_word_prefix(document)
         syntax_view = SyntaxView(document, prefix, False)
         syntax_view.connect(
             'syntax-activated', self.on_syntaxview_row_activated)
-        syntax_view.move(*self._calculateSyntaxViewPosition(syntax_view, end))
+        syntax_view.move(*self._calculate_syntax_view_position(syntax_view, end))
         if syntax_view.run():
             return syntax_view
         else:
             return None
 
-    def _calculateSyntaxViewPosition(self, syntax_view, end):
+    def _calculate_syntax_view_position(self, syntax_view, end):
         """Return the (x, y) coordinate to position the syntax_view
 
         The x and y coordinate will align the SyntaxView with the cursor
@@ -353,7 +362,7 @@ class SyntaxController(object):
         y = sane_x_or_y(y + yor, screen.get_height(), syntax_view_height)
         return (x, y)
 
-    def getWordPrefix(self, document):
+    def get_word_prefix(self, document):
         """Return a 3-tuple of the word fragment before the cursor.
         
         The tuple contains the (word_fragement, start_iter, end_iter) to
@@ -391,10 +400,10 @@ class SyntaxController(object):
 
         return (word, start, end)
 
-    def insertWord(self, word, start=None):
+    def insert_word(self, word, start=None):
         """Return True when the word is inserted into the Document.
         
-        The word cannot be None or an empty string
+        The word cannot be None or an empty string.
         """
         assert word, "The word cannot be None or an empty string."
         document = self.view.get_buffer()
@@ -405,7 +414,7 @@ class SyntaxController(object):
 
     def deactivate(self):
         """Deactivate the controller; detach the view."""
-        self.setView(None)
+        self.set_view(None)
 
     # Callbacks
 
@@ -414,8 +423,8 @@ class SyntaxController(object):
         if not word:
             return
         document = self.view.get_buffer()
-        (ignored, start, end_) = self.getWordPrefix(document)
-        self.insertWord(word, start)
+        (ignored, start, end_) = self.get_word_prefix(document)
+        self.insert_word(word, start)
 
     def on_notify_editable(self, view, param_spec):
         """Update the controller when the view editable state changes.
@@ -423,13 +432,13 @@ class SyntaxController(object):
         This method is ultimately responsible for enabling and disabling
         the SyntaxView widget for syntax completion.
         """
-        self.setView(view, True)
+        self.set_view(view, True)
 
     def on_view_key_press(self, view, event):
         """Show the SyntaxView widget when Control-Shift-Space is pressed."""
         state = gdk.CONTROL_MASK | gdk.SHIFT_MASK
         if event.state == state and event.keyval in (gtk.keysyms.space, ):
-            self.showSyntaxView()
+            self.show_syntax_view()
 
     def on_view_destroy(self, view):
         """Disconnect the controller."""
