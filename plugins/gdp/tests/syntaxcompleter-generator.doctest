@@ -38,6 +38,15 @@ and properties. The __init__ method requires a gedit.Document.
     ...
     NotImplementedError
 
+The string_before_cursor property and word_char attribute allow the
+generator sub-class to get the text before the cursor using its own
+rules.
+
+    generator.word_char.pattern
+    r'[\w_]'
+
+    generator.string_before_cursor
+    ''
 
 TextGenerator
 -------------
@@ -58,11 +67,10 @@ punctuation and line ends.
     >>> text_generator.text
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
 
-    >>> text_generator = TextGenerator(document)
+The get_words() method returns a 2-tuple of is_athorative and a set of
+all words in the generator.
 
-The get_words method returns all words in the generator, unordered.
-
-    >>> words = text_generator.get_words()
+    >>> is_authorative, words = text_generator.get_words()
     >>> len(words)
     1987
     >>> type(words)
@@ -70,32 +78,38 @@ The get_words method returns all words in the generator, unordered.
     >>> sorted(words, key=str.lower)
     ['000', '000x100', '03', '08', '1', '10', '1992', '2', '20', ...]
 
+is_athorative is always False because the TextGenerator works with all
+documents instead of a specific GtkSourceView Language.
+
+    >>> is_authorative
+    False
+
 When the generator is created with a prefix, the generator will only
 contain words that start with the prefix. Matching is case-insensitive.
 
     >>> text_generator = TextGenerator(document, prefix='Ba')
-    >>> words = text_generator.get_words()
+    >>> is_authorative, words = text_generator.get_words()
     >>> len(words)
     16
     >>> sorted(words, key=str.lower)
     ['backwards', 'bade', 'bags', 'bake', 'Baker', 'BAKER', ...]
 
     >>> text_generator = TextGenerator(document, prefix='Snar')
-    >>> words = text_generator.get_words()
+    >>> is_authorative, words = text_generator.get_words()
     >>> len(words)
     5
     >>> sorted(words, key=str.lower)
     ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='snar')
-    >>> lowercase_words = text_generator.get_words()
+    >>> is_authorative, lowercase_words = text_generator.get_words()
     >>> lowercase_words == words
     True
     >>> sorted(lowercase_words, key=str.lower)
     ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='SNAR')
-    >>> uppercase_words = text_generator.get_words()
+    >>> is_authorative, uppercase_words = text_generator.get_words()
     >>> lowercase_words == uppercase_words == words
     True
     >>> sorted(lowercase_words, key=str.lower)
@@ -104,8 +118,8 @@ contain words that start with the prefix. Matching is case-insensitive.
 Hyphenated words are included in the list of words.
 
     >>> text_generator = TextGenerator(document, prefix='What-')
-    >>> words = text_generator.get_words()
-    >>> sorted(text_generator.get_words())
+    >>> is_authorative, words = text_generator.get_words()
+    >>> sorted(words)
     ['What-was-his-name', 'What-you-may-call-um']
 
 Underscores are considered word characters. Words that start with, or
@@ -119,5 +133,41 @@ contain underscores are included in the list of words.
     H... syntax_generator syntax_completer __call__(self) __dict__ file_ ...
 
     >>> text_generator = TextGenerator(hacker_doc, prefix='_')
-    >>> sorted(text_generator.get_words())
+    >>> is_authorative, words = text_generator.get_words()
+    >>> sorted(words)
     ['_', '__call__', '__dict__', '__init__', '_dict', '_private']
+
+
+PythonGenerator
+---------------
+
+The PythonGenerator represents all the identifiers in a Python source
+file. The identifiers come from the document, the imports, the builtins,
+and the Python keywords.
+
+    >>> from gdp.syntaxcompleter import PythonSyntaxGenerator
+
+    >>> snark_py = 'plugins/gdp/data/snark.py'
+    >>> document.load(snark_py, None, 0, False)
+    >>> python_generator = PythonSyntaxGenerator(document)
+    >>> python_generator
+    <gdp.syntaxcompleter.PythonSyntaxGenerator object at ...>
+
+    >>> python_generator.file_path
+    'plugins/gdp/data/snark.py'
+
+    >>> python_generator.text
+    '"""An example python module for testing."""...'
+
+The get_words() method returns a 2-tuple of is_athorative and a set of
+all words in the generator.
+
+    >>> is_authorative, words = python_generator.get_words()
+    >>> sorted(words)
+    ['ArithmeticError', 'AssertionError', 'AttributeError', ...]
+
+The is_authorative return value may be True or false. It is False when
+the set of words from more than one namespace.
+
+    >>> is_authorative
+    False

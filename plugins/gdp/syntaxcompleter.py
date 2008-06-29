@@ -9,6 +9,7 @@ __all__ = [
     'SyntaxModel',
     'SyntaxView',
     'SyntaxController',
+    'PythonSyntaxGenerator',
     'TextGenerator',
     ]
 
@@ -68,14 +69,40 @@ class BaseSyntaxGenerator:
     def __init__(self, document, prefix=None):
         """Create a new SyntaxGenerator.
 
-        :param prefix: A `str`. The word prefix used to locate complete words.
+        :param prefix: A `str`. The word prefix used to match words.
         :param document: `gedit.Document`. The source of words to search.
         """
         self._prefix = prefix
         self._document = document
 
+    word_char = re.compile(r'[\w_]', re.I)
+
+    @property
+    def get_string_before_cursor(self):
+        """Return the string that matches `word_char` before the cursor."""
+        text, start_iter, end_iter = get_word(self._document, self.word_char)
+        if text is None:
+            text = ''
+        return text
+
+    def ensure_prefix(self, prefix):
+        """Return the available prefix or an empty string."""
+        if prefix:
+            return prefix
+        elif self._prefix:
+            return self._prefix
+        else:
+            # Match all words in the text.
+            return ''
+
     def get_words(self, prefix=None):
-        """An unique `set` of words that match the prefix."""
+        """Return a 2-tuple of is_authorative and unique `set` of words.
+
+        :param prefix: A `str`. The word prefix used to match words.
+        :return: a 2-tuple of is_authorative and a set of workds.
+            is_authorative is True when the set of words are the only words
+            that can match the prefix. The words ar a set of words.
+        """
         raise NotImplementedError
 
     @property
@@ -104,14 +131,11 @@ class TextGenerator(BaseSyntaxGenerator):
     def get_words(self, prefix=None):
         """See `BaseSyntaxGenerator.get_words`.
 
-        :return: A set of words that match the prefix.
+        is_authorative is always False because TextGenerator because it is
+        not for a specific document Language.
         """
-        if not prefix and self._prefix:
-            prefix = self._prefix
-        else:
-            # Match all words in the text.
-            prefix = ''
-
+        prefix = self.ensure_prefix(prefix)
+        is_authorative = False
         if len(prefix) > 0:
             # Match words that are just the prefix too.
             conditional = r'*'
@@ -122,27 +146,26 @@ class TextGenerator(BaseSyntaxGenerator):
         words = word_re.findall(self.text)
         # Find the unique words that do not have psuedo m-dashed in them.
         words = set(word for word in words if '--' not in word)
-        return words
+        return is_authorative, words
 
 
 class PythonSyntaxGenerator(BaseSyntaxGenerator):
     """Generate a list of Python symbols that match a given prefix."""
 
+    word_char = re.compile(r'[\w_.]', re.I)
+
     def get_words(self, prefix=None):
         """See `BaseSyntaxGenerator.get_words`.
 
-        :return: A set of matching indentifiers.
+        :return: a 2-tuple of is_authorative and a set of matching 
+            identifiers. is_authorative is True when the prefix is a part
+            of a dotted identifier.
         """
-        if not prefix and self._prefix:
-            prefix = self._prefix
-        else:
-            # Match all words in the text.
-            prefix = ''
+        prefix = self.ensure_prefix(prefix)
+        is_authorative = False
         locald = {}
-        word_char = re.compile(r'[\w_.]', re.I)
-        (token, start_iter, end_iter) = get_word(self._document, word_char)
-        modules = token.split('.')
-        if len(modules) == 1:
+        namespaces = self.get_string_before_cursor.split('.')
+        if len(namespaces) == 1:
             # The identifier is scoped to this module (the document).
             symbols = set()
             symbols.update(locald.keys())
@@ -151,11 +174,12 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             symbols.update(dir(__builtin__))
             symbols = set(key for key in symbols
                           if key.startswith(prefix))
-            return symbols
+            return is_authorative, symbols
 
         # Remove the prefix to create the module's full name.
-        modules.pop()
-        module_name = '.'.join(modules)
+        is_authorative = True
+        namespaces.pop()
+        module_name = '.'.join(namespaces)
         try:
             # Check this file first.
             module = eval(module_name, globals(), locald)
@@ -168,7 +192,7 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
 
         symbols = set(symbol for symbol in dir(module)
                       if symbol.startswith(prefix))
-        return symbols
+        return is_authorative, symbols
 
 
 class SyntaxModel(CompleteModel):
@@ -211,10 +235,15 @@ class SyntaxModel(CompleteModel):
             language = None
 
         words = set()
+        is_authorative = False
         if language and language.get_id() == 'python':
-            words |= PythonSyntaxGenerator(
+            is_authorative, symbols = PythonSyntaxGenerator(
                 document, prefix=prefix).get_words()
-        words |= TextGenerator(document, prefix=prefix).get_words()
+            words |= symbols
+        if not is_authorative:
+            is_authorative, simple_words = TextGenerator(
+                document, prefix=prefix).get_words()
+            words |= simple_words
         return sorted(words, key=str.lower)
 
     def display_word(self, word):
