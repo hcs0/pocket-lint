@@ -70,7 +70,7 @@ punctuation and line ends.
 The get_words() method returns a 2-tuple of is_athorative and a set of
 all words in the generator.
 
-    >>> is_authorative, words = text_generator.get_words()
+    >>> is_authoritative, words = text_generator.get_words()
     >>> len(words)
     1987
     >>> type(words)
@@ -81,35 +81,35 @@ all words in the generator.
 is_athorative is always False because the TextGenerator works with all
 documents instead of a specific GtkSourceView Language.
 
-    >>> is_authorative
+    >>> is_authoritative
     False
 
 When the generator is created with a prefix, the generator will only
 contain words that start with the prefix. Matching is case-insensitive.
 
     >>> text_generator = TextGenerator(document, prefix='Ba')
-    >>> is_authorative, words = text_generator.get_words()
+    >>> is_authoritative, words = text_generator.get_words()
     >>> len(words)
     16
     >>> sorted(words, key=str.lower)
     ['backwards', 'bade', 'bags', 'bake', 'Baker', 'BAKER', ...]
 
     >>> text_generator = TextGenerator(document, prefix='Snar')
-    >>> is_authorative, words = text_generator.get_words()
+    >>> is_authoritative, words = text_generator.get_words()
     >>> len(words)
     5
     >>> sorted(words, key=str.lower)
     ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='snar')
-    >>> is_authorative, lowercase_words = text_generator.get_words()
+    >>> is_authoritative, lowercase_words = text_generator.get_words()
     >>> lowercase_words == words
     True
     >>> sorted(lowercase_words, key=str.lower)
     ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='SNAR')
-    >>> is_authorative, uppercase_words = text_generator.get_words()
+    >>> is_authoritative, uppercase_words = text_generator.get_words()
     >>> lowercase_words == uppercase_words == words
     True
     >>> sorted(lowercase_words, key=str.lower)
@@ -118,7 +118,7 @@ contain words that start with the prefix. Matching is case-insensitive.
 Hyphenated words are included in the list of words.
 
     >>> text_generator = TextGenerator(document, prefix='What-')
-    >>> is_authorative, words = text_generator.get_words()
+    >>> is_authoritative, words = text_generator.get_words()
     >>> sorted(words)
     ['What-was-his-name', 'What-you-may-call-um']
 
@@ -133,7 +133,7 @@ contain underscores are included in the list of words.
     H... syntax_generator syntax_completer __call__(self) __dict__ file_ ...
 
     >>> text_generator = TextGenerator(hacker_doc, prefix='_')
-    >>> is_authorative, words = text_generator.get_words()
+    >>> is_authoritative, words = text_generator.get_words()
     >>> sorted(words)
     ['_', '__call__', '__dict__', '__init__', '_dict', '_private']
 
@@ -162,12 +162,13 @@ and the Python keywords.
 The get_words() method returns a 2-tuple of is_athorative and a set of
 all words in the generator.
 
-    >>> is_authorative, words = python_generator.get_words()
+    >>> is_authoritative, words = python_generator.get_words('A')
     >>> sorted(words)
-    ['ArithmeticError', 'AssertionError', 'AttributeError', ...]
+    ['ArithmeticError', 'AssertionError', 'AttributeError']
 
-The is_authorative return value may be True or false. It is False when
-the set of words from more than one namespace.
+The is_authoritative return value may be True or false. It is False when
+the set of words from more than one namespace and there is a prefix.
 
-    >>> is_authorative
+    >>> is_authoritative
     False
+

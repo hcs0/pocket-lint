@@ -28,7 +28,7 @@ from snippets.SnippetComplete import SnippetComplete, CompleteModel
 def get_word(document, word_pattern):
     """Return a 3-tuple of the word fragment before the cursor.
 
-    The tuple contains the (word_fragement, start_iter, end_iter) to
+    The tuple contains the (word_fragment, start_iter, end_iter) to
     identify the prefix and its starting and end position in the
     document.
     """
@@ -96,12 +96,12 @@ class BaseSyntaxGenerator:
             return ''
 
     def get_words(self, prefix=None):
-        """Return a 2-tuple of is_authorative and unique `set` of words.
+        """Return a 2-tuple of is_authoritative and unique `set` of words.
 
         :param prefix: A `str`. The word prefix used to match words.
-        :return: a 2-tuple of is_authorative and a set of workds.
-            is_authorative is True when the set of words are the only words
-            that can match the prefix. The words ar a set of words.
+        :return: a 2-tuple of is_authoritative and a set of words.
+            is_authoritative is True when the set of words are the only words
+            that can match the prefix. The words are a set of words.
         """
         raise NotImplementedError
 
@@ -131,11 +131,11 @@ class TextGenerator(BaseSyntaxGenerator):
     def get_words(self, prefix=None):
         """See `BaseSyntaxGenerator.get_words`.
 
-        is_authorative is always False because TextGenerator because it is
+        is_authoritative is always False because TextGenerator because it is
         not for a specific document Language.
         """
         prefix = self.ensure_prefix(prefix)
-        is_authorative = False
+        is_authoritative = False
         if len(prefix) > 0:
             # Match words that are just the prefix too.
             conditional = r'*'
@@ -144,9 +144,9 @@ class TextGenerator(BaseSyntaxGenerator):
         pattern = r'\b(%s[\w-]%s)' % (re.escape(prefix), conditional)
         word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
-        # Find the unique words that do not have psuedo m-dashed in them.
+        # Find the unique words that do not have pseudo m-dashed in them.
         words = set(word for word in words if '--' not in word)
-        return is_authorative, words
+        return is_authoritative, words
 
 
 class PythonSyntaxGenerator(BaseSyntaxGenerator):
@@ -157,42 +157,84 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
     def get_words(self, prefix=None):
         """See `BaseSyntaxGenerator.get_words`.
 
-        :return: a 2-tuple of is_authorative and a set of matching 
-            identifiers. is_authorative is True when the prefix is a part
+        :return: a 2-tuple of is_authoritative and a set of matching
+            identifiers. is_authoritative is True when the prefix is a part
             of a dotted identifier.
         """
         prefix = self.ensure_prefix(prefix)
-        is_authorative = False
-        locald = {}
+        is_authoritative = False
+        if prefix == '':
+            is_authoritative = True
+
+        import __builtin__
+        global_syms = dir(__builtin__)
+        pyo = compile(self.get_parsable_text(), 'sc.py', 'exec')
+        co_names = ('SIGNAL_RUN_LAST', 'TYPE_NONE', 'TYPE_PYOBJECT', 'object')
+        local_syms = [name for name in pyo.co_names if name not in co_names]
+
         namespaces = self.get_string_before_cursor.split('.')
         if len(namespaces) == 1:
             # The identifier is scoped to this module (the document).
             symbols = set()
-            symbols.update(locald.keys())
-            symbols.update(globals().keys())
-            import __builtin__
-            symbols.update(dir(__builtin__))
+            symbols.update(local_syms)
+            symbols.update(global_syms)
             symbols = set(key for key in symbols
                           if key.startswith(prefix))
-            return is_authorative, symbols
+            return is_authoritative, symbols
 
         # Remove the prefix to create the module's full name.
-        is_authorative = True
         namespaces.pop()
         module_name = '.'.join(namespaces)
+        locald = {}
         try:
             # Check this file first.
-            module = eval(module_name, globals(), locald)
+            module_ = eval(module_name, globals(), locald)
         except NameError:
             # Try a true import.
             try:
-                module = __import__(module_name, globals(), locald, [])
+                module_ = __import__(module_name, globals(), locald, [])
             except ImportError:
-                return set()
+                return is_authoritative, set()
 
-        symbols = set(symbol for symbol in dir(module)
+        for symbol in namespaces[1:]:
+            module_ = getattr(module_, symbol)
+        is_authoritative = True
+        symbols = set(symbol for symbol in dir(module_)
                       if symbol.startswith(prefix))
-        return is_authorative, symbols
+        return is_authoritative, symbols
+
+    def get_parsable_text(self):
+        """Return the parsable text of the module.
+
+        The line being edited may not be valid syntax, so the line is
+        commented out, or if it starts a block, it becomes 'if True:'
+        """
+        current_iter = self._document.get_iter_at_mark(
+            self._document.get_insert())
+        index = current_iter.get_line() - 1
+        text_lines = self.text.splitlines()
+        if index + 1 == len(text_lines):
+            # The current line is the last line. Add a fake line because
+            # the compiler will require another line to follow a comment.
+            text_lines.append('')
+        current_indentation = self._get_indentation(text_lines[index])
+        next_indentation = self._get_indentation(text_lines[index + 1])
+        if len(next_indentation) > len(current_indentation):
+            # Make this line compilable for the next block.
+            text_lines[index] = current_indentation + 'if True:'
+        else:
+            # Comment-out this line so that it is not compiled.
+            text_lines[index] = '#' + text_lines[index]
+        return '\n'.join(text_lines)
+
+    def _get_indentation(self, line):
+        "Return the line's indentation"
+        indentation_pattern = re.compile(r'^[ \t]')
+        match = indentation_pattern.match(line)
+        if match:
+            return match.group()
+        # No match means the indentation is an empty string.
+        return ''
 
 
 class SyntaxModel(CompleteModel):
@@ -226,7 +268,7 @@ class SyntaxModel(CompleteModel):
         """Return a list of sorted and unique words for the provides source.
 
         :param document: A `gedit.Document`. The source document
-        :param prefix: `A str`. The begining of the word.
+        :param prefix: `A str`. The beginning of the word.
         """
         if hasattr(document, 'get_language'):
             language = document.get_language()
@@ -235,13 +277,13 @@ class SyntaxModel(CompleteModel):
             language = None
 
         words = set()
-        is_authorative = False
+        is_authoritative = False
         if language and language.get_id() == 'python':
-            is_authorative, symbols = PythonSyntaxGenerator(
+            is_authoritative, symbols = PythonSyntaxGenerator(
                 document, prefix=prefix).get_words()
             words |= symbols
-        if not is_authorative:
-            is_authorative, simple_words = TextGenerator(
+        if not is_authoritative:
+            is_authoritative, simple_words = TextGenerator(
                 document, prefix=prefix).get_words()
             words |= simple_words
         return sorted(words, key=str.lower)
@@ -292,7 +334,7 @@ class SyntaxModel(CompleteModel):
         # This method can be removed when this bug is fixed in GNOME.
         return len(self.column_types)
 
-    # These properties maintain compatability with CompleteModel
+    # These properties maintain compatibility with CompleteModel
     # and SnippetComplete in snippets.
 
     @property
