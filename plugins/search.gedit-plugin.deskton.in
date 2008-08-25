@@ -1,0 +1,9 @@
+[Gedit Plugin]
+Loader=python
+Module=searchplugin
+IAge=2
+Name=GDP Project Search Plugin
+Description=Search files in a project.
+Authors=Curtis Hovey <sinzui.is@verizon.net>
+Copyright=Copyright © 2008 Curtis Hovey
+Website=http://curtis.hovey.name/sinzui

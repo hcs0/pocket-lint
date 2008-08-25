@@ -25,5 +25,5 @@ Makefile
 install-sh
 po/POTFILES
 missing
-plugins/syntaxcompleter.gedit-plugin
+*.gedit-plugin
 ChangeLog
