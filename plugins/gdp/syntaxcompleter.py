@@ -209,11 +209,11 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
         """Return the parsable text of the module.
 
         The line being edited may not be valid syntax, so the line is
-        commented out, or if it starts a block, it becomes 'if True:'
+        replaced with 'pass', or if it starts a block, it becomes 'if True:'
         """
         current_iter = self._document.get_iter_at_mark(
             self._document.get_insert())
-        index = current_iter.get_line() - 1
+        index = current_iter.get_line()
         text_lines = self.text.splitlines()
         if index + 1 == len(text_lines):
             # The current line is the last line. Add a fake line because

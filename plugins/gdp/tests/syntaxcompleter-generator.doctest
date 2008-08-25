@@ -149,6 +149,7 @@ and the Python keywords.
 
     >>> snark_py = 'plugins/gdp/data/snark.py'
     >>> document.load(snark_py, None, 0, False)
+    >>> document.place_cursor(document.get_start_iter())
     >>> python_generator = PythonSyntaxGenerator(document)
     >>> python_generator
     <gdp.syntaxcompleter.PythonSyntaxGenerator object at ...>
@@ -197,8 +198,7 @@ When the line being edited starts a new block, it is replaced with
 with code (if True:) to ensure the module will compile.
 
     >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
-    >>> success = cursor_iter.backward_lines(1)
-    >>> success = cursor_iter.forward_chars(6)
+    >>> success = cursor_iter.backward_lines(2)
     >>> document.place_cursor(cursor_iter)
     >>> parsable_lines = python_generator._get_parsable_text().splitlines()
     >>> print '\n'.join(parsable_lines[78:81])
@@ -211,7 +211,6 @@ line, it is replaced with 'pass'.
 
     >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
     >>> success = cursor_iter.forward_lines(1)
-    >>> success = cursor_iter.forward_chars(4)
     >>> document.place_cursor(cursor_iter)
     >>> parsable_lines = python_generator._get_parsable_text().splitlines()
     >>> print '\n'.join(parsable_lines[78:81])
