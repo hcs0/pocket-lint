@@ -159,8 +159,8 @@ and the Python keywords.
     >>> python_generator.text
     '"""An example python module for testing."""...'
 
-The get_words() method returns a 2-tuple of is_athorative and a set of
-all words in the generator.
+The get_words() method returns a 2-tuple of is_authoritative and a set
+of all words in the generator.
 
     >>> is_authoritative, words = python_generator.get_words('A')
     >>> sorted(words)
@@ -171,4 +171,51 @@ the set of words from more than one namespace and there is a prefix.
 
     >>> is_authoritative
     False
+
+Python keywords are among the symbols that can be matched.
+
+    >>> is_authoritative, words = python_generator.get_words('wh')
+    >>> sorted(words)
+    ['while']
+
+The generator uses the compiled module to get the symbols it contains.
+The private _get_parsable_text() method is responsible for returning
+compilable code. The line being edited is modified to ensure it is
+valid. This can be observed when the main() function is amended with
+some sample code.
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> cursor_iter.set_line(document.get_line_count() - 6)
+    >>> document.place_cursor(cursor_iter)
+    >>> document.insert_at_cursor("""
+    ...     found = False
+    ...     while not found:
+    ...         found = True
+    ...     """)
+
+When the line being edited starts a new block, it is replaced with
+with code (if True:) to ensure the module will compile.
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> success = cursor_iter.backward_lines(1)
+    >>> success = cursor_iter.forward_chars(6)
+    >>> document.place_cursor(cursor_iter)
+    >>> parsable_lines = python_generator._get_parsable_text().splitlines()
+    >>> print '\n'.join(parsable_lines[78:81])
+        found = False
+        if True:
+            found = True
+
+When line has the same indentation as the next line, or it is the last
+line, it is replaced with 'pass'.
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> success = cursor_iter.forward_lines(1)
+    >>> success = cursor_iter.forward_chars(4)
+    >>> document.place_cursor(cursor_iter)
+    >>> parsable_lines = python_generator._get_parsable_text().splitlines()
+    >>> print '\n'.join(parsable_lines[78:81])
+        found = False
+        while not found:
+            pass
 

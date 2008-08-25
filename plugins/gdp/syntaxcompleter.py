@@ -14,6 +14,7 @@ __all__ = [
     ]
 
 
+from keyword import kwlist
 import re
 from xml.sax import saxutils
 
@@ -168,7 +169,7 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
 
         import __builtin__
         global_syms = dir(__builtin__)
-        pyo = compile(self.get_parsable_text(), 'sc.py', 'exec')
+        pyo = compile(self._get_parsable_text(), 'sc.py', 'exec')
         co_names = ('SIGNAL_RUN_LAST', 'TYPE_NONE', 'TYPE_PYOBJECT', 'object')
         local_syms = [name for name in pyo.co_names if name not in co_names]
 
@@ -178,6 +179,7 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             symbols = set()
             symbols.update(local_syms)
             symbols.update(global_syms)
+            symbols.update(kwlist)
             symbols = set(key for key in symbols
                           if key.startswith(prefix))
             return is_authoritative, symbols
@@ -203,7 +205,7 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
                       if symbol.startswith(prefix))
         return is_authoritative, symbols
 
-    def get_parsable_text(self):
+    def _get_parsable_text(self):
         """Return the parsable text of the module.
 
         The line being edited may not be valid syntax, so the line is
@@ -224,12 +226,12 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             text_lines[index] = current_indentation + 'if True:'
         else:
             # Comment-out this line so that it is not compiled.
-            text_lines[index] = '#' + text_lines[index]
+            text_lines[index] = current_indentation + 'pass'
         return '\n'.join(text_lines)
 
     def _get_indentation(self, line):
         "Return the line's indentation"
-        indentation_pattern = re.compile(r'^[ \t]')
+        indentation_pattern = re.compile(r'^[ \t]*')
         match = indentation_pattern.match(line)
         if match:
             return match.group()
