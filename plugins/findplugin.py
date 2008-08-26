@@ -27,7 +27,7 @@ import gtk
 
 ui_xml = """<ui>
   <menubar name="MenuBar">
-    <menu name="FindMenu" action="Find">
+    <menu name="SearchMenu" action="Search">
       <menuitem name="FindFiles" action="FindFiles"/>
     </menu>
   </menubar>
