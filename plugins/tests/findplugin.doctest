@@ -1,0 +1,15 @@
+FindPlugin
+==========
+
+The FindPlugin is a gedit plugin that search multiple files to find
+text that matches the requested patten.
+
+The plugin, like the gedit.Plugin object it descends from does not
+require any parameters during initialization.
+
+    >>> from findplugin import FindPlugin
+    >>> plugin = FindPlugin()
+    >>> plugin
+    <FindPlugin object at ... (GObject at ...)>
+
+
