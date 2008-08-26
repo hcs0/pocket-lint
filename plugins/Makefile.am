@@ -1,3 +1,5 @@
+NULL =
+
 DIST_DIRS = gdp
 SUBDIRS = gdp
 
@@ -5,13 +7,18 @@ plugindir = $(GEDIT_PLUGIN_DIR)
 
 plugin_PYTHON = \
 	syntaxcompleterplugin.py \
-	searchplugin.py
+	findplugin.py \
+	$(NULL)
 
 plugin_in_files = \
 	syntaxcompleter.gedit-plugin.desktop.in \
-	search.gedit-plugin.desktop.in
+	find.gedit-plugin.desktop.in \
+	$(NULL)
 
-%.gedit-plugin: %.gedit-plugin.desktop.in $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*po) ; $(INTLTOOL_MERGE) $(top_srcdir)/po $< $@ -d -u -c $(top_builddir)/po/.intltool-merge-cache
+%.gedit-plugin: %.gedit-plugin.desktop.in \
+	$(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*po); \
+	$(INTLTOOL_MERGE) $(top_srcdir)/po $< \
+	$@ -d -u -c $(top_builddir)/po/.intltool-merge-cache
 
 plugin_DATA = $(plugin_in_files:.gedit-plugin.desktop.in=.gedit-plugin)
 

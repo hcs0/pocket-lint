@@ -1,4 +1,4 @@
-"""SearchPlugin files in a project."""
+"""Find matching text in multiple files."""
 
 # Copyright (C) 2008 - Curtis Hovey <sinzui.is at verizon.net>
 #
@@ -15,28 +15,28 @@
 __metaclass__ = type
 
 __all__ = [
-    'SearchPlugin',
+    'FindPlugin',
     ]
 
 
 import gedit
 import gtk
 
-#from gdp.search import SearchController
+#from gdp.find import FindController
 
 
 ui_xml = """<ui>
   <menubar name="MenuBar">
-    <menu name="SearchMenu" action="Search">
-      <menuitem name="SearchFiles" action="SearchFiles"/>
+    <menu name="FindMenu" action="Find">
+      <menuitem name="FindFiles" action="FindFiles"/>
     </menu>
   </menubar>
 </ui>
 """
 
 
-class SearchPlugin(gedit.Plugin):
-    """Search files in a project."""
+class FindPlugin(gedit.Plugin):
+    """Find matching text in multiple files plugin."""
     # This is a new-style class that call and old-style __init__().
     # pylint: disable-msg=W0233
 
@@ -48,15 +48,15 @@ class SearchPlugin(gedit.Plugin):
     def activate(self, window):
         """Activate the plugin in the current top-level window.
 
-        Add a 'Search files' to the menu.
+        Add 'Find in files' to the menu.
         """
         self.window = window
-        self.action_group = gtk.ActionGroup("SearchPluginActions")
+        self.action_group = gtk.ActionGroup("FindPluginActions")
         self.action_group.set_translation_domain('gedit')
         self.action_group.add_actions(
-            [('SearchFiles', None, _('_Search files...'),
-             '<Control><Shift>f', _('Search files'),
-             self.on_search_files)])
+            [('FindFiles', None, _('Find i_n files...'),
+             '<Control><Shift>f', _('Find in files'),
+             self.on_find_files)])
         manager = self.window.get_ui_manager()
         manager.insert_action_group(self.action_group, -1)
         self.merge_id = manager.add_ui_from_string(ui_xml)
@@ -64,7 +64,7 @@ class SearchPlugin(gedit.Plugin):
     def deactivate(self, window):
         """Deactivate the plugin in the current top-level window.
 
-        Remove a 'Search files' to the menu.
+        Remove a 'Find in files' to the menu.
         """
         manager = self.window.get_ui_manager()
         manager.remove_ui(self.merge_id)
@@ -76,12 +76,12 @@ class SearchPlugin(gedit.Plugin):
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window.
 
-        Search is always active.
+        'Find in files' is always active.
         """
         pass
 
     # Callbacks.
 
-    def on_search_files(self, menu):
-        """Show the search dialog."""
+    def on_find_files(self, menu):
+        """Show the 'find in files' pane."""
 
