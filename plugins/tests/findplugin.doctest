@@ -13,3 +13,25 @@ require any parameters during initialization.
     <FindPlugin object at ... (GObject at ...)>
 
 
+Gedit plugin API part 1
+-----------------------
+
+APIs for starting and using the plugin.
+
+
+activate()
+~~~~~~~~~~
+
+Whenever a new gedit window is created the activate() method of the
+plugin is called with one argument, the gedit.Window. The plugin
+creates the FindController, and binds it and the window to itself.
+It also adds the controller to the view.
+
+    >>> from testing.gedithelpers import get_window
+    >>> import gtk
+    >>> import gedit
+    >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
+    >>> plugin.activate(window)
+    >>> plugin.window is window
+    True
+

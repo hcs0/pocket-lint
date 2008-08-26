@@ -19,6 +19,8 @@ __all__ = [
     ]
 
 
+from gettext import gettext as _
+
 import gedit
 import gtk
 

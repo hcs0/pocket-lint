@@ -262,6 +262,14 @@ define Window.get_group
             return dummy[key]
         return gtk.WindowGroup()
 %%
+define Window.get_ui_manager
+    def get_ui_manager(self):
+        """A fake initialization of gedit.Window.get_ui_manager."""
+        key = '%s.get_ui_manager' % self.__class__.__name__
+        if key in dummy:
+            return dummy[key]
+        return gtk.UIManager()
+%%
 define Window.tabs_
     @property
     def tabs_(self):
