@@ -266,9 +266,9 @@ define Window.get_ui_manager
     def get_ui_manager(self):
         """A fake initialization of gedit.Window.get_ui_manager."""
         key = '%s.get_ui_manager' % self.__class__.__name__
-        if key in dummy:
-            return dummy[key]
-        return gtk.UIManager()
+        if key not in dummy:
+            dummy[key] = gtk.UIManager()
+        return dummy[key]
 %%
 define Window.tabs_
     @property

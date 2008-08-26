@@ -34,4 +34,71 @@ It also adds the controller to the view.
     >>> plugin.activate(window)
     >>> plugin.window is window
     True
+    >>> plugin.controller
+    <gdp.find.FindController object at ...>
+
+The 'Find in files' item was created and added to the Search menu in
+the UI.
+
+    >>> plugin.action_group.get_action('FindFiles').get_property('label')
+    'Find i_n files...'
+    >>> plugin.ui_id
+    2
+
+
+update_ui()
+~~~~~~~~~~~
+
+Nothing happen with update_ui() is called. The menu it is valid for
+the Gedit Window; the Gedit Document is not important.
+
+    >>> plugin.update_ui(window)
+
+
+callbacks
+---------
+
+The FindPlugin provides a callback for the 'Find in files' menu item.
+
+
+on_find_files
+~~~~~~~~~~~~~
+
+The bottom pane is displayed with the 'Find in files' dialog when
+on_find_file() is called.
+
+    >>> plugin.on_find_files(None)
+
+
+Gedit plugin API part 2
+-----------------------
+
+APIs for removing the plugin.
+
+
+deactivate()
+~~~~~~~~~~~~
+
+When a window is destroyed the deactivate function is called by the
+app, passing the window to the function. The plugin unbinds the
+controller from the views, then removes its own bindings to the window
+and the controller.
+
+    >>> plugin.deactivate(window)
+    >>> literal(plugin.ui_id)
+    None
+    >>> literal(plugin.action_group)
+    None
+    >>> literal(plugin.controller)
+    None
+
+    >>> literal(plugin.window)
+    None
+
+Tear down
+---------
+
+gtksouceview2.View is not destroying itself. Call this manually.
+
+    >>> view.destroy()
 

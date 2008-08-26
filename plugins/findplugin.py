@@ -24,7 +24,7 @@ from gettext import gettext as _
 import gedit
 import gtk
 
-#from gdp.find import FindController
+from gdp.find import FindController
 
 
 ui_xml = """<ui>
@@ -53,6 +53,7 @@ class FindPlugin(gedit.Plugin):
         Add 'Find in files' to the menu.
         """
         self.window = window
+        self.controller = FindController()
         self.action_group = gtk.ActionGroup("FindPluginActions")
         self.action_group.set_translation_domain('gedit')
         self.action_group.add_actions(
@@ -61,7 +62,7 @@ class FindPlugin(gedit.Plugin):
              self.on_find_files)])
         manager = self.window.get_ui_manager()
         manager.insert_action_group(self.action_group, -1)
-        self.merge_id = manager.add_ui_from_string(ui_xml)
+        self.ui_id = manager.add_ui_from_string(ui_xml)
 
     def deactivate(self, window):
         """Deactivate the plugin in the current top-level window.
@@ -69,10 +70,12 @@ class FindPlugin(gedit.Plugin):
         Remove a 'Find in files' to the menu.
         """
         manager = self.window.get_ui_manager()
-        manager.remove_ui(self.merge_id)
+        manager.remove_ui(self.ui_id)
         manager.remove_action_group(self.action_group)
         manager.ensure_update()
+        self.ui_id = None
         self.action_group = None
+        self.controller = None
         self.window = None
 
     def update_ui(self, window):
