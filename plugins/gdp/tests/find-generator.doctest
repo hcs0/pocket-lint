@@ -1,0 +1,63 @@
+MatchesGenerator
+================
+
+The MatchesGenerator iterates the files and line matches for the
+provided pattern. The __init__ method requires a root directory.
+
+    >>> from gdp.find import MatchesGenerator
+    >>> generator = MatchesGenerator()
+    Traceback (most recent call last):
+    ...
+    TypeError: __init__() takes exactly 2 arguments (1 given)
+
+An IOError is raised if the root directory does not exist.
+
+    >>> generator = MatchesGenerator('/not/a/valid/path')
+    Traceback (most recent call last):
+    ...
+    IOError: Non-existent directory: /not/a/valid/path
+
+The generator provides access to the root_dir. The root_dir
+can be relative.
+
+    >>> generator = MatchesGenerator('plugins/gdp')
+    >>> generator.root_dir
+    'plugins/gdp'
+
+The find() method requires two arguments: file_pattern, match_pattern.
+
+    >>> matches = [match for match in generator.find('(py|txt)$', 'Snark')]
+    >>> len(matches)
+    2
+
+A FileMatch represents the a file that contains text matches. The
+file_path attribute contains the relative path to the file. The lines
+attribute contains a list of LineMatch objects.
+
+    >>> file_match = matches[0]
+    >>> file_match
+    <gdp.find.FileMatch object at ...>
+    >>> file_match.file_path
+    'plugins/gdp/data/snark.py'
+    >>> len(file_match.lines)
+    4
+
+A LineMatch represents a line in a file that matches a text pattern.
+The lineno attribute is the line number where the match occurred.
+The text attribute is the text of the line.
+
+    >>> line_match = matches[0].lines[0]
+    >>> line_match
+    <gdp.find.LineMatch object at ...>
+    >>> line_match.lineno
+    8
+    >>> line_match.text
+    "'Snark',"
+
+The optional substitution argument can be used to replace the matched
+text with the substitution text. The substitution may contain
+backslashed group numbers to reference subgroups in a regular expression
+match.
+
+The find() method iterates file and line matches (FileMatch and
+LineMatch).
