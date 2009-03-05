@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Comment=3-make-lint
+# Name=3 make lint
+# Shortcut=<Shift>F3
+# Applicability=all
+# Output=output-panel
+# Input=nothing
+
+PWD=`pwd`
+BRANCH=`bzr root`
+
+if [ $BRANCH != '' ]
+then
+	echo Branch is at $BRANCH
+	cd $BRANCH
+fi
+
+if [ ! -e Makefile ]
+then
+	exit
+fi
+
+make lint > _lint.txt
+gedit _lint.txt &
+
+
+
+
+
+

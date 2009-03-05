@@ -57,6 +57,26 @@ AC_DEFUN([GEDIT_PLUGIN], [
 ])
 GEDIT_PLUGIN
 
+# The location of Gedit's personal external tools.
+AC_DEFUN([GEDIT_TOOLS], [
+    gedit_tools_dir=`echo "${HOME}/.gnome2/gedit/tools"`
+    AC_SUBST(GEDIT_TOOLS_DIR, [$gedit_tools_dir])
+])
+GEDIT_TOOLS
+
+# The location of Gedit's personal snippets.
+AC_DEFUN([GEDIT_SNIPPETS], [
+    gedit_snippets_dir=`echo "${HOME}/.gnome2/gedit/snippets"`
+    AC_SUBST(GEDIT_SNIPPETS_DIR, [$gedit_snippets_dir])
+])
+GEDIT_SNIPPETS
+
+# The location of GTKSourceViews lang files.
+AC_DEFUN([GTKSOURCEVIEW_LANGS], [
+    gtksourceview_langs_dir=`echo "${HOME}/.local/share/gtksourceview-2.0/language-specs"`
+    AC_SUBST(GTKSOURCEVIEW_LANGS_DIR, [$gtksourceview_langs_dir])
+])
+GTKSOURCEVIEW_LANGS
 
 # Automake files to create
 AC_CONFIG_FILES([
@@ -65,6 +85,9 @@ AC_CONFIG_FILES([
     plugins/Makefile
     plugins/gdp/Makefile
     po/Makefile.in
+    tools/Makefile
+    snippets/Makefile
+    language-specs/Makefile
 ])
 AC_OUTPUT
 
@@ -73,4 +96,7 @@ echo "
 Configuration:
     prefix: ${prefix}
     gedit plugin dir: $GEDIT_PLUGIN_DIR
+    gedit tools dir: $GEDIT_TOOLS_DIR
+    gedit snippets dir: $GEDIT_SNIPPETS_DIR
+    GTKSourceView langs dir: $GTKSOURCEVIEW_LANGS_DIR
 "

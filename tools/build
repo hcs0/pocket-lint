@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# [Gedit Tool]
+# Comment=build
+# Input=nothing
+# Name=build
+# Applicability=all
+# Output=output-panel
+
+make

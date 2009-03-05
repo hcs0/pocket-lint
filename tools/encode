@@ -1,0 +1,8 @@
+# [Gedit Tool]
+# Comment=Check file/character encoding
+# Input=document
+# Name=encode
+# Applicability=all
+# Output=output-panel
+
+iconv -f 'ascii'

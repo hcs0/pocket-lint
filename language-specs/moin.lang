@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Author: Gustavo Giráldez <gustavo.giraldez@gmx.net>
+ Copyright (C) 2003 Gustavo Giráldez <gustavo.giraldez@gmx.net>
+ Copyright (C) 2004 Benoît Dejean <TaZForEver@free.fr>
+ Copyright (C) 2006 Steve Frécinaux <nud@apinc.org>
+
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+-->
+<language id="moin" _name="Moin" version="2.0" _section="Markup">
+  <metadata>
+    <property name="mimetypes">text/x-moinmoin</property>
+    <property name="globs">*.moin</property>
+    <property name="line-comment-start">#</property>
+  </metadata>
+
+  <styles>
+    <style id="whitespace"     _name="Trailing Whitespace"  map-to="def:error" />
+    <style id="heading"        _name="Heading"              map-to="def:type" />
+    <style id="interpreter"    _name="interpreter"          map-to="def:special-char" />
+    <style id="list"           _name="list"                 map-to="def:constant" />
+    <style id="boldemphasis"   _name="boldemphasis"         map-to="def:shebang" />
+    <style id="bold"           _name="bold"                 map-to="def:comment" />
+    <style id="emphasis"       _name="emphasis"             map-to="def:identifier" />
+    <style id="pre"            _name="pre"                  map-to="def:note" />
+  </styles>
+
+  <definitions>
+    <define-regex id="identifier">[_a-zA-Z][_a-zA-Z0-9]*</define-regex>
+    <define-regex id="number">[1-9][0-9]*</define-regex>
+
+    <context id="moin">
+      <include>
+        <context id="whitespace" style-ref="whitespace">
+	      <match>(\s+$)</match>
+        </context>
+
+        <context id="heading" style-ref="heading">
+	      <match>(^[=-]+ .* [=-]+)</match>
+        </context>
+
+        <!--<context id="story">
+	      <match>(^.{1,71})</match>
+        </context>-->
+
+        <context id="pre">
+          <start>{{{</start>
+          <end>}}}</end>
+          <include>
+            <context ref="python:python"/>
+          </include>
+        </context>
+
+        <context id="list" style-ref="list">
+          <match>^[ ]*[0-9.*-]+</match>
+        </context>
+
+        <context id="boldemphasis" style-ref="boldemphasis">
+          <match>''''.*''''</match>
+        </context>
+
+        <context id="bold" style-ref="bold">
+          <match>'''.*'''</match>
+        </context>
+
+        <context id="emphasis" style-ref="emphasis">
+          <match>''.*''</match>
+        </context>
+      </include>
+    </context>
+  </definitions>
+</language>

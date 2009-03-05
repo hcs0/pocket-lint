@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# [Gedit Tool]
+# Comment=2-make
+# Name=2 link and make project
+# Shortcut=F2
+# Applicability=all
+# Output=output-panel
+# Input=nothing
+
+PWD=`pwd`
+BRANCH=`bzr root`
+if [ -z $BRANCH ]
+then
+	exit 1
+fi
+
+echo Branch is at $BRANCH
+cd $BRANCH
+
+utilities/link-external-sourcecode.sh ../rocketfuel
+rm *.request
+make clean
+make build
+make schema
+
+if [ ! -e 'gdp.xml' ]
+then
+	project_file=`cat << ENDXML
+<?xml version="1.0"?>
+<GeditPyDevProject>
+  <tests>
+    <test>_NEW_</test>
+  </tests>
+  <searches>
+    <search>_NEW_</search>
+  </searches>
+</GeditPyDevProject>
+ENDXML
+`
+	echo $project_file | sed 's/ENDXML//' | xmllint --format - > gdp.xml
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

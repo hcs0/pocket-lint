@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Comment=4-test
+# Input=nothing
+# Shortcut=F4
+# Applicability=all
+# Output=output-panel
+
+PWD=`pwd`
+BRANCH=`bzr root`
+echo Branch is at $BRANCH
+cd $BRANCH
+
+IS_TEST=`echo $GEDIT_CURRENT_DOCUMENT_NAME | grep -c '\([.]txt\|[.]doctest\)'`
+if [ $IS_TEST -ne 0  ]
+then
+	TEST="$GEDIT_CURRENT_DOCUMENT_NAME"
+else
+	TEST=`echo $GEDIT_CURRENT_DOCUMENT_NAME | sed  's/[.].*//'`
+fi
+
+IS_SEQ_TEST=`echo $TEST | grep -c '^[0-9][0-9]-'`
+if [ $IS_SEQ_TEST -ne 0 ]
+then
+	TEST=`basename $GEDIT_CURRENT_DOCUMENT_DIR `
+fi
+
+LAYER='LaunchpadFunctional'
+IS_PAGETEST=`echo $GEDIT_CURRENT_DOCUMENT_DIR| grep -c 'pagetest'`
+if [ $IS_PAGETEST -ne 0  ]
+then
+	LAYER='PageTest'
+fi
+
+if [ -f 'gdp.xml' ]
+then
+    TESTS=`echo cat "/GeditPyDevProject/tests/test/text()" | xmllint --shell gdp.xml | sed -e '/ --*/d; $d;'`
+NEW_TESTS=`echo -e "${TESTS}\n${TEST}" | sort -u | sed -e 's,\(.*\),<test>\1</test>,'`
+    START=`sed -e '1,/<tests>/!d;' gdp.xml`
+    END=`sed -e '/<.tests>/,$!d;' gdp.xml`
+    echo $START $NEW_TESTS $END | xmllint --format - > gdp.xml
+fi
+
+export PYTHONPATH=lib:$PYTHONPATH:/usr/bin:/usr/lib/gedit-2/plugins
+echo Running tests that match $TEST
+./test.py -vv --layer=$LAYER --test="(doc|test).*$TEST"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

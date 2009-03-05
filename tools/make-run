@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Comment=Run Launchpad server from a terminal
+# Name=Run Launchpad server
+# Applicability=all
+# Output=output-panel
+# Input=nothing
+
+PWD=`pwd`
+BRANCH=`bzr info | sed -e '/Location:/,3!d; /Location/d; s,^.*: *,,; s,///,/,;' | sed -e 'N; s,\n,,'`
+echo Branch is at $BRANCH
+cd $BRANCH
+
+#gnome-terminal --window --working-directory=$BRANCH --title="Launchpad Server" -e 'do make run; sleep 60s done' &
+make run 2>&1 | zenity --list --title 'Launchpad Server Log' --text='All messages from stanard out are displayed' --column='Traceback' &
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

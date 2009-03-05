@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Comment=Bazaar diff the previous revision
+# Input=nothing
+# Name=Bazaar diff previous revision
+# Applicability=local
+# Output=output-panel
+
+PWD=`pwd`
+BRANCH=`bzr root`
+echo Branch is at $BRANCH
+cd $BRANCH
+
+bzr diff -r -2 &
+
+
+
+
+
+
+
+

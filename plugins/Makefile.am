@@ -7,12 +7,10 @@ plugindir = $(GEDIT_PLUGIN_DIR)
 
 plugin_PYTHON = \
 	syntaxcompleterplugin.py \
-	findplugin.py \
 	$(NULL)
 
 plugin_in_files = \
 	syntaxcompleter.gedit-plugin.desktop.in \
-	find.gedit-plugin.desktop.in \
 	$(NULL)
 
 %.gedit-plugin: %.gedit-plugin.desktop.in \

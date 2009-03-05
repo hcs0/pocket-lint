@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Comment=_bzr-open-changed-files
+# Name=Open changed files
+# Shortcut=<Shift><Control>o
+# Applicability=all
+# Output=output-panel
+# Input=nothing
+
+DIR=$GEDIT_CWD
+if [ -n $GEDIT_CURRENT_DOCUMENT_NAME ]
+then
+	DIR=$GEDIT_CURRENT_DOCUMENT_DIR
+fi
+
+PWD=`pwd`
+BRANCH=`bzr root`
+echo Branch is at $BRANCH
+cd $BRANCH
+
+rev=''
+if [ -d '../rocketfuel' ]
+then
+	rev='-r ancestor:../rocketfuel'
+fi
+
+PATHS=`bzr st $rev | sed -e '/^ /!d; /[a-z] /d'`
+for PATH in $PATHS
+do
+	if [ -f "$PATH" ]
+	then	
+		/usr/bin/gedit "$PATH"
+	fi
+done
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-SUBDIRS = testing plugins
+SUBDIRS = testing plugins snippets tools language-specs
 
 NULL =
 

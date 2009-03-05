@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<snippets language="python">
+  <snippet override="python-class">
+    <text><![CDATA[class ${1:ClassName} (${2:object}):
+    """."""
+
+    def __init__(self${3:,})
+        ${4:pass}
+
+
+$0]]></text>
+    <tag>class</tag>
+    <description>New Class</description>
+  </snippet>
+  <snippet override="python-def">
+    <text><![CDATA[def ${1:fname}(${2:self}):
+    """${3:Missing docstring}"""]]></text>
+    <tag>def</tag>
+    <description>New Function</description>
+  </snippet>
+  <snippet>
+    <text><![CDATA[if __name__ == '__main__':]]></text>
+    <tag>ifnm</tag>
+    <description>__main__ function</description>
+  </snippet>
+  <snippet>
+    <text><![CDATA[import rpdb2; rpdb2.start_embedded_debugger('password')]]></text>
+    <tag>winpdb</tag>
+    <description>winpdb</description>
+  </snippet>
+  <snippet>
+    <text><![CDATA[import pdb; pdb.set_trace()]]></text>
+    <tag>pdb</tag>
+    <description>pdb</description>
+  </snippet>
+  <snippet>
+    <text><![CDATA['${1:key}' : ${2:value},]]></text>
+    <tag>:</tag>
+    <description>dict item</description>
+  </snippet>
+  <snippet>
+    <text><![CDATA[# Copyright 2008 Canonical Ltd.  All rights reserved.
+
+"""Module docstring goes here."""
+
+__metaclass__ = type
+__all__ = []
+]]></text>
+    <tag>module</tag>
+    <description>module</description>
+  </snippet>
+</snippets>

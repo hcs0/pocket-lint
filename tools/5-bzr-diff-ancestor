@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Comment=5 diff the branch to its ancestor
+# Name=5 bzr diff ancestor
+# Shortcut=<Shift>F5
+# Applicability=all
+# Input=nothing
+# Output=output-panel
+
+PWD=`pwd`
+BRANCH=`bzr root`
+echo Branch is at $BRANCH
+cd $BRANCH
+
+rev=`bzr info | sed '/parent branch:/!d; s/ *parent branch: /ancestor:/'`
+rev=`echo $rev | sed 's/bzr+ssh:/sftp:/'`
+
+loom=`bzr st | grep 'Current thread:'`
+if [ -n "$loom" ]; then
+	rev='thread:RF'
+fi
+
+bzr diff -r $rev > _diff.diff
+gedit _diff.diff
+
+
+
+
+
+
+
+
+
+
+

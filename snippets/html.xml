@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<snippets language="html">
+  <snippet>
+    <text><![CDATA[<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:tal="http://xml.zope.org/namespaces/tal"
+  xmlns:metal="http://xml.zope.org/namespaces/metal"
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  xml:lang="en"
+  lang="en"
+  dir="ltr"
+  metal:use-macro="context/@@main_template/master"
+  i18n:domain="launchpad"
+>]]></text>
+    <tag>hzpt</tag>
+    <description>hzpt</description>
+  </snippet>
+  <snippet>
+    <text><![CDATA[<tal:root
+  xmlns:tal="http://xml.zope.org/namespaces/tal"
+  xmlns:metal="http://xml.zope.org/namespaces/metal"
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  omit-tag="">
+</tal:root>]]></text>
+    <tag>rzpt</tag>
+    <description>rzpt</description>
+  </snippet>
+</snippets>

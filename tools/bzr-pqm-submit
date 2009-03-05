@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Comment=Submit the branch to PQM
+# Name=bzr pqm-submit
+# Shortcut=
+# Applicability=all
+# Output=output-panel
+# Input=nothing
+
+PWD=`pwd`
+BRANCH=`bzr root`
+echo Branch is at $BRANCH
+cd $BRANCH
+
+MSG=`zenity --title="Bazaar PQM Submit ${BRANCH}" --entry --text="Enter a message to describe the change set"`
+
+if [ -z "$MSG" -o $? = 1 ]
+then
+	exit
+fi
+
+CHK=`echo $MSG | grep "^[A-Z].*[.?!]$"`
+
+if [ -z "$CHK" ]
+then
+	zenity  --title="Bazaar PQM Submit ${BRANCH}" --error --text="<b>Bad message</b>:\n $MSG"
+	exit
+fi
+
+zenity  --title="Bazaar PQM Submit ${BRANCH}" --question --text="<b>Really submit $BRANCH</b>:\n $MSG"
+
+if [ $? = 1 ]
+then
+	exit
+fi
+
+bzr pqm-submit -m "$MSG" 
+
+
+
+
+

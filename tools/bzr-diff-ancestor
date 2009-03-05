@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Comment=Diff the Branch to its ancestor
+# Name=Bazaar diff ancestor
+# Applicability=all
+# Output=new-document
+# Input=nothing
+
+PWD=`pwd`
+BRANCH=`bzr root`
+echo Branch is at $BRANCH
+cd $BRANCH
+
+rev=`bzr info | sed '/parent branch:/!d; s/ *parent branch: /-r ancestor:/'`
+
+bzr diff $rev &
+
+
+
+
+
+
+
