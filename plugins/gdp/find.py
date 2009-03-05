@@ -4,33 +4,74 @@
 __metaclass__ = type
 
 
+from exceptions import IOError
 from optparse import OptionParser
 import os
 import re
 import sys
 
 
-class FindGenerator:
-    """Search files for matching text."""
+class FileMatch:
+    """A file that contains lines that match a text pattern."""
 
-    @staticmethod
-    def find_matches(root_dir, file_pattern, match_pattern,
-                     substitution=None):
+    def __init__(self, file_path, lines):
+        """Initialise the FileMatch.
+
+        :param file_path: The path to the file.
+        :param lines: a list of `LineMatch` objects.
+        """
+        self.file_path = file_path
+        self.lines = lines
+
+
+class LineMatch:
+    """A line in a file that match a text pattern."""
+
+    def __init__(self, lineno, text):
+        """Initialise the LineMatch.
+
+        :param lineno: The line number in the file where the text matches.
+        :param text: The text of line that contains the match.
+        """
+        self.lineno = lineno
+        self.text = text
+
+
+class MatchesGenerator:
+    """Search files below a directory for matching text."""
+
+    def __init__(self, root_dir):
+        """Create a MatchesGenerator for the directory.
+
+        :param root_dir: The path to the directory to be searched.
+        :raise IOError: if the root_dir is not a valid directory.
+        """
+        if not os.path.isdir(root_dir):
+            raise IOError('Non-existent directory: %s' % root_dir)
+        self.root_dir = root_dir
+
+    def find(self, file_pattern, match_pattern,
+             is_re=True, match_case=True, substitution=None):
         """Iterate a summary of matching lines in a file."""
-        match_re = re.compile(match_pattern)
-        for file_path in FindGenerator.find_files(
-            root_dir, file_pattern=file_pattern):
-            summary = FindGenerator.extract_match(
+        if not is_re:
+            match_pattern = re.escape(match_pattern)
+        flags = re.IGNORECASE
+        if match_case:
+            # Flip the bits back to case sensative.
+            flags = flags ^ re.IGNORECASE
+        match_re = re.compile(match_pattern, flags)
+        for file_path in self._find_files(
+            self.root_dir, file_pattern=file_pattern):
+            file_match = self.extract_match(
                 file_path, match_re, substitution=substitution)
-            if summary:
-                yield summary
+            if file_match:
+                yield file_match
 
-    @staticmethod
-    def find_files(root_dir, skip_dir_pattern='^[.]', file_pattern='.*'):
+    def _find_files(self, skip_dir_pattern='^[.]', file_pattern='.*'):
         """Iterate the matching files below a directory."""
         skip_dir_re = re.compile(r'^.*%s' % skip_dir_pattern)
         file_re = re.compile(r'^.*%s' % file_pattern)
-        for path, subdirs, files in os.walk(root_dir):
+        for path, subdirs, files in os.walk(self.root_dir):
             subdirs[:] = [dir_ for dir_ in subdirs
                           if skip_dir_re.match(dir_) is None]
             for file_ in files:
@@ -40,9 +81,8 @@ class FindGenerator:
                 if file_re.match(file_path) is not None:
                     yield file_path
 
-    @staticmethod
-    def extract_match(file_path, match_re, substitution=None):
-        """Return a summary of matches in a file."""
+    def extract_match(self, file_path, match_re, substitution=None):
+        """Return a FileMatch summarising the matches in a file, or None."""
         lines = []
         content = []
         match = None
@@ -51,8 +91,7 @@ class FindGenerator:
             for lineno, line in enumerate(file_):
                 match = match_re.search(line)
                 if match:
-                    lines.append(
-                        {'lineno' : lineno + 1, 'text' : line.strip()})
+                    lines.append(LineMatch(lineno + 1, line.strip()))
                     if substitution:
                         line = match_re.sub(substitution, line)
                 if substitution:
@@ -66,7 +105,7 @@ class FindGenerator:
                     file_.write(''.join(content))
                 finally:
                     file_.close()
-            return {'file_path' : file_path, 'lines' : lines}
+            return FileMatch(file_path, lines)
         return None
 
 
@@ -91,16 +130,16 @@ class FindController:
             argv = sys.argv
         parser = FindController.get_option_parser()
         (options, args) = parser.parse_args(args=argv[1:])
-
         root_dir = args[0]
         file_pattern = args[1]
         match_pattern = args[2]
         substitution = options.substitution
         print "Looking for [%s] in files like %s under %s:" % (
             match_pattern, file_pattern, root_dir)
-        for summary in FindGenerator.find_matches(
-            root_dir, file_pattern, match_pattern, substitution=substitution):
-            print "\n%(file_path)s" % summary
-            for line in summary['lines']:
-                print "    %(lineno)4s: %(text)s" % line
+        matches_generator = MatchesGenerator(root_dir)
+        for file_match in matches_generator.find(
+            file_pattern, match_pattern, substitution=substitution):
+            print "\n%s" % file_match.file_path
+            for line_match in file_match.lines:
+                print "    %s4s: %s" % (line_match.lineno, line_match.text)
 
