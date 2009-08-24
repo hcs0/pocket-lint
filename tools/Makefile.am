@@ -16,11 +16,11 @@ tools_DATA = \
 	bzr-diff-ancestor \
 	bzr-diff-branch \
 	bzr-diff-file \
-	_bzr-open-changed-files \
+	bzr-open-changed-files \
 	bzr-status \
 	encode \
 	find.py \
-	_find-in-files \
+	find-in-files \
 	formatdoctest.py \
 	format-doctest \
 	remove-trailing-spaces \
