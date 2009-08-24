@@ -12,7 +12,7 @@ BRANCH=`bzr root`
 echo Branch is at $BRANCH
 cd $BRANCH
 
-TESTS=`echo cat "/GeditPyDevProject/tests/test/text()" | xmllint --shell gdp.xml | sed -e '/ --*/d; $d;'`
+TESTS=`echo cat "/GeditPyDevProject/tests/test/text()" | xmllint --shell _gdp.cfg | sed -e '/ --*/d; $d;'`
 TEST=`zenity --title="Run doc tests" --list --text="Choose a file matching pattern or create a new one" --editable --column="Regex Pattern" $TESTS`
 
 if [ -z "$TEST"  -o $? = 1 ]
@@ -27,9 +27,9 @@ then
 fi
 
 NEW_TESTS=`echo -e "${TESTS}\n${TEST}" | sort -u | sed -e 's,\(.*\),<test>\1</test>,'`
-START=`sed -e '1,/<tests>/!d;' gdp.xml`
-END=`sed -e '/<.tests>/,$!d;' gdp.xml`
-echo $START $NEW_TESTS $END | xmllint --format - > gdp.xml
+START=`sed -e '1,/<tests>/!d;' _gdp.cfg`
+END=`sed -e '/<.tests>/,$!d;' _gdp.cfg`
+echo $START $NEW_TESTS $END | xmllint --format - > _gdp.cfg
 
 echo Running tests that match $TEST
 ./test.py -vv --test="$TEST"

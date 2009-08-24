@@ -22,9 +22,9 @@ utilities/link-external-sourcecode.sh ../rocketfuel
 rm *.request
 make clean
 make build
-make schema
+#make schema
 
-if [ ! -e 'gdp.xml' ]
+if [ ! -e '_gdp.cfg' ]
 then
 	project_file=`cat << ENDXML
 <?xml version="1.0"?>
@@ -38,7 +38,7 @@ then
 </GeditPyDevProject>
 ENDXML
 `
-	echo $project_file | sed 's/ENDXML//' | xmllint --format - > gdp.xml
+	echo $project_file | sed 's/ENDXML//' | xmllint --format - > _gdp.cfg
 fi
 
 

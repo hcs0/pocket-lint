@@ -27,9 +27,9 @@ IFS="
 "
 
 TERMS='_NEW_'
-if [ -f 'gdp.xml' ]
+if [ -f '_gdp.cfg' ]
 then
-    TERMS=`echo cat "/GeditPyDevProject/searches/search/text()" | xmllint --shell gdp.xml | sed -e '/ --*/d; $d; s/\&gt;/>/; s/\&lt;/</;'`
+    TERMS=`echo cat "/GeditPyDevProject/searches/search/text()" | xmllint --shell _gdp.cfg | sed -e '/ --*/d; $d; s/\&gt;/>/; s/\&lt;/</;'`
 fi
 
 TERM=`zenity --class=WINDOW_POPUP --title="Find in files" --list --text="Choose a search pattern or create a new one" --editable --column="Regex Pattern" $TERMS`
@@ -45,18 +45,18 @@ then
 	exit
 fi
 
-if [ -f 'gdp.xml' ]
+if [ -f '_gdp.cfg' ]
 then
     NEW_SEARCHES=`echo -E "${TERMS}${IFS}${TERM}"  | sort -u | sed -e 's,>,\&gt;,g; s,<,\&lt;,g; s,\(.*\),<search>\1</search>,'`
-    START=`sed -e '1,/<searches>/!d;' gdp.xml`
-    END=`sed -e '/<.searches>/,$!d;' gdp.xml`
+    START=`sed -e '1,/<searches>/!d;' _gdp.cfg`
+    END=`sed -e '/<.searches>/,$!d;' _gdp.cfg`
 
-    echo -E $START $NEW_SEARCHES $END | xmllint --format - > gdp.xml
+    echo -E $START $NEW_SEARCHES $END | xmllint --format - > _gdp.cfg
 fi
 
 echo "searching `pwd`"
 
-${HOME}/.gnome2/gedit/tool/find.py ./ '\.(py|txt|conf|zcml|pt|js|tac|xml|html|Makefile|doctest)$' "$TERM"
+${HOME}/Bin/find.py ./ '\.(py|txt|conf|zcml|pt|js|tac|xml|html|Makefile|doctest)$' "$TERM"
 
 
 

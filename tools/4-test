@@ -26,25 +26,28 @@ then
 	TEST=`basename $GEDIT_CURRENT_DOCUMENT_DIR `
 fi
 
-LAYER='LaunchpadFunctional'
-IS_PAGETEST=`echo $GEDIT_CURRENT_DOCUMENT_DIR| grep -c 'pagetest'`
+LAYER=''
+IS_PAGETEST=`echo $GEDIT_CURRENT_DOCUMENT_DIR| grep -c -E 'pagetest|stories'`
 if [ $IS_PAGETEST -ne 0  ]
 then
-	LAYER='PageTest'
+	LAYER='--layer=PageTest'
 fi
 
-if [ -f 'gdp.xml' ]
+if [ -f '_gdp.cfg' ]
 then
-    TESTS=`echo cat "/GeditPyDevProject/tests/test/text()" | xmllint --shell gdp.xml | sed -e '/ --*/d; $d;'`
+    TESTS=`echo cat "/GeditPyDevProject/tests/test/text()" | xmllint --shell _gdp.cfg | sed -e '/ --*/d; $d;'`
 NEW_TESTS=`echo -e "${TESTS}\n${TEST}" | sort -u | sed -e 's,\(.*\),<test>\1</test>,'`
-    START=`sed -e '1,/<tests>/!d;' gdp.xml`
-    END=`sed -e '/<.tests>/,$!d;' gdp.xml`
-    echo $START $NEW_TESTS $END | xmllint --format - > gdp.xml
+    START=`sed -e '1,/<tests>/!d;' _gdp.cfg`
+    END=`sed -e '/<.tests>/,$!d;' _gdp.cfg`
+    echo $START $NEW_TESTS $END | xmllint --format - > _gdp.cfg
 fi
 
 export PYTHONPATH=lib:$PYTHONPATH:/usr/bin:/usr/lib/gedit-2/plugins
 echo Running tests that match $TEST
-./test.py -vv --layer=$LAYER --test="(doc|test).*$TEST"
+./bin/test -vv $LAYER --test="(doc|test|stories).*$TEST"
+
+
+
 
 
 

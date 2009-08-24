@@ -18,6 +18,8 @@ from pyflakes.checker import Checker
 class DoctestReviewer:
     """Check and reformat doctests."""
     rule_pattern = re.compile(r'([=~-])+[ ]*$')
+    moin_pattern = re.compile(r'^(=+)[ ](.+)[ ](=+[ ]*)$')
+    continuation_pattern = re.compile(r'^(\s*\.\.\.) ([^ ]+)$', re.M)
 
     SOURCE = 'source'
     WANT = 'want'
@@ -26,6 +28,7 @@ class DoctestReviewer:
     def __init__(self, doctest, file_name):
         self.doctest = doctest
         self.file_name = file_name
+        doctest = self._disambuguate_doctest(doctest)
         parser = DocTestParser()
         self.parts = parser.parse(doctest, file_name)
         self.blocks = []
@@ -35,6 +38,10 @@ class DoctestReviewer:
         self.example = None
         self.last_bad_indent = 0
         self.has_printed_filename = False
+
+    def _disambuguate_doctest(self, doctest):
+        """Clarify continuations that the doctest parser hides."""
+        return self.continuation_pattern.sub(r'\1    \2', doctest)
 
     def _print_message(self, message, lineno):
         """Print the error message with the lineno.
@@ -107,7 +114,7 @@ class DoctestReviewer:
                 continue
             self.block.append(line)
             previous_kind = kind
-        # Capture the last block and and a blank line.
+        # Capture the last block and a blank line.
         self.block.append('\n')
         self._store_block(previous_kind)
 
@@ -133,14 +140,14 @@ class DoctestReviewer:
         """Check the doctest for style and code issues.
 
         1. Check line lengths.
-        2. Check that headings are not in RST format.
+        2. Check that headings are not in Moin format.
         3. Check indentation.
         4. Check trailing whitespace.
         """
         self.code_lines = []
         line_checkers = [
             self.check_length,
-            self.check_header,
+            self.check_heading,
             self.check_indentation,
             self.check_trailing_whitespace,]
         self._apply(line_checkers)
@@ -153,7 +160,7 @@ class DoctestReviewer:
         1. Tests are reindented to 4 spaces.
         2. Simple narrative is rewrapped to 78 character width.
         3. Formatted (indented) narrative is preserved.
-        4. RST headings are converted to Moin = and == levels.
+        4. Moin headings are converted to RSR =, == , and === levels.
         5. There is one blank line between blocks,
         6. Except for headers which have two leading blank lines.
         7. All trailing whitespace is removed.
@@ -188,11 +195,21 @@ class DoctestReviewer:
         """
         if kind != DoctestReviewer.NARRATIVE or self._is_formatted(block):
             return block
-        long_line = ' '.join(block).strip()
-        block = wrap(long_line, 72)
-        if len(blocks) != 0 and long_line[0] == '=':
+        try:
+            rules = ('===', '---', '...')
+            last_line = block[-1]
+            is_heading = last_line[0:3] in rules and last_line[-3:] in rules
+        except IndexError:
+            is_heading = False
+        if len(blocks) != 0 and is_heading:
             # Headings should have an extra leading blank line.
             block.insert(0, '')
+        elif is_heading:
+            # Do nothing. This is the first heading in the file.
+            pass
+        else:
+            long_line = ' '.join(block).strip()
+            block = wrap(long_line, 72)
         return block
 
     def is_comment(self, line):
@@ -242,20 +259,13 @@ class DoctestReviewer:
             self._print_message('%s has trailing whitespace.' % kind, lineno)
         return line
 
-    def check_header(self, lineno, line, kind, previous_kind):
-        """Check for narrative lines that use RST headers instead of moin."""
+    def check_heading(self, lineno, line, kind, previous_kind):
+        """Check for narrative lines that use moin headers instead of RST."""
         if kind != DoctestReviewer.NARRATIVE:
             return line
-        rule = self.rule_pattern.match(line)
-        if rule is None:
-            return line
-        length = len(self.block)
-        if length == 0 or (length > 0 and self.block[-1] == ''):
-            # This is a top line.
-            pass
-        else:
-            # This is a bottom line.
-            self._print_message('%s uses a RST header.' % kind, lineno - 1)
+        moin = self.moin_pattern.match(line)
+        if moin is not None:
+            self._print_message('%s uses a moin header.' % kind, lineno - 1)
         return line
 
     def check_source_code(self, code):
@@ -269,7 +279,7 @@ class DoctestReviewer:
         try:
             tree = compiler.parse(code)
         except (SyntaxError, IndentationError), exc:
-            (lineno, offset, line) = exc[1][1:]
+            (lineno, offset_, line) = exc[1][1:]
             if line.endswith("\n"):
                 line = line[:-1]
             self._print_message(
@@ -301,23 +311,24 @@ class DoctestReviewer:
                 return '    >>> %s' % line
 
     def fix_heading(self, lineno, line, kind, previous_kind):
-        """Switch RST headings to Moin headings."""
+        """Switch Moin headings to RST headings."""
         if kind != DoctestReviewer.NARRATIVE:
             return line
-        rule = self.rule_pattern.match(line)
-        if rule is None:
+        moin = self.moin_pattern.match(line)
+        if moin is None:
             return line
-        if len(self.block) == 0:
-            # This is a leading rule that will be dropped.
-            return None
-        elif len(self.blocks) == 0 and len(self.block) == 1:
-            # The first heading is level 1.
-            level = '='
+        heading_level = len(moin.group(1))
+        heading = moin.group(2)
+        rule_length = len(heading)
+        if heading_level == 1:
+            rule = '=' * rule_length
+        elif heading_level == 2:
+            rule = '-' * rule_length
         else:
-            level = '=='
-        # Reformat the captured heading, then drop the trailing rule.
-        self.block[-1] = "%s %s %s" % (level, self.block[-1], level)
-        return None
+            rule = '.' * rule_length
+        # Force the heading on to the block of lines.
+        self.block.append(heading)
+        return rule
 
     def fix_narrative_paragraph(self, lineno, line, kind, previous_kind):
         """Break narrative into paragraphs."""
@@ -338,10 +349,10 @@ def get_option_parser():
     parser = OptionParser(usage=usage)
     parser.add_option(
         "-f", "--format", dest="is_format", action="store_true",
-        help="The source ZConfig schema file.")
+        help="Reformat the doctest.")
     parser.add_option(
         "-i", "--interactive", dest="is_interactive",  action="store_true",
-        help="The destination lazr.config schema file.")
+        help="Approve each change.")
     parser.set_defaults(
         is_format=False,
         is_interactive=False)

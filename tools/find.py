@@ -1,11 +1,15 @@
 #!/usr/bin/python
 """Find in files and replace strings in many files."""
 
-
-from optparse import OptionParser
+import mimetypes
 import os
 import re
 import sys
+
+from optparse import OptionParser
+
+
+mimetypes.init()
 
 
 def find_matches(root_dir, file_pattern, match_pattern, substitution=None):
@@ -28,8 +32,10 @@ def find_files(root_dir, skip_dir_pattern='^[.]', file_pattern='.*'):
             file_path = os.path.join(path, file_)
             if os.path.islink(file_path):
                 continue
-            if file_re.match(file_path) is not None:
-                yield file_path
+            mime_type, encoding = mimetypes.guess_type(file_)
+            if mime_type is None or 'text/' in mime_type:
+                if file_re.match(file_path) is not None:
+                    yield file_path
 
 
 def extract_match(file_path, match_re, substitution=None):
@@ -43,15 +49,16 @@ def extract_match(file_path, match_re, substitution=None):
             match = match_re.search(line)
             if match:
                 lines.append(
-                    {'lineno' : lineno + 1, 'text' : line.strip()})
-                if substitution:
+                    {'lineno' : lineno + 1, 'text' : line.strip(),
+                     'match': match})
+                if substitution is not None:
                     line = match_re.sub(substitution, line)
-            if substitution:
+            if substitution is not None:
                 content.append(line)
     finally:
         file_.close()
     if lines:
-        if substitution:
+        if substitution is not None:
             file_ = open(file_path, 'w')
             try:
                 file_.write(''.join(content))

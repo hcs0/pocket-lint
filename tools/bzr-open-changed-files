@@ -19,11 +19,8 @@ BRANCH=`bzr root`
 echo Branch is at $BRANCH
 cd $BRANCH
 
-rev=''
-if [ -d '../rocketfuel' ]
-then
-	rev='-r ancestor:../rocketfuel'
-fi
+rev=`bzr info | sed '/parent branch:/!d; s/ *parent branch: /ancestor:/'`
+rev="-r $rev"
 
 PATHS=`bzr st $rev | sed -e '/^ /!d; /[a-z] /d'`
 for PATH in $PATHS

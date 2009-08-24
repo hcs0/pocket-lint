@@ -3,8 +3,8 @@
 # [Gedit Tool]
 # Comment=3-lint
 # Input=nothing
-# Shortcut=F3
 # Applicability=all
+# Shortcut=F3
 # Output=output-panel
 
 PWD=`pwd`
@@ -79,9 +79,9 @@ if [ ! -z "$xmllint_notices" ]; then
     group_lines_by_file "$xmllint_notices"
 fi
 
-doctestfiles=`echo "$files" | grep -E '/(doc|pagetests|f?tests)/.*(txt|doctest)$'`
+doctestfiles=`echo "$files" | grep -E '/(doc|stories|pagetests|f?tests)/.*(txt|doctest)$'`
 if [ ! -z "$doctestfiles" ]; then
-    doctest_notices=`${HOME}/.gnome2/gedit/tool/formatdoctest.py $doctestfiles 2>&1`
+    doctest_notices=`$HOME/Bin/formatdoctest.py $doctestfiles 2>&1`
 fi
 if [ ! -z "$doctest_notices" ]; then
     echo ""
@@ -94,8 +94,7 @@ fi
 
 jsfiles=`echo "$files" | grep -E 'js$'`
 if [ ! -z "$jsfiles" ]; then
-    js_notices=''
-    #`$HOME/bin/jslint.py $jsfiles 2>&1`
+    js_notices=`$HOME/Bin/jslint.py $jsfiles 2>&1`
 fi
 if [ ! -z "$js_notices" -a "$js_notices" != "No lint in launchpad.js" ]; then
     echo ""
@@ -122,19 +121,26 @@ if [ ! -z "$pyflakes_notices" ]; then
 fi
 
 
-export PYTHONPATH="/usr/share/pycentral/pylint/site-packages:$PYTHONPATH"
+export PYTHONPATH="/usr/share/pyshared:/usr/share/pycentral/pylint/site-packages:$PYTHONPATH"
 pylint="python2.5 -Wi::DeprecationWarning `which pylint`"
 sed_deletes="/^*/d; /Unused import \(action\|_python\)/d; "
+sed_deletes="$sed_deletes /Unable to import .*sql\(object\|base\)/d; "
 sed_deletes="$sed_deletes /_action.* Undefined variable/d; "
-sed_deletes="$sed_deletes /_getByName: Instance/d; "
-sed_deletes="$sed_deletes /Redefining built-in .id/d;"
-sed_deletes="$sed_deletes /Redefining built-in 'filter'/d;"
-sed_deletes="$sed_deletes s,^/.*lib/canonical/,lib/canonical,;"
+sed_deletes="$sed_deletes /_getByName.* Instance/d; "
+sed_deletes="$sed_deletes /Redefining built-in .id/d; "
+sed_deletes="$sed_deletes /Redefining built-in 'filter'/d; "
+sed_deletes="$sed_deletes /<lambda>] Using variable .* before assignment/d; "
+sed_deletes="$sed_deletes /Comma not followed by a space/{N;N};/,[])}]/d; "
+sed_deletes="$sed_deletes /Undefined variable.*valida/d; "
+sed_deletes="$sed_deletes s,^/.*lib/canonical/,lib/canonical,; "
+sed_deletes="$sed_deletes /ENABLED/d; "
+sed_deletes="$sed_deletes /BYUSER/d; "
+sed_deletes="$sed_deletes /zope.*No module/d;"
 
 # Note that you can disable specific tests by placing pylint
 # instruction in a comment:
 # # pylint: disable-msg=W0401,W0612,W0403
-pylint_notices=`$pylint $rcfile $pyfiles | sed "$sed_deletes"`
+pylint_notices=`$pylint --disable-msg=C0111 $rcfile $pyfiles | sed "$sed_deletes"`
 
 if [ ! -z "$pylint_notices" ]; then
     echo ""

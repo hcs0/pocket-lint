@@ -7,5 +7,5 @@
 # Applicability=all
 # Output=output-panel
 
-${HOME}/.gnome2/gedit/tool/formatdoctest.py -f $GEDIT_CURRENT_DOCUMENT_PATH
+~/Bin/formatdoctest.py -f $GEDIT_CURRENT_DOCUMENT_PATH
 
