@@ -13,9 +13,9 @@
     <description>Review mesage</description>
   </snippet>
   <snippet>
-    <text><![CDATA[bzr pqm-submit -m "[r=${1:reviewer}][ui=${2:none}] [bug ${3:bugnumber}]
+    <text><![CDATA[bzr pqm-submit -m "[r=${1:reviewer}][ui=${2:none}][bug ${3:bugnumber}]
 ${4:What feature does this provide to the user}.
-Currently listening to $(rhythmbox-client --print-playing)."]]></text>
+Currently listening to $(banshee-1 --query-artist --query-title | sed 's,^[^:]*: ,,;' | sed 'N; s,\n, -- ,')."]]></text>
     <tag>pqms</tag>
     <description>pqm-submit</description>
   </snippet>
@@ -33,14 +33,14 @@ Currently listening to $(rhythmbox-client --print-playing)."]]></text>
     <description>ChangeLog</description>
   </snippet>
   <snippet>
-    <text><![CDATA[This is my implementation plan to address ${1:heading}.
+    <text><![CDATA[This is my branch to ${1:heading}.
 
     lp:~sinzui/launchpad/$(basename $PWD)
     Diff size:
     Launchpad bug: https://bugs.launchpad.net/bugs/$(basename $PWD | sed 's,.*bug-,,')
-    Test command: ./test.py -vvt "regexp"
+    Test command: ./bin/test -vvt "regexp"
     Pre-implementation: ${6:who}
-    Target release: 2.2.${7:11}
+    Target release: 2.2.${7:8}
 
 
 = ${1:heading} =
@@ -57,6 +57,7 @@ Note the guidelines of this work
 
 Describe the steps to verify that the project behaves correctly
 
+
 == Lint ==
 
 Paste the lint report
@@ -69,7 +70,8 @@ Describe test additions, changes, and even tests that must run unchanged.
 
 == Implementation ==
 
-Describe what is expected to change and how.]]></text>
+Describe what is expected to change and how.
+]]></text>
     <tag>notes</tag>
     <description>branch notes</description>
   </snippet>
@@ -87,15 +89,6 @@ Describe what is expected to change and how.]]></text>
     <text><![CDATA[canonical.launchpad]]></text>
     <tag>cl</tag>
     <description>canonical.launchpad</description>
-  </snippet>
-  <snippet>
-    <text><![CDATA[Hi ${1:developer}.
-
-Review status: ${2:merge-conditional}
-Review time: ${3:1h 30m}
-]]></text>
-    <tag>rs</tag>
-    <description>review salutation</description>
   </snippet>
   <snippet>
     <text><![CDATA[canonical.launchpad.interfaces]]></text>
@@ -119,5 +112,10 @@ Review time: ${3:1h 30m}
     * ${7:who or scope}.]]></text>
     <tag>storycard</tag>
     <description>storycard</description>
+  </snippet>
+  <snippet>
+    <text><![CDATA[lp.registry.interfaces]]></text>
+    <tag>lpri</tag>
+    <description>lp.registry.interfaces</description>
   </snippet>
 </snippets>

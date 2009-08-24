@@ -1,37 +1,37 @@
 <?xml version='1.0' encoding='utf-8'?>
 <snippets language="doctest">
   <snippet>
-    <text><![CDATA[Launchpad]]></text>
+    <text><![CDATA[Launchpad$0]]></text>
     <tag>Lp</tag>
     <description>Launchpad</description>
   </snippet>
   <snippet>
-    <text><![CDATA[...     ]]></text>
+    <text><![CDATA[...     $0]]></text>
     <tag>.</tag>
     <description>continue</description>
   </snippet>
   <snippet>
-    <text><![CDATA[>>> ]]></text>
+    <text><![CDATA[>>> $0]]></text>
     <tag>&gt;</tag>
     <description>test</description>
   </snippet>
   <snippet>
-    <text><![CDATA[browser]]></text>
+    <text><![CDATA[browser$0]]></text>
     <tag>b</tag>
     <description>browser</description>
   </snippet>
   <snippet>
-    <text><![CDATA[browser.getLink('${1:link_text}').click()]]></text>
+    <text><![CDATA[browser.getLink('${1:link_text}').click()$0]]></text>
     <tag>bgl</tag>
     <description>getLink</description>
   </snippet>
   <snippet>
-    <text><![CDATA[browser.open('${1:url}')]]></text>
+    <text><![CDATA[browser.open('${1:url}')$0]]></text>
     <tag>bo</tag>
     <description>open</description>
   </snippet>
   <snippet>
-    <text><![CDATA[browser.getControl('${1:label}')]]></text>
+    <text><![CDATA[browser.getControl('${1:label}')$0]]></text>
     <tag>bgc</tag>
     <description>getControl</description>
   </snippet>
@@ -41,80 +41,85 @@
     <description>title</description>
   </snippet>
   <snippet>
-    <text><![CDATA[find_tag_by_id(${1:browser.contents}, ${2:'id'})]]></text>
-    <tag>fti</tag>
+    <text><![CDATA[find_tag_by_id(${1:browser.contents}, ${2:'id'})$0]]></text>
+    <tag>ftbi</tag>
     <description>find tag by id</description>
   </snippet>
   <snippet>
-    <text><![CDATA[find_tags_by_class(${1:browser.contents}, ${2:'className'})]]></text>
-    <tag>ftc</tag>
+    <text><![CDATA[find_tags_by_class(${1:browser.contents}, ${2:'className'})$0]]></text>
+    <tag>ftbc</tag>
     <description>find tags by class</description>
   </snippet>
   <snippet>
-    <text><![CDATA[find_portlet(${1:browser.contents}, ${2:'name'})]]></text>
+    <text><![CDATA[find_portlet(${1:browser.contents}, ${2:'name'})$0]]></text>
     <tag>fp</tag>
     <description>find portlet</description>
   </snippet>
   <snippet>
-    <text><![CDATA[find_main_content(${1:browser.contents})]]></text>
+    <text><![CDATA[find_main_content(${1:browser.contents})$0]]></text>
     <tag>fmc</tag>
     <description>find main content</description>
   </snippet>
   <snippet>
-    <text><![CDATA[extract_text(${1:browser.content})]]></text>
+    <text><![CDATA[extract_text(${1:browser.content})$0]]></text>
     <tag>et</tag>
     <description>extract text</description>
   </snippet>
   <snippet>
-    <text><![CDATA[print_action_links(${1:browser.content})]]></text>
+    <text><![CDATA[print_action_links(${1:browser.content})$0]]></text>
     <tag>pal</tag>
     <description>print action links</description>
   </snippet>
   <snippet>
-    <text><![CDATA[anon_browser]]></text>
+    <text><![CDATA[anon_browser$0]]></text>
     <tag>ab</tag>
     <description>anon_browser</description>
   </snippet>
   <snippet>
-    <text><![CDATA[user_browser]]></text>
+    <text><![CDATA[user_browser$0]]></text>
     <tag>ub</tag>
     <description>user_browser</description>
   </snippet>
   <snippet>
-    <text><![CDATA[admin_browser]]></text>
+    <text><![CDATA[admin_browser$0]]></text>
     <tag>mb</tag>
     <description>admin_browser</description>
   </snippet>
   <snippet>
-    <text><![CDATA[get_feedback_messages(browser.contents)]]></text>
+    <text><![CDATA[get_feedback_messages(browser.contents)$0]]></text>
     <tag>gfm</tag>
     <description>get feedback messages</description>
   </snippet>
   <snippet>
-    <text><![CDATA[No Privileges Person]]></text>
+    <text><![CDATA[No Privileges Person$0]]></text>
     <tag>npp</tag>
     <description>No Privileges Person</description>
   </snippet>
   <snippet>
-    <text><![CDATA[getUtility(${1:interface})]]></text>
+    <text><![CDATA[getUtility(${1:interface})$0]]></text>
     <tag>gu</tag>
     <description>getUtility</description>
   </snippet>
   <snippet>
-    <text><![CDATA[import rpdb2; rpdb2.start_embedded_debugger('password')]]></text>
-    <tag>winpdb</tag>
-    <description>winpdb</description>
-  </snippet>
-  <snippet>
     <text><![CDATA[Traceback (most recent call last):
  ...
-${1:KeyError}: ...]]></text>
+${1:KeyError}: ...$0]]></text>
     <tag>tb</tag>
     <description>Traceback</description>
   </snippet>
   <snippet>
-    <text><![CDATA[import pdb; pdb.set_trace()]]></text>
+    <text><![CDATA[import pdb; pdb.set_trace()$0]]></text>
     <tag>pdb</tag>
     <description>pdb</description>
+  </snippet>
+  <snippet>
+    <text><![CDATA[create_initialized_view(${1:object}, name='+${2:index}')$0]]></text>
+    <tag>civ</tag>
+    <description>create_initialized_view</description>
+  </snippet>
+  <snippet>
+    <text><![CDATA[create_view(${1:object}, name='+${2:index}')$0]]></text>
+    <tag>cv</tag>
+    <description>create_view</description>
   </snippet>
 </snippets>

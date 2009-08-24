@@ -49,4 +49,12 @@ __all__ = []
     <tag>module</tag>
     <description>module</description>
   </snippet>
+  <snippet override="python-py">
+    <text><![CDATA[#!/usr/bin/python
+#-*- coding:utf-8 -*-
+
+$0]]></text>
+    <tag>py</tag>
+    <description>#!/usr/bin/env python</description>
+  </snippet>
 </snippets>

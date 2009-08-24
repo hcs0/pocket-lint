@@ -11,7 +11,7 @@
     <description>trailing whitespace</description>
   </snippet>
   <snippet>
-    <text><![CDATA[Wrap the narrative at 72 characters.]]></text>
+    <text><![CDATA[Wrap the narrative at 78 characters.]]></text>
     <tag>wn</tag>
     <description>wrap narrative</description>
   </snippet>
