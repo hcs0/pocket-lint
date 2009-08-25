@@ -2,6 +2,7 @@ plugindir = $(GEDIT_PLUGIN_DIR)/gdp
 
 plugin_PYTHON = \
 	__init__.py \
+	format.py \
 	syntaxcompleter.py
 
 gladedir = $(plugindir)

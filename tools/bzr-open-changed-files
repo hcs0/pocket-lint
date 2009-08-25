@@ -20,7 +20,10 @@ echo Branch is at $BRANCH
 cd $BRANCH
 
 rev=`bzr info | sed '/parent branch:/!d; s/ *parent branch: /ancestor:/'`
-rev="-r $rev"
+if [ $rev != '' ]
+then
+    rev="-r $rev"
+fi
 
 PATHS=`bzr st $rev | sed -e '/^ /!d; /[a-z] /d'`
 for PATH in $PATHS
