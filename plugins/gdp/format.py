@@ -8,6 +8,19 @@ from textwrap import wrap
 from gettext import gettext as _
 from gtk import glade
 
+from gdp.formatdoctest import DoctestReviewer
+
+
+__all__  = [
+    'newline_ending',
+    'quote_lines',
+    'reformat_doctest',
+    're_replace',
+    'rewrap_text',
+    'single_line',
+    'sort_imports',
+    ]
+
 
 class Formatter:
     """Format Gedit Document and selection text."""
@@ -183,3 +196,10 @@ class Formatter:
         self._put_bounded_text(bounds, '\n'.join(lines))
         self.on_replace_quit()
 
+    def reformat_doctest(self, data):
+        """Reformat the doctest."""
+        bounds, text = self._get_bounded_text()
+        file_name = self.window.get_active_document().get_uri_for_display()
+        reviewer = DoctestReviewer(text, file_name)
+        new_text = reviewer.format()
+        self._put_bounded_text(bounds, new_text)

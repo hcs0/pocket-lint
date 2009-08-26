@@ -28,6 +28,7 @@ menu_xml = """
             <menuitem name="SortImports" action="SortImports"/>
             <menuitem name="SingleLine" action="SingleLine"/>
             <menuitem name="REReplace" action="REReplace"/>
+            <menuitem name="ReformatDoctest" action="ReformatDoctest"/>
           </menu>
       </placeholder>
     </menu>
@@ -67,6 +68,9 @@ class FormatPlugin(gedit.Plugin):
             ('REReplace', None, _("Regular _expression line replace"), None,
                 _("Reformat each line using a regular expression."),
                 self.formatter.re_replace),
+            ('ReformatDoctest', None, _("Reformat _doctest"), None,
+                _("Reformat the doctest."),
+                self.formatter.reformat_doctest),
             ]
 
     def __init__(self):

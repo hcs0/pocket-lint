@@ -21,8 +21,6 @@ tools_DATA = \
 	encode \
 	find.py \
 	find-in-files \
-	formatdoctest.py \
-	format-doctest \
 	$(NULL)
 
 install-data-hook:

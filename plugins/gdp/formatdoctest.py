@@ -3,6 +3,11 @@
 
 __metatype__ = type
 
+__all__ = [
+    'DoctestReviewer'
+    ]
+
+
 import compiler
 from difflib import unified_diff
 from doctest import DocTestParser, Example
