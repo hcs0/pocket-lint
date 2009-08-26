@@ -83,7 +83,7 @@ class Formatter:
     def sort_imports(self, data):
         """Sort python imports."""
         bounds, text = self._get_bounded_text()
-        padding = self._getPadding(text)
+        padding = self._get_padding(text)
         line = self._single_line(text)
         imports = line.split(', ')
         imports = sorted(imports, key=str.lower)
@@ -127,7 +127,7 @@ class Formatter:
             paras.extend(new_lines)
         self._put_bounded_text(bounds, '\n'.join(paras))
 
-    def _getPadding(self, text):
+    def _get_padding(self, text):
         """Return the leading whitespace.
 
         Return '' if there is not leading whitespace.
@@ -142,7 +142,7 @@ class Formatter:
     def _wrap_text(self, text, width=78, padding=None):
         """Wrap long lines."""
         if padding is None:
-            padding = self._getPadding(text)
+            padding = self._get_padding(text)
         line = self._single_line(text)
         lines = wrap(
             line, width=width, initial_indent=padding,
