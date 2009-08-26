@@ -1,0 +1,9 @@
+[Gedit Plugin]
+Loader=python
+Module=gdpbzr
+IAge=2
+_Name=GDP Bazaar integration.
+_Description=Project management via the Bazaar DVCS
+Authors=Curtis Hovey <sinzui.is@verizon.net>
+Copyright=Copyright © 2009 Curtis Hovey
+Website=http://curtis.hovey.name/sinzui

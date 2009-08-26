@@ -6,11 +6,13 @@ SUBDIRS = gdp
 plugindir = $(GEDIT_PLUGIN_DIR)
 
 plugin_PYTHON = \
+	gdpbzr.py \
 	gdpformat.py \
 	gdpsyntaxcompleter.py \
 	$(NULL)
 
 plugin_in_files = \
+	gdpbzr.gedit-plugin.desktop.in \
 	gdpformat.gedit-plugin.desktop.in \
 	gdpsyntaxcompleter.gedit-plugin.desktop.in \
 	$(NULL)

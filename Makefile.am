@@ -1,4 +1,4 @@
-SUBDIRS = testing plugins snippets tools language-specs
+SUBDIRS = po testing plugins snippets tools language-specs
 
 NULL =
 
@@ -19,6 +19,7 @@ DISTCLEANFILES = \
 	intltool-extract \
 	intltool-merge \
 	intltool-update \
+	po/.intltool-merge-cache \
 	$(NULL)
 
 DISTCHECK_CONFIGURE_FLAGS = \
