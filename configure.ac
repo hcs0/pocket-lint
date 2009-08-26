@@ -50,6 +50,7 @@ IT_PROG_INTLTOOL([0.40.0])
 AC_DEFUN([GEDIT_PLUGIN], [
     if test $with_home = 'yes'; then
         gedit_plugin_dir=`echo "${HOME}/.gnome2/gedit/plugins"`
+        prefix=`echo "${HOME}/.local"`
     else
         gedit_plugin_dir='$(libdir)/gedit-2/plugins'
     fi
