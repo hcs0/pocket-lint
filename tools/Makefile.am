@@ -23,11 +23,7 @@ tools_DATA = \
 	find-in-files \
 	formatdoctest.py \
 	format-doctest \
-	remove-trailing-spaces \
-	selectioncommands.py \
-	task-selection.glade \
 	$(NULL)
 
 install-data-hook:
 	chmod +x $(toolsdir)/*
-	chmod -x $(toolsdir)/*.glade
