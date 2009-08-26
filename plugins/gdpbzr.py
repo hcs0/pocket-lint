@@ -58,7 +58,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         Add 'Project' to the main menu and create a BzrProject.
         """
         self.window = window
-        self.bzr = BzrProject(window)
+        self.bzr = BzrProject(gedit, window)
         self.action_group = gtk.ActionGroup("ProjectActions")
         self.action_group.add_actions(self._actions)
         manager = self.window.get_ui_manager()
