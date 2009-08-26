@@ -3,13 +3,36 @@
 
 import os
 import re
+
 from textwrap import wrap
+from gettext import gettext as _
+from gtk import glade
+
 
 class Formatter:
     """Format Gedit Document and selection text."""
 
     def __init__(self, window):
         self.window = window
+        widgets = glade.XML('%s/gdp.glade' % os.path.dirname(__file__))
+        widgets.signal_autoconnect(self.glade_callbacks)
+        self.replace_dialog = widgets.get_widget('replace_dialog')
+        self.replace_label = widgets.get_widget('replace_label')
+        self.replace_label_text = self.replace_label.get_text()
+        self.replace_pattern_entry = widgets.get_widget(
+            'replace_pattern_entry')
+        self.replace_replacement_entry = widgets.get_widget(
+            'replace_replacement_entry')
+
+
+    @property
+    def glade_callbacks(self):
+        """The dict of callbacks for the glade widgets."""
+        return {
+            'on_replace_quit' : self.on_replace_quit,
+            'on_replace' : self.on_replace,
+            }
+
 
     def _get_bounded_text(self):
         """Return tuple of the bounds and formattable text.
@@ -34,19 +57,44 @@ class Formatter:
         document.insert_at_cursor(text)
         document.end_user_action()
 
-    def selection_to_one_line(self):
-        """Convert the selection to one line."""
-        lines = []
-        for line in os.sys.stdin:
-            lines.append(line.strip())
-        long_line = ' ' + ' '.join(lines)
-        os.sys.stdout.write(long_line.strip())
+    def single_line(self, data):
+        """Format the text as a single line."""
+        bounds, text = self._get_bounded_text()
+        lines = [line.strip() for line in text.splitlines()]
+        long_line = ' '.join(lines)
+        self._put_bounded_text(bounds, long_line)
 
-    def wrap_selection_list(self):
+    def newline_ending(self, data):
+        """Fix the selection's line endings."""
+        bounds, text = self._get_bounded_text()
+        lines = [line.rstrip() for line in text.splitlines()]
+        self._put_bounded_text(bounds, '\n'.join(lines))
+
+    def quote_lines(self, data):
+        """Quote the selected text passage."""
+        bounds, text = self._get_bounded_text()
+        lines = ['> %s' % line for line in text.splitlines()]
+        self._put_bounded_text(bounds, '\n'.join(lines))
+
+    def sort_imports(self, data):
+        """Sort python imports."""
+        bounds, text = self._get_bounded_text()
+        padding = self._getPadding(text)
+        lines = [line.strip() for line in text.splitlines()]
+        text = ' '.join(lines)
+        imports = text.split(', ')
+        imports = sorted(imports, key=str.lower)
+        imports = [imp.strip() for imp in imports if imp != '']
+        text = self._wrap_text(padding + ', '.join(imports), width=78)
+        self._put_bounded_text(bounds, text)
+
+    def wrap_selection_list(self, data):
         """Wrap long lines and preserve indentation."""
+        # This should use the textwrap module.
         paras = []
         indent_re = re.compile('^( +[0-9*-]*\.*)')
-        for line in os.sys.stdin:
+        bounds, text = self._get_bounded_text()
+        for line in text.splitlines():
             match = indent_re.match(line)
             if match is not None:
                 symbol = match.group(1)
@@ -74,93 +122,60 @@ class Formatter:
                 new_length += 1 + len(word)
             new_lines.append(' '.join(new_line))
             paras.extend(new_lines)
-        os.sys.stdout.write('\n'.join(paras))
-
-
-    def wrap_selection_para(self, long_line=None, bounds=None):
-        """Wrap long lines."""
-        paras = []
-        indent_re = re.compile('^( +[0-9*-]\.*)')
-        if long_line:
-            source = long_line.split('\n')
-        else:
-            bounds, source = self._get_bounded_text()
-        for line in source:
-            match = indent_re.match(line)
-            if match is not None:
-                symbol = match.group(1)
-            else:
-                symbol = ''
-            padding_size = len(symbol)
-            padding = ' ' * padding_size
-            run = 72 - padding_size
-            new_lines = []
-            new_line = [symbol]
-            new_length = padding_size
-            # ignore the symbol
-            words = line.split()
-            if symbol != '':
-                words = words[1:]
-            for word in words:
-                # The space between the words is 1
-                if new_length + 1 + len(word) > run:
-                    new_lines.append(' '.join(new_line).strip())
-                    new_line = [padding]
-                    new_length = padding_size
-                new_line.append(word)
-                new_length += 1 + len(word)
-            new_lines.append(' '.join(new_line).strip())
-            paras.extend(new_lines)
         self._put_bounded_text(bounds, '\n'.join(paras))
 
-    def newline_ending(self, data):
-        """Fix the selection's line endings."""
-        lines = []
+    def _getPadding(self, text):
+        """Return the leading whitespace.
+
+        Return '' if there is not leading whitespace.
+        """
+        leading_re = re.compile(r'^(\s+)')
+        match = leading_re.match(text)
+        if match:
+            return match.group(1)
+        else:
+            return ''
+
+    def _wrap_text(self, text, width=72):
+        """Wrap long lines."""
+        padding = self._getPadding(text)
+        width = width - len(padding)
+        text = re.sub(r'\s+', ' ' , text.strip())
+        lines = wrap(text, width)
+        joiner = '\n%s' % padding
+        paragraph = padding + joiner.join(lines)
+        return paragraph
+
+    def rewrap_text(self, data):
+        """Rewrap the paragraph."""
         bounds, text = self._get_bounded_text()
-        for line in text.splitlines():
-            lines.append(line.rstrip())
-        text = '\n'.join(lines)
+        text = self._wrap_text(text)
         self._put_bounded_text(bounds, text)
 
+    def re_replace(self, data):
+        """Replace each line using an re pattern."""
+        self.replace_dialog.show()
+        self.replace_dialog.run()
 
-    def _format_paragraph(self, paragraph, lines):
-        """Rewrap the paragraph and normalize leading blank lines."""
-        long_line = ' '.join(paragraph).strip()
-        paragraph_lines = wrap(long_line, 72)
-        # One blank line between blocks, except for headings, which
-        # should have two leading blanks
-        if len(lines) != 0 and long_line[0] == '=':
-            paragraph_lines.insert(0, '')
-        return paragraph_lines
+    def on_replace_quit(self, widget=None):
+        """End the replacement, hide he dialog."""
+        self.replace_dialog.hide()
 
-
-    def quote_line(self):
-        """Quote the selected text passage."""
-        lines = []
-        for line in os.sys.stdin:
-            lines.append('> %s' % line)
-        os.sys.stdout.write(''.join(lines))
-
-
-    def rewrap_selection(self):
-        """Rewrap the selection."""
-        lines = []
-        for line in os.sys.stdin:
-            lines.append(line.strip())
-        long_line = ' ' + ' '.join(lines)
-        self.wrap_selection_para(long_line=long_line)
-
-
-    def sort_imports(self, data):
-        """Sort python imports."""
-        lines = []
+    def on_replace(self, widget=None):
+        """replace each line of text."""
+        pattern = self.replace_pattern_entry.get_text()
+        replacement = self.replace_replacement_entry.get_text()
+        try:
+            line_re = re.compile(pattern)
+        except re.error:
+            # Show a message that the pattern failed.
+            message = _("The regular expression pattern has an error in it.")
+            self.replace_label.set_markup(
+                '%s\n<b>%s</b>' % (self.replace_label_text, message))
+            self.replace_dialog.run()
+            return
         bounds, text = self._get_bounded_text()
-        for line in text.splitlines():
-            lines.append(line.strip())
-        text = ' '.join(lines)
-        imports = text.split(', ')
-        imports = sorted(imports, key=str.lower)
-        imports = [imp.strip() for imp in imports if imp != '']
-        long_line = ', '.join(imports)
-        self.wrap_selection_para(long_line=long_line, bounds=bounds)
+        lines = [line_re.sub(replacement, line) for line in text.splitlines()]
+        self._put_bounded_text(bounds, '\n'.join(lines))
+        self.on_replace_quit()
 

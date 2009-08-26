@@ -22,8 +22,12 @@ menu_xml = """
     <menu name="EditMenu" action="Edit">
       <placeholder name="EditOps_6">
           <menu name="FormatMenu" action="Format">
+            <menuitem name="RewrapText" action="RewrapText"/>
             <menuitem name="FixLineEnding" action="FixLineEnding"/>
+            <menuitem name="QuoteLines" action="QuoteLines"/>
             <menuitem name="SortImports" action="SortImports"/>
+            <menuitem name="SingleLine" action="SingleLine"/>
+            <menuitem name="REReplace" action="REReplace"/>
           </menu>
       </placeholder>
     </menu>
@@ -45,13 +49,24 @@ class FormatPlugin(gedit.Plugin):
         """
         return  [
             ('Format', None, _('_Format'), None, None, None),
-            ('FixLineEnding', None, _('Fix _line endings'), None,
-                _('Convert line endings to newlines and '
-                  'remove trailing whitespace'),
+            ('RewrapText', None, _("Rewrap _text"), None,
+                _("Rewrap the text to 78 characters."),
+                self.formatter.rewrap_text),
+            ('FixLineEnding', None, _("Fix _line endings"), None,
+                _('Remove trailing whitespace and use newline endings.'),
                 self.formatter.newline_ending),
-            ('SortImports', None, _('_Sort imports'), None,
-                _('Sort and wrap imports'),
+            ('QuoteLines', None, _("_Quote lines"), None,
+                _("Format the text as a quoted email."),
+                self.formatter.quote_lines),
+            ('SortImports', None, _("Sort _imports"), None,
+                _('Sort and wrap imports.'),
                 self.formatter.sort_imports),
+            ('SingleLine', None, _("_Single line"), None,
+                _("Format the text as a single line."),
+                self.formatter.single_line),
+            ('REReplace', None, _("Regular _expression line replace"), None,
+                _("Reformat each line using a regular expression."),
+                self.formatter.re_replace),
             ]
 
     def __init__(self):
