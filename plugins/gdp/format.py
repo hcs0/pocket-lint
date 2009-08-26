@@ -57,12 +57,16 @@ class Formatter:
         document.insert_at_cursor(text)
         document.end_user_action()
 
+    def _single_line(self, text):
+        """Return the text as a single line.."""
+        lines = [line.strip() for line in text.splitlines()]
+        return ' '.join(lines)
+
     def single_line(self, data):
         """Format the text as a single line."""
         bounds, text = self._get_bounded_text()
-        lines = [line.strip() for line in text.splitlines()]
-        long_line = ' '.join(lines)
-        self._put_bounded_text(bounds, long_line)
+        text = self._single_line(text)
+        self._put_bounded_text(bounds, text)
 
     def newline_ending(self, data):
         """Fix the selection's line endings."""
@@ -80,12 +84,11 @@ class Formatter:
         """Sort python imports."""
         bounds, text = self._get_bounded_text()
         padding = self._getPadding(text)
-        lines = [line.strip() for line in text.splitlines()]
-        text = ' '.join(lines)
-        imports = text.split(', ')
+        line = self._single_line(text)
+        imports = line.split(', ')
         imports = sorted(imports, key=str.lower)
         imports = [imp.strip() for imp in imports if imp != '']
-        text = self._wrap_text(padding + ', '.join(imports), width=78)
+        text = self._wrap_text(', '.join(imports), padding=padding)
         self._put_bounded_text(bounds, text)
 
     def wrap_selection_list(self, data):
@@ -136,14 +139,15 @@ class Formatter:
         else:
             return ''
 
-    def _wrap_text(self, text, width=72):
+    def _wrap_text(self, text, width=78, padding=None):
         """Wrap long lines."""
-        padding = self._getPadding(text)
-        width = width - len(padding)
-        text = re.sub(r'\s+', ' ' , text.strip())
-        lines = wrap(text, width)
-        joiner = '\n%s' % padding
-        paragraph = padding + joiner.join(lines)
+        if padding is None:
+            padding = self._getPadding(text)
+        line = self._single_line(text)
+        lines = wrap(
+            line, width=width, initial_indent=padding,
+            subsequent_indent=padding)
+        paragraph = '\n'.join(lines)
         return paragraph
 
     def rewrap_text(self, data):
