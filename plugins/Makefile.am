@@ -7,12 +7,12 @@ plugindir = $(GEDIT_PLUGIN_DIR)
 
 plugin_PYTHON = \
 	gdpformat.py \
-	syntaxcompleterplugin.py \
+	gdpsyntaxcompleter.py \
 	$(NULL)
 
 plugin_in_files = \
 	gdpformat.gedit-plugin.desktop.in \
-	syntaxcompleter.gedit-plugin.desktop.in \
+	gdpsyntaxcompleter.gedit-plugin.desktop.in \
 	$(NULL)
 
 %.gedit-plugin: %.gedit-plugin.desktop.in \
