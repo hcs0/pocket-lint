@@ -63,6 +63,8 @@ class BzrProject:
 
     def open_changed_files(self, other_tree):
         """Open files in the bzr branch."""
+        if other_tree is None:
+            return
         try:
             self.working_tree.lock_read()
             other_tree.lock_read()
@@ -80,22 +82,34 @@ class BzrProject:
         finally:
             self.working_tree.unlock()
             other_tree.unlock()
+
     def open_uncommitted_files(self, data):
         """Open modified and added files in the bzr branch."""
         self.open_changed_files(self.working_tree.basis_tree())
 
+    def _get_branch_revision_tree(self, uri):
+        """Return a branch tree for a revision."""
+        if uri is None:
+            return None
+        revision = RevisionSpec.from_string('branch:%s' % uri)
+        return revision.as_tree(self.working_tree.branch)
+
+    @property
+    def _push_tree(self):
+        """The push location tree."""
+        return self._get_branch_revision_tree(
+            self.working_tree.branch.get_push_location())
+
     def open_changed_files_to_push(self, data):
         """Open the changed files in the branch that not been pushed."""
-        push_uri = self.working_tree.branch.get_push_location()
-        if push_uri is None:
-            return
-        revision = RevisionSpec.from_string('branch:%s' % push_uri)
-        self.open_changed_files(revision.as_tree(self.working_tree.branch))
+        self.open_changed_files(self._push_tree)
+
+    @property
+    def _parent_tree(self):
+        """The parent location tree."""
+        return self._get_branch_revision_tree(
+            self.working_tree.branch.get_parent())
 
     def open_changed_files_from_parent(self, data):
         """Open the changed files that diverged from the parent branch."""
-        parent_uri = self.working_tree.branch.get_parent()
-        if parent_uri is None:
-            return
-        revision = RevisionSpec.from_string('branch:%s' % parent_uri)
-        self.open_changed_files(revision.as_tree(self.working_tree.branch))
+        self.open_changed_files(self._parent_tree)
