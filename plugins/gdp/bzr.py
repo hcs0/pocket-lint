@@ -44,6 +44,25 @@ class BzrProject:
         except NotBranchError:
             self.working_tree = None
 
+    def _get_branch_revision_tree(self, uri):
+        """Return a branch tree for a revision."""
+        if uri is None:
+            return None
+        revision = RevisionSpec.from_string('branch:%s' % uri)
+        return revision.as_tree(self.working_tree.branch)
+
+    @property
+    def _push_tree(self):
+        """The push location tree."""
+        return self._get_branch_revision_tree(
+            self.working_tree.branch.get_push_location())
+
+    @property
+    def _parent_tree(self):
+        """The parent location tree."""
+        return self._get_branch_revision_tree(
+            self.working_tree.branch.get_parent())
+
     def is_doc_open(self, uri):
         """Return True if the window already has a document opened for uri."""
         for doc in self.window.get_documents():
@@ -87,28 +106,9 @@ class BzrProject:
         """Open modified and added files in the bzr branch."""
         self.open_changed_files(self.working_tree.basis_tree())
 
-    def _get_branch_revision_tree(self, uri):
-        """Return a branch tree for a revision."""
-        if uri is None:
-            return None
-        revision = RevisionSpec.from_string('branch:%s' % uri)
-        return revision.as_tree(self.working_tree.branch)
-
-    @property
-    def _push_tree(self):
-        """The push location tree."""
-        return self._get_branch_revision_tree(
-            self.working_tree.branch.get_push_location())
-
     def open_changed_files_to_push(self, data):
         """Open the changed files in the branch that not been pushed."""
         self.open_changed_files(self._push_tree)
-
-    @property
-    def _parent_tree(self):
-        """The parent location tree."""
-        return self._get_branch_revision_tree(
-            self.working_tree.branch.get_parent())
 
     def open_changed_files_from_parent(self, data):
         """Open the changed files that diverged from the parent branch."""
