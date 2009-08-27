@@ -209,4 +209,7 @@ class BzrProject:
         """Push the changes in the working tree."""
         branch = self.working_tree.branch
         dialog = PushDialog(branch.repository, branch.last_revision(), branch)
-        dialog.run()
+        response = dialog.run()
+        if response != gtk.RESPONSE_NONE:
+            dialog.hide()
+            dialog.destroy()
