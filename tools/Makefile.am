@@ -8,8 +8,6 @@ tools_DATA = \
 	3-make-lint \
 	4-shift-test \
 	4-test \
-	bzr-annotate \
-	encode \
 	find.py \
 	find-in-files \
 	$(NULL)
