@@ -4,6 +4,8 @@
 import mimetypes
 import os
 
+import gtk
+
 from bzrlib import workingtree
 from bzrlib.diff import show_diff_trees
 from bzrlib.errors import NotBranchError
@@ -163,7 +165,10 @@ class BzrProject:
         """Commit the changes in the working tree."""
         try:
             self.working_tree.lock_write()
-            dialog = CommitDialog(self.working_tree)
-            dialog.run()
+            dialog = CommitDialog(self.working_tree, self.window)
+            response = dialog.run()
+            if response != gtk.RESPONSE_NONE:
+                dialog.hide()
+                dialog.destroy()
         finally:
             self.working_tree.unlock()
