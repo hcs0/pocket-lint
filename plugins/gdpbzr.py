@@ -20,7 +20,8 @@ menu_xml = """
   <menubar name="MenuBar">
     <menu name="ProjectMenu" action="Project">
       <placeholder name="ProjectOpt1">
-        <menuitem name="OpenUncommittedFiles" action="OpenUncommittedFiles"/>
+        <menuitem action="OpenUncommittedFiles"/>
+        <menuitem action="OpenChangedFiledToPush"/>
       </placeholder>
     </menu>
   </menubar>
@@ -43,12 +44,16 @@ class BazaarProjectPlugin(gedit.Plugin):
         """
         return  [
             ('Project', None, _('_Project'), None, None, None),
-            ('OpenUncommittedFiles', None, _("_Open uncommitted files"), None,
+            ('OpenUncommittedFiles', None, _("Open _uncommitted files"), None,
                 _("Open uncommitted in the bzr branch"),
                 self.bzr.open_uncommitted_files),
+            ('OpenChangedFiledToPush', None, _("_Open changed files to push"),
+                None, _("Open changed files that have not been pushed"),
+                self.bzr.open_changed_files_to_push),
             ]
 
     tree_actions = [
+        'OpenChangedFiledToPush',
         'OpenUncommittedFiles',
         ]
 
@@ -84,6 +89,8 @@ class BazaarProjectPlugin(gedit.Plugin):
 
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window."""
+        if self.window is window and self.bzr.working_tree is not None:
+            return
         self.window = window
         self.bzr.window = window
         self.bzr.set_working_tree()
