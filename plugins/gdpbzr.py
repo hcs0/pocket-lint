@@ -93,7 +93,7 @@ class BazaarProjectPlugin(gedit.Plugin):
             self.toggle_tree_menus(True)
 
     def toggle_tree_menus(self, sensitive):
-        """Enabled or disable the menu items that require a working tree."""
+        """Enable or disable the menu items that require a working tree."""
         manager = self.window.get_ui_manager()
         for name in self.tree_actions:
             path = '%s/%s' % (PROJECT_PATH, name)
