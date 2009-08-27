@@ -3,6 +3,7 @@ plugindir = $(GEDIT_PLUGIN_DIR)/gdp
 plugin_PYTHON = \
 	__init__.py \
 	bzr.py \
+	find.py \
 	format.py \
 	formatdoctest.py \
 	syntaxcompleter.py

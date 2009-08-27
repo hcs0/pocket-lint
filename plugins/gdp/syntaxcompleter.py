@@ -14,16 +14,23 @@ __all__ = [
     ]
 
 
-from keyword import kwlist
 import re
+from keyword import kwlist
 from xml.sax import saxutils
 
-from gettext import gettext as _
 import gobject
 import gtk
+from gettext import gettext as _
 from gtk import gdk
+from gtksourceview2 import language_manager_get_default
 
 from snippets.SnippetComplete import SnippetComplete, CompleteModel
+
+lang_manager = language_manager_get_default()
+doctest_language = lang_manager.get_language('doctest')
+
+doctest_pattern = re.compile(
+    r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
 
 
 def get_word(document, word_pattern):
@@ -501,6 +508,14 @@ class SyntaxController(object):
     def deactivate(self):
         """Deactivate the controller; detach the view."""
         self.set_view(None)
+
+    def correct_language(self, document):
+        """Correct the language for ambuguous mime-types."""
+        if not hasattr(document, 'get_language'):
+            return
+        file_path = document.get_uri_for_display()
+        if doctest_pattern.match(file_path):
+            document.set_language(doctest_language)
 
     # Callbacks
 

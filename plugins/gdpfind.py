@@ -24,10 +24,11 @@ from gettext import gettext as _
 import gedit
 import gtk
 
-from gdp.find import FindController
+from gdp.find import Finder
 
 
-ui_xml = """<ui>
+ui_xml = """
+<ui>
   <menubar name="MenuBar">
     <menu name="SearchMenu">
       <menuitem action="FindFiles"/>
@@ -47,19 +48,27 @@ class FindPlugin(gedit.Plugin):
         gedit.Plugin.__init__(self)
         self.window = None
 
+    @property
+    def _actions(self):
+        """Return a list of action tuples.
+
+        (name, stock_id, label, accelerator, tooltip, callback)
+        """
+        return [
+            ('FindFiles', None, _('Find i_n files...'),
+                '<Control><Shift>f', _('Find in files'),
+                self.finder.show)]
+
     def activate(self, window):
         """Activate the plugin in the current top-level window.
 
         Add 'Find in files' to the menu.
         """
         self.window = window
-        self.controller = FindController()
-        self.action_group = gtk.ActionGroup("FindPluginActions")
+        self.finder = Finder()
+        self.action_group = gtk.ActionGroup("GDPFindActions")
         self.action_group.set_translation_domain('gedit')
-        self.action_group.add_actions(
-            [('FindFiles', None, _('Find i_n files...'),
-             '<Control><Shift>f', _('Find in files'),
-             self.on_find_files)])
+        self.action_group.add_actions(self._actions)
         manager = self.window.get_ui_manager()
         manager.insert_action_group(self.action_group, -1)
         self.ui_id = manager.add_ui_from_string(ui_xml)
@@ -75,7 +84,7 @@ class FindPlugin(gedit.Plugin):
         manager.ensure_update()
         self.ui_id = None
         self.action_group = None
-        self.controller = None
+        self.finder = None
         self.window = None
 
     def update_ui(self, window):
@@ -84,9 +93,3 @@ class FindPlugin(gedit.Plugin):
         'Find in files' is always active.
         """
         pass
-
-    # Callbacks.
-
-    def on_find_files(self, menu):
-        """Show the 'find in files' pane."""
-

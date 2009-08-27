@@ -2,7 +2,7 @@
 Loader=python
 Module=gdpfind
 IAge=2
-_Name=GDP Find Plugin
+_Name=GDP Find
 _Description=Find matching text in multiple files.
 Authors=Curtis Hovey <sinzui.is@verizon.net>
 Copyright=Copyright © 2008-2009 Curtis Hovey

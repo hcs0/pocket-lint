@@ -2,7 +2,7 @@
 Loader=python
 Module=gdpformat
 IAge=2
-_Name=GDP format Plugin
+_Name=GDP format
 _Description=Format text and code.
 Authors=Curtis Hovey <sinzui.is@verizon.net>
 Copyright=Copyright © 2009 Curtis Hovey

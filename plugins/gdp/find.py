@@ -1,6 +1,15 @@
 #!/usr/bin/python
 """Find in files and replace strings in many files."""
 
+__metaclass__ = type
+
+__all__ = [
+    'extract_match',
+    'find_files',
+    'find_matches',
+    'Finder',
+    ]
+
 import mimetypes
 import os
 import re
@@ -16,7 +25,8 @@ def find_matches(root_dir, file_pattern, match_pattern, substitution=None):
     """Iterate a summary of matching lines in a file."""
     match_re = re.compile(match_pattern)
     for file_path in find_files(root_dir, file_pattern=file_pattern):
-        summary = extract_match(file_path, match_re, substitution=substitution)
+        summary = extract_match(
+            file_path, match_re, substitution=substitution)
         if summary:
             yield summary
 
@@ -32,7 +42,7 @@ def find_files(root_dir, skip_dir_pattern='^[.]', file_pattern='.*'):
             file_path = os.path.join(path, file_)
             if os.path.islink(file_path):
                 continue
-            mime_type, encoding = mimetypes.guess_type(file_)
+            mime_type, encoding_ = mimetypes.guess_type(file_)
             if mime_type is None or 'text/' in mime_type:
                 if file_re.match(file_path) is not None:
                     yield file_path
@@ -66,6 +76,14 @@ def extract_match(file_path, match_re, substitution=None):
                 file_.close()
         return {'file_path' : file_path, 'lines' : lines}
     return None
+
+
+class Finder:
+    """Find and replace content in files."""
+
+    def show(self, data):
+        """Show the finder pane."""
+        pass
 
 
 def get_option_parser():

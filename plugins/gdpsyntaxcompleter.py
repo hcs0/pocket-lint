@@ -70,6 +70,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         view = window.get_active_view()
         if isinstance(view, gedit.View) and self.has_controller(view):
             self.controller = view.gdp_syntax_controller
+            self.controller.correct_language(window.get_active_document())
         else:
             self.controller = None
 
