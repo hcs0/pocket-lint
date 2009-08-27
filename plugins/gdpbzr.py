@@ -21,7 +21,9 @@ menu_xml = """
     <menu name="ProjectMenu" action="Project">
       <placeholder name="ProjectOpt1">
         <menuitem action="OpenUncommittedFiles"/>
+        <menuitem action="OpenChangedFiledFromParent"/>
         <menuitem action="OpenChangedFiledToPush"/>
+        <separator />
       </placeholder>
     </menu>
   </menubar>
@@ -45,15 +47,20 @@ class BazaarProjectPlugin(gedit.Plugin):
         return  [
             ('Project', None, _('_Project'), None, None, None),
             ('OpenUncommittedFiles', None, _("Open _uncommitted files"), None,
-                _("Open uncommitted in the bzr branch"),
+                _("Open uncommitted in the bzr branch."),
                 self.bzr.open_uncommitted_files),
-            ('OpenChangedFiledToPush', None, _("_Open changed files to push"),
-                None, _("Open changed files that have not been pushed"),
+            ('OpenChangedFiledFromParent', None, _("_Open diverged files"),
+                '<Shift><Control>O',
+                _("Open files that have diverged from the parent."),
+                self.bzr.open_uncommitted_files),
+            ('OpenChangedFiledToPush', None, _("_Open _unpushed files"),
+                None, _("Open changed files that have not been pushed."),
                 self.bzr.open_changed_files_to_push),
             ]
 
     tree_actions = [
         'OpenChangedFiledToPush',
+        'OpenChangedFiledFromParent',
         'OpenUncommittedFiles',
         ]
 

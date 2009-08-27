@@ -10,6 +10,7 @@ from bzrlib.revisionspec import RevisionSpec
 
 
 __all__  = [
+    'open_changed_files_from_parent',
     'open_changed_files_to_push',
     'open_uncommitted_files',
     ]
@@ -91,4 +92,10 @@ class BzrProject:
         revision = RevisionSpec.from_string('branch:%s' % push_uri)
         self.open_changed_files(revision.as_tree(self.working_tree.branch))
 
-
+    def open_changed_files_from_parent(self, data):
+        """Open the changed files that diverged from the parent branch."""
+        parent_uri = self.working_tree.branch.get_parent()
+        if parent_uri is None:
+            return
+        revision = RevisionSpec.from_string('branch:%s' % parent_uri)
+        self.open_changed_files(revision.as_tree(self.working_tree.branch))
