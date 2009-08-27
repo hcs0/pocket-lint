@@ -5,7 +5,7 @@ import mimetypes
 import os
 
 from bzrlib import workingtree
-
+from bzrlib.errors import NotBranchError
 
 __all__  = [
     'open_changed_files',
@@ -15,11 +15,12 @@ __all__  = [
 class BzrProject:
     """View and manage a bazaar branch."""
 
-    def __init__(self, gedit, window):
+    def __init__(self, gedit, window, working_tree=None):
         self.gedit = gedit
         self.window = window
         self.utf8_encoding = gedit.encoding_get_from_charset('UTF-8')
         mimetypes.init()
+        self.working_tree = working_tree
 
     def is_doc_open(self, uri):
         """Return True if the window already has a document opened for uri."""
@@ -38,29 +39,36 @@ class BzrProject:
             encoding = self.utf8_encoding
             self.window.create_tab_from_uri(uri, encoding, 0, False, False)
 
-    def get_working_tree(self):
+    def set_working_tree(self):
         """Return the working tree for the working directory or document"""
-        file_path = self.window.get_active_document().get_uri_for_display()
+        doc = self.window.get_active_document()
+        if doc is None:
+            self.working_tree = None
+            return
+        file_path = doc.get_uri_for_display()
         if file_path is None:
             cwd = os.getcwd()
         else:
             cwd = os.path.dirname(file_path)
-        working_tree, relpath = workingtree.WorkingTree.open_containing(cwd)
-        return working_tree
+        try:
+            working_tree, relpath_ = workingtree.WorkingTree.open_containing(
+                cwd)
+            self.working_tree = working_tree
+        except NotBranchError:
+            self.working_tree = None
 
     def open_changed_files(self, data):
         """Open modified and added files in the bzr branch."""
-        # This should read the browser root or use current doc.
-        working_tree = self.get_working_tree()
-        base_dir = working_tree.basedir
-        basis_tree = working_tree.basis_tree()
+        base_dir = self.working_tree.basedir
+        basis_tree = self.working_tree.basis_tree()
         try:
-            working_tree.lock_read()
+            self.working_tree.lock_read()
             basis_tree.lock_read()
-            changes = working_tree.iter_changes(basis_tree, False, None,
+            changes = self.working_tree.iter_changes(
+                basis_tree, False, None,
                 require_versioned=False, want_unversioned=False)
         finally:
-            working_tree.unlock()
+            self.working_tree.unlock()
             basis_tree.unlock()
         for change in changes:
             # change is: (file_id, paths, content_change, versioned,

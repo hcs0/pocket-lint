@@ -7,7 +7,6 @@ __all__ = [
     'BazaarProjectPlugin',
     ]
 
-
 from gettext import gettext as _
 
 import gedit
@@ -20,13 +19,15 @@ menu_xml = """
 <ui>
   <menubar name="MenuBar">
     <menu name="ProjectMenu" action="Project">
-      <placeholder name="ProjectOps_1">
+      <placeholder name="ProjectOpt1">
         <menuitem name="OpenChangedFiles" action="OpenChangedFiles"/>
       </placeholder>
     </menu>
   </menubar>
 </ui>
 """
+
+PROJECT_PATH = '/MenuBar/ProjectMenu/ProjectOpt1'
 
 
 class BazaarProjectPlugin(gedit.Plugin):
@@ -47,6 +48,10 @@ class BazaarProjectPlugin(gedit.Plugin):
                 self.bzr.open_changed_files),
             ]
 
+    tree_actions = [
+        'OpenChangedFiles',
+        ]
+
     def __init__(self):
         """Initialize the plugin the whole Gedit application."""
         gedit.Plugin.__init__(self)
@@ -59,6 +64,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         """
         self.window = window
         self.bzr = BzrProject(gedit, window)
+        self.bzr.set_working_tree()
         self.action_group = gtk.ActionGroup("ProjectActions")
         self.action_group.add_actions(self._actions)
         manager = self.window.get_ui_manager()
@@ -78,6 +84,17 @@ class BazaarProjectPlugin(gedit.Plugin):
 
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window."""
-        pass
+        self.window = window
+        self.bzr.window = window
+        self.bzr.set_working_tree()
+        if self.bzr.working_tree is None:
+            self.toggle_tree_menus(False)
+        else:
+            self.toggle_tree_menus(True)
 
-    # Callbacks.
+    def toggle_tree_menus(self, sensitive):
+        """Enabled or disable the menu items that require a working tree."""
+        manager = self.window.get_ui_manager()
+        for name in self.tree_actions:
+            path = '%s/%s' % (PROJECT_PATH, name)
+            manager.get_action(path).props.sensitive = sensitive
