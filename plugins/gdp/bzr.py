@@ -71,15 +71,15 @@ class BzrProject:
                 return True
         return False
 
-    def open_doc(self, uri, jump_to=False):
+    def open_doc(self, uri):
         """Open document at uri if it can be, and is not already, opened."""
-        if self.is_doc_open(uri) and not jump_to:
+        if self.is_doc_open(uri):
             return
         mime_type, charset_ = mimetypes.guess_type(uri)
         if mime_type is None or 'text/' in mime_type:
             # This appears to be a file that gedit can open.
             encoding = self.utf8_encoding
-            self.window.create_tab_from_uri(uri, encoding, 0, False, jump_to)
+            self.window.create_tab_from_uri(uri, encoding, 0, False, False)
 
     def open_changed_files(self, other_tree):
         """Open files in the bzr branch."""
@@ -130,7 +130,8 @@ class BzrProject:
         finally:
             diff_file.close()
         uri = 'file://%s' % self.diff_file_path
-        self.open_doc(uri, jump_to=True)
+        self.open_doc(uri)
+        self.window.set_active_tab(self.window.get_tab_from_uri(uri))
 
     def diff_uncommited_changes(self, data):
         """Create a diff of uncommitted changes."""
