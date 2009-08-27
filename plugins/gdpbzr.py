@@ -20,7 +20,7 @@ menu_xml = """
   <menubar name="MenuBar">
     <menu name="ProjectMenu" action="Project">
       <placeholder name="ProjectOpt1">
-        <menuitem name="OpenChangedFiles" action="OpenChangedFiles"/>
+        <menuitem name="OpenUncommittedFiles" action="OpenUncommittedFiles"/>
       </placeholder>
     </menu>
   </menubar>
@@ -43,13 +43,13 @@ class BazaarProjectPlugin(gedit.Plugin):
         """
         return  [
             ('Project', None, _('_Project'), None, None, None),
-            ('OpenChangedFiles', None, _("_Open changed files"), None,
-                _("Open modified and add files in the bzr branch"),
-                self.bzr.open_changed_files),
+            ('OpenUncommittedFiles', None, _("_Open uncommitted files"), None,
+                _("Open uncommitted in the bzr branch"),
+                self.bzr.open_uncommitted_files),
             ]
 
     tree_actions = [
-        'OpenChangedFiles',
+        'OpenUncommittedFiles',
         ]
 
     def __init__(self):

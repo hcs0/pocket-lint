@@ -8,7 +8,7 @@ from bzrlib import workingtree
 from bzrlib.errors import NotBranchError
 
 __all__  = [
-    'open_changed_files',
+    'open_uncommitted_files',
     ]
 
 
@@ -57,7 +57,7 @@ class BzrProject:
         except NotBranchError:
             self.working_tree = None
 
-    def open_changed_files(self, data):
+    def open_uncommitted_files(self, data):
         """Open modified and added files in the bzr branch."""
         base_dir = self.working_tree.basedir
         basis_tree = self.working_tree.basis_tree()
