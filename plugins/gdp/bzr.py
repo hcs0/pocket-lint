@@ -11,6 +11,8 @@ from bzrlib.revisionspec import RevisionSpec
 
 
 __all__  = [
+    'diff_changes_from_parent',
+    'diff_uncommitted_changes'
     'open_changed_files_from_parent',
     'open_changed_files_to_push',
     'open_uncommitted_files',
@@ -136,3 +138,7 @@ class BzrProject:
     def diff_uncommited_changes(self, data):
         """Create a diff of uncommitted changes."""
         self._diff_tree(self.working_tree.basis_tree())
+
+    def diff_changes_from_parent(self, data):
+        """Create a diff of uncommitted changes."""
+        self._diff_tree(self._parent_tree)

@@ -8,7 +8,6 @@ tools_DATA = \
 	3-make-lint \
 	4-shift-test \
 	4-test \
-	5-bzr-diff-ancestor \
 	bzr-annotate \
 	bzr-commit \
 	bzr-diff-ancestor \
