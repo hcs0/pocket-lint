@@ -29,8 +29,8 @@ from gdp.find import FindController
 
 ui_xml = """<ui>
   <menubar name="MenuBar">
-    <menu name="SearchMenu" action="Search">
-      <menuitem name="FindFiles" action="FindFiles"/>
+    <menu name="SearchMenu">
+      <menuitem action="FindFiles"/>
     </menu>
   </menubar>
 </ui>

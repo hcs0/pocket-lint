@@ -12,13 +12,7 @@ from gdp.formatdoctest import DoctestReviewer
 
 
 __all__  = [
-    'newline_ending',
-    'quote_lines',
-    'reformat_doctest',
-    're_replace',
-    'rewrap_text',
-    'single_line',
-    'sort_imports',
+    'Formatter',
     ]
 
 

@@ -9,7 +9,6 @@ tools_DATA = \
 	4-shift-test \
 	4-test \
 	bzr-annotate \
-	bzr-commit \
 	bzr-status \
 	encode \
 	find.py \

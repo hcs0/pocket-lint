@@ -19,16 +19,16 @@ from gdp.format import Formatter
 menu_xml = """
 <ui>
   <menubar name="MenuBar">
-    <menu name="EditMenu" action="Edit">
+    <menu name="EditMenu">
       <placeholder name="EditOps_6">
-          <menu name="FormatMenu" action="Format">
-            <menuitem name="RewrapText" action="RewrapText"/>
-            <menuitem name="FixLineEnding" action="FixLineEnding"/>
-            <menuitem name="QuoteLines" action="QuoteLines"/>
-            <menuitem name="SortImports" action="SortImports"/>
-            <menuitem name="SingleLine" action="SingleLine"/>
-            <menuitem name="REReplace" action="REReplace"/>
-            <menuitem name="ReformatDoctest" action="ReformatDoctest"/>
+          <menu action="FormatMenu">
+            <menuitem action="RewrapText"/>
+            <menuitem action="FixLineEnding"/>
+            <menuitem action="QuoteLines"/>
+            <menuitem action="SortImports"/>
+            <menuitem action="SingleLine"/>
+            <menuitem action="REReplace"/>
+            <menuitem action="ReformatDoctest"/>
           </menu>
       </placeholder>
     </menu>
@@ -49,14 +49,14 @@ class FormatPlugin(gedit.Plugin):
         (name, stock_id, label, accelerator, tooltip, callback)
         """
         return  [
-            ('Format', None, _('_Format'), None, None, None),
+            ('FormatMenu', None, _('_Format'), None, None, None),
             ('RewrapText', None, _("Rewrap _text"), None,
                 _("Rewrap the text to 78 characters."),
                 self.formatter.rewrap_text),
             ('FixLineEnding', None, _("Fix _line endings"), None,
                 _('Remove trailing whitespace and use newline endings.'),
                 self.formatter.newline_ending),
-            ('QuoteLines', None, _("_Quote lines"), None,
+            ('QuoteLines', None, _("_Quote lines"), '<Alt>Q',
                 _("Format the text as a quoted email."),
                 self.formatter.quote_lines),
             ('SortImports', None, _("Sort _imports"), None,

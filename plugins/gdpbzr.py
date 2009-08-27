@@ -18,7 +18,7 @@ from gdp.bzr import BzrProject
 menu_xml = """
 <ui>
   <menubar name="MenuBar">
-    <menu name="ProjectMenu" action="Project">
+    <menu action="ProjectMenu">
       <placeholder name="ProjectOpt1">
         <menuitem action="OpenUncommittedFiles"/>
         <menuitem action="OpenChangedFilesFromParent"/>
@@ -28,6 +28,7 @@ menu_xml = """
         <menuitem action="DiffChangesFromParent"/>
         <menuitem action="DiffChangesToPush"/>
         <separator />
+        <menuitem action="CommitChanges"/>
       </placeholder>
     </menu>
   </menubar>
@@ -49,7 +50,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         (name, stock_id, label, accelerator, tooltip, callback)
         """
         return  [
-            ('Project', None, _('_Project'), None, None, None),
+            ('ProjectMenu', None, _('_Project'), None, None, None),
             ('OpenUncommittedFiles', None, _("Open _uncommitted files"), None,
                 _("Open uncommitted in the bzr branch."),
                 self.bzr.open_uncommitted_files),
@@ -57,19 +58,23 @@ class BazaarProjectPlugin(gedit.Plugin):
                 '<Shift><Control>O',
                 _("Open files that have diverged from the parent."),
                 self.bzr.open_changed_files_from_parent),
-            ('OpenChangedFilesToPush', None, _("_Open _unpushed files"),
+            ('OpenChangedFilesToPush', None, _("Open unpushed files"),
                 None, _("Open changed files that have not been pushed."),
                 self.bzr.open_changed_files_to_push),
             ('DiffUncommittedChanges', None, _("_Diff uncommitted changes"),
                 'F5', _("Create a diff of the uncommitted changes."),
                 self.bzr.diff_uncommited_changes),
-            ('DiffChangesFromParent', None, _("_Diff changes from parent"),
+            ('DiffChangesFromParent', None, _("Diff changes from _parent"),
                 '<Shift>F5',
                  _("Create a diff of the changes from the parent tree."),
                 self.bzr.diff_changes_from_parent),
-            ('DiffChangesToPush', None, _("_Diff changes to push"),
+            ('DiffChangesToPush', None, _("Diff changes to push"),
                 None, _("Create a diff of the changes from the push tree."),
                 self.bzr.diff_changes_to_push),
+            ('CommitChanges', None, _("_Commit changes"),
+                '<Control><Alt><Super>C',
+                _("Commit the changes in the working tree."),
+                self.bzr.commit_changes),
             ]
 
     tree_actions = [
@@ -79,6 +84,10 @@ class BazaarProjectPlugin(gedit.Plugin):
         'DiffUncommittedChanges',
         'DiffChangesFromParent',
         'DiffChangesToPush',
+        ]
+
+    bzr_gtk_actions = [
+        'CommitChanges',
         ]
 
     def __init__(self):
@@ -127,5 +136,10 @@ class BazaarProjectPlugin(gedit.Plugin):
         """Enable or disable the menu items that require a working tree."""
         manager = self.window.get_ui_manager()
         for name in self.tree_actions:
+            path = '%s/%s' % (PROJECT_PATH, name)
+            manager.get_action(path).props.sensitive = sensitive
+        if not self.bzr.has_bzr_gtk:
+            sensitive = False
+        for name in self.bzr_gtk_actions:
             path = '%s/%s' % (PROJECT_PATH, name)
             manager.get_action(path).props.sensitive = sensitive

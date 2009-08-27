@@ -9,14 +9,18 @@ from bzrlib.diff import show_diff_trees
 from bzrlib.errors import NotBranchError
 from bzrlib.revisionspec import RevisionSpec
 
+try:
+    # pylint: disable-msg=E0611,F0401
+    from bzrlib.plugin import load_plugins
+    load_plugins()
+    from bzrlib.plugins.gtk.commit import CommitDialog
+    HAS_BZR_GTK = True
+except ImportError:
+    HAS_BZR_GTK = False
+
 
 __all__  = [
-    'diff_changes_from_parent',
-    'diff_changes_to_push',
-    'diff_uncommitted_changes'
-    'open_changed_files_from_parent',
-    'open_changed_files_to_push',
-    'open_uncommitted_files',
+    'BzrProject',
     ]
 
 
@@ -29,6 +33,11 @@ class BzrProject:
         self.utf8_encoding = gedit.encoding_get_from_charset('UTF-8')
         mimetypes.init()
         self.working_tree = working_tree
+
+    @property
+    def has_bzr_gtk(self):
+        """Is bzr-gtk available?"""
+        return HAS_BZR_GTK
 
     def set_working_tree(self):
         """Return the working tree for the working directory or document"""
@@ -99,6 +108,8 @@ class BzrProject:
                 #             parent_id, name, kind, executable)
                 # paths is (previous_path, current_path)
                 tree_file_path = change[1][1]
+                if tree_file_path is None:
+                    continue
                 base_dir = self.working_tree.basedir
                 uri = 'file://%s' % os.path.join(base_dir, tree_file_path)
                 self.open_doc(uri)
@@ -147,3 +158,12 @@ class BzrProject:
     def diff_changes_to_push(self, data):
         """Create a diff of changes to the push tree."""
         self._diff_tree(self._push_tree)
+
+    def commit_changes(self, data):
+        """Commit the changes in the working tree."""
+        try:
+            self.working_tree.lock_write()
+            dialog = CommitDialog(self.working_tree)
+            dialog.run()
+        finally:
+            self.working_tree.unlock()
