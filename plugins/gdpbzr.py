@@ -24,6 +24,7 @@ menu_xml = """
         <menuitem action="OpenChangedFiledFromParent"/>
         <menuitem action="OpenChangedFiledToPush"/>
         <separator />
+        <menuitem action="DiffUncommittedChanges"/>
       </placeholder>
     </menu>
   </menubar>
@@ -56,12 +57,16 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('OpenChangedFiledToPush', None, _("_Open _unpushed files"),
                 None, _("Open changed files that have not been pushed."),
                 self.bzr.open_changed_files_to_push),
+            ('DiffUncommittedChanges', None, _("_Diff uncommitted changes"),
+                'F5', _("Create a diff of the uncommitted changes."),
+                self.bzr.diff_uncommited_changes),
             ]
 
     tree_actions = [
         'OpenChangedFiledToPush',
         'OpenChangedFiledFromParent',
         'OpenUncommittedFiles',
+        'DiffUncommittedChanges',
         ]
 
     def __init__(self):

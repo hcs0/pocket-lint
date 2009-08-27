@@ -5,6 +5,7 @@ import mimetypes
 import os
 
 from bzrlib import workingtree
+from bzrlib.diff import show_diff_trees
 from bzrlib.errors import NotBranchError
 from bzrlib.revisionspec import RevisionSpec
 
@@ -113,3 +114,25 @@ class BzrProject:
     def open_changed_files_from_parent(self, data):
         """Open the changed files that diverged from the parent branch."""
         self.open_changed_files(self._parent_tree)
+
+    @property
+    def diff_file_path(self):
+        """The path of the diff file."""
+        return os.path.join(self.working_tree.basedir, '_diff.diff')
+
+    def _diff_tree(self, another_tree):
+        """Diff the working tree against an anoter tree."""
+        if another_tree is None:
+            return
+        try:
+            diff_file = open(self.diff_file_path, 'w')
+            show_diff_trees(another_tree, self.working_tree, diff_file)
+        finally:
+            diff_file.close()
+        uri = 'file://%s' % self.diff_file_path
+        self.open_doc(uri)
+        self.window.set_active_tab(self.window.get_tab_from_uri(uri))
+
+    def diff_uncommited_changes(self, data):
+        """Create a diff of uncommitted changes."""
+        self._diff_tree(self.working_tree.basis_tree())
