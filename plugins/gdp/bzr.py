@@ -38,9 +38,20 @@ class BzrProject:
             encoding = self.utf8_encoding
             self.window.create_tab_from_uri(uri, encoding, 0, False, False)
 
+    def get_working_tree(self):
+        """Return the working tree for the working directory or document"""
+        file_path = self.window.get_active_document().get_uri_for_display()
+        if file_path is None:
+            cwd = os.getcwd()
+        else:
+            cwd = os.path.dirname(file_path)
+        working_tree, relpath = workingtree.WorkingTree.open_containing(cwd)
+        return working_tree
+
     def open_changed_files(self, data):
         """Open modified and added files in the bzr branch."""
-        working_tree = workingtree.WorkingTree.open('.')
+        # This should read the browser root or use current doc.
+        working_tree = self.get_working_tree()
         base_dir = working_tree.basedir
         basis_tree = working_tree.basis_tree()
         try:
