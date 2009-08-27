@@ -15,6 +15,8 @@ try:
     # pylint: disable-msg=E0611,F0401
     from bzrlib.plugin import load_plugins
     load_plugins()
+    from bzrlib.plugins.gtk.annotate.config import GAnnotateConfig
+    from bzrlib.plugins.gtk.annotate.gannotate import GAnnotateWindow
     from bzrlib.plugins.gtk.commit import CommitDialog
     from bzrlib.plugins.gtk.status import StatusWindow
     HAS_BZR_GTK = True
@@ -177,5 +179,27 @@ class BzrProject:
     def show_status(self, data):
         """Show the status of the working tree."""
         base_dir = self.working_tree.basedir
-        status = StatusWindow(self.working_tree, base_dir, None)
-        status.show()
+        window = StatusWindow(self.working_tree, base_dir, None)
+        window.show()
+
+    def show_annotations(self, data):
+        """Show the annotated revisions of the file."""
+        document = self.window.get_active_document()
+        file_path = document.get_uri_for_display()
+        if file_path is None:
+            return
+        base_dir = self.working_tree.basedir
+        file_path = file_path.replace(base_dir, '')
+        file_id = self.working_tree.path2id(file_path)
+        if file_id is None:
+            return
+        window = GAnnotateWindow(parent=self.window)
+        window.set_title(file_path + " - Annotate")
+        GAnnotateConfig(window)
+        window.show()
+        try:
+            branch = self.working_tree.branch
+            branch.lock_read()
+            window.annotate(self.working_tree, branch, file_id)
+        finally:
+            branch.unlock()

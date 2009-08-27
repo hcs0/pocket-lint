@@ -28,6 +28,7 @@ menu_xml = """
         <menuitem action="DiffChangesFromParent"/>
         <menuitem action="DiffChangesToPush"/>
         <separator />
+        <menuitem action="ShowAnnotations"/>
         <menuitem action="ShowStatus"/>
         <menuitem action="CommitChanges"/>
       </placeholder>
@@ -72,6 +73,9 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('DiffChangesToPush', None, _("Diff changes to push"),
                 None, _("Create a diff of the changes from the push tree."),
                 self.bzr.diff_changes_to_push),
+            ('ShowAnnotations', None, _("Show _annotations"),
+                None, _("Show the revision annotations of the current file."),
+                self.bzr.show_annotations),
             ('ShowStatus', None, _("Show _status"),
                 None, _("Show the status of the working tree."),
                 self.bzr.show_status),
@@ -91,6 +95,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         ]
 
     bzr_gtk_actions = [
+        'ShowAnnotations',
         'ShowStatus',
         'CommitChanges',
         ]
