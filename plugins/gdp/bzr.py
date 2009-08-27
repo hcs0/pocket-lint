@@ -59,9 +59,8 @@ class BzrProject:
 
     def open_uncommitted_files(self, data):
         """Open modified and added files in the bzr branch."""
-        base_dir = self.working_tree.basedir
-        basis_tree = self.working_tree.basis_tree()
         try:
+            basis_tree = self.working_tree.basis_tree()
             self.working_tree.lock_read()
             basis_tree.lock_read()
             changes = self.working_tree.iter_changes(
@@ -75,6 +74,7 @@ class BzrProject:
             #             parent_id, name, kind, executable)
             # paths is (previous_path, current_path)
             tree_file_path = change[1][1]
+            base_dir = self.working_tree.basedir
             uri = 'file://%s' % os.path.join(base_dir, tree_file_path)
             self.open_doc(uri)
 
