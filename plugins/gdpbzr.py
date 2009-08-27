@@ -31,6 +31,8 @@ menu_xml = """
         <menuitem action="ShowAnnotations"/>
         <menuitem action="ShowStatus"/>
         <menuitem action="CommitChanges"/>
+        <separator />
+        <menuitem action="PushChanges"/>
       </placeholder>
     </menu>
   </menubar>
@@ -83,6 +85,9 @@ class BazaarProjectPlugin(gedit.Plugin):
                 '<Control><Alt><Super>C',
                 _("Commit the changes in the working tree."),
                 self.bzr.commit_changes),
+            ('PushChanges', None, _("_Push changes"),
+                None, _("Push the changes in the working tree."),
+                self.bzr.push_changes),
             ]
 
     tree_actions = [
@@ -98,6 +103,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         'ShowAnnotations',
         'ShowStatus',
         'CommitChanges',
+        'PushChanges',
         ]
 
     def __init__(self):

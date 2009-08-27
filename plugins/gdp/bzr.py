@@ -18,6 +18,7 @@ try:
     from bzrlib.plugins.gtk.annotate.config import GAnnotateConfig
     from bzrlib.plugins.gtk.annotate.gannotate import GAnnotateWindow
     from bzrlib.plugins.gtk.commit import CommitDialog
+    from bzrlib.plugins.gtk.push import PushDialog
     from bzrlib.plugins.gtk.status import StatusWindow
     HAS_BZR_GTK = True
 except ImportError:
@@ -203,3 +204,9 @@ class BzrProject:
             window.annotate(self.working_tree, branch, file_id)
         finally:
             branch.unlock()
+
+    def push_changes(self, data):
+        """Push the changes in the working tree."""
+        branch = self.working_tree.branch
+        dialog = PushDialog(branch.repository, branch.last_revision(), branch)
+        dialog.run()
