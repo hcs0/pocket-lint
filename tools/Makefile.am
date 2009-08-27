@@ -9,7 +9,6 @@ tools_DATA = \
 	4-shift-test \
 	4-test \
 	bzr-annotate \
-	bzr-status \
 	encode \
 	find.py \
 	find-in-files \

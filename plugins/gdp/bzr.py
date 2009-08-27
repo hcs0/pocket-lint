@@ -16,6 +16,7 @@ try:
     from bzrlib.plugin import load_plugins
     load_plugins()
     from bzrlib.plugins.gtk.commit import CommitDialog
+    from bzrlib.plugins.gtk.status import StatusWindow
     HAS_BZR_GTK = True
 except ImportError:
     HAS_BZR_GTK = False
@@ -172,3 +173,9 @@ class BzrProject:
                 dialog.destroy()
         finally:
             self.working_tree.unlock()
+
+    def show_status(self, data):
+        """Show the status of the working tree."""
+        base_dir = self.working_tree.basedir
+        status = StatusWindow(self.working_tree, base_dir, None)
+        status.show()

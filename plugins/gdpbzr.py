@@ -28,6 +28,7 @@ menu_xml = """
         <menuitem action="DiffChangesFromParent"/>
         <menuitem action="DiffChangesToPush"/>
         <separator />
+        <menuitem action="ShowStatus"/>
         <menuitem action="CommitChanges"/>
       </placeholder>
     </menu>
@@ -71,6 +72,9 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('DiffChangesToPush', None, _("Diff changes to push"),
                 None, _("Create a diff of the changes from the push tree."),
                 self.bzr.diff_changes_to_push),
+            ('ShowStatus', None, _("Show _status"),
+                None, _("Show the status of the working tree."),
+                self.bzr.show_status),
             ('CommitChanges', None, _("_Commit changes"),
                 '<Control><Alt><Super>C',
                 _("Commit the changes in the working tree."),
@@ -87,6 +91,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         ]
 
     bzr_gtk_actions = [
+        'ShowStatus',
         'CommitChanges',
         ]
 
