@@ -12,6 +12,7 @@ from bzrlib.revisionspec import RevisionSpec
 
 __all__  = [
     'diff_changes_from_parent',
+    'diff_changes_to_push',
     'diff_uncommitted_changes'
     'open_changed_files_from_parent',
     'open_changed_files_to_push',
@@ -140,5 +141,9 @@ class BzrProject:
         self._diff_tree(self.working_tree.basis_tree())
 
     def diff_changes_from_parent(self, data):
-        """Create a diff of uncommitted changes."""
+        """Create a diff of changes from the parent tree."""
         self._diff_tree(self._parent_tree)
+
+    def diff_changes_to_push(self, data):
+        """Create a diff of changes to the push tree."""
+        self._diff_tree(self._push_tree)

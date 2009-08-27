@@ -21,11 +21,13 @@ menu_xml = """
     <menu name="ProjectMenu" action="Project">
       <placeholder name="ProjectOpt1">
         <menuitem action="OpenUncommittedFiles"/>
-        <menuitem action="OpenChangedFiledFromParent"/>
-        <menuitem action="OpenChangedFiledToPush"/>
+        <menuitem action="OpenChangedFilesFromParent"/>
+        <menuitem action="OpenChangedFilesToPush"/>
         <separator />
         <menuitem action="DiffUncommittedChanges"/>
         <menuitem action="DiffChangesFromParent"/>
+        <menuitem action="DiffChangesToPush"/>
+        <separator />
       </placeholder>
     </menu>
   </menubar>
@@ -51,11 +53,11 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('OpenUncommittedFiles', None, _("Open _uncommitted files"), None,
                 _("Open uncommitted in the bzr branch."),
                 self.bzr.open_uncommitted_files),
-            ('OpenChangedFiledFromParent', None, _("_Open diverged files"),
+            ('OpenChangedFilesFromParent', None, _("_Open diverged files"),
                 '<Shift><Control>O',
                 _("Open files that have diverged from the parent."),
                 self.bzr.open_changed_files_from_parent),
-            ('OpenChangedFiledToPush', None, _("_Open _unpushed files"),
+            ('OpenChangedFilesToPush', None, _("_Open _unpushed files"),
                 None, _("Open changed files that have not been pushed."),
                 self.bzr.open_changed_files_to_push),
             ('DiffUncommittedChanges', None, _("_Diff uncommitted changes"),
@@ -65,14 +67,18 @@ class BazaarProjectPlugin(gedit.Plugin):
                 '<Shift>F5',
                  _("Create a diff of the changes from the parent tree."),
                 self.bzr.diff_changes_from_parent),
+            ('DiffChangesToPush', None, _("_Diff changes to push"),
+                None, _("Create a diff of the changes from the push tree."),
+                self.bzr.diff_changes_to_push),
             ]
 
     tree_actions = [
-        'OpenChangedFiledToPush',
-        'OpenChangedFiledFromParent',
+        'OpenChangedFilesToPush',
+        'OpenChangedFilesFromParent',
         'OpenUncommittedFiles',
         'DiffUncommittedChanges',
         'DiffChangesFromParent',
+        'DiffChangesToPush',
         ]
 
     def __init__(self):

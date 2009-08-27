@@ -10,9 +10,6 @@ tools_DATA = \
 	4-test \
 	bzr-annotate \
 	bzr-commit \
-	bzr-diff-ancestor \
-	bzr-diff-branch \
-	bzr-diff-file \
 	bzr-status \
 	encode \
 	find.py \
