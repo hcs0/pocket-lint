@@ -84,13 +84,10 @@ class Finder:
 
     def __init__(self, window):
         self.window = window
-        widgets = gtk.glade.XML(
+        self.widgets = gtk.glade.XML(
             '%s/gdp.glade' % os.path.dirname(__file__), root='find_panel')
-        widgets.signal_autoconnect(self.glade_callbacks)
-        self.find_panel = widgets.get_widget('find_panel')
-        self.match_pattern_combobox = widgets.get_widget(
-            'match_pattern_combobox')
-        self.find_in_files_button = widgets.get_widget('find_in_files_button')
+        self.widgets.signal_autoconnect(self.glade_callbacks)
+        self.find_panel = self.widgets.get_widget('find_panel')
         panel = window.get_bottom_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU)
         panel.add_item(self.find_panel, 'Find in files', icon)
@@ -110,7 +107,19 @@ class Finder:
 
     def on_find_in_files(self, widget=None):
         """Find and present the matches."""
-        text = self.match_pattern_combobox.get_active_text()
+        text = self.widgets.get_widget(
+            'match_pattern_combobox').get_active_text()
+        is_re = self.widgets.get_widget('re_checkbox').get_active()
+        if not is_re:
+            text = re.escape(text)
+        is_case = self.widgets.get_widget('match_case_checkbox').get_active()
+        if not is_case:
+            text = '(?i)%s' % text
+        print "Looking for [%s] in %s:" % (text, '.')
+        for summary in find_matches('.', '.', text, substitution=None):
+            print "\n%(file_path)s" % summary
+            for line in summary['lines']:
+                print "    %(lineno)4s: %(text)s" % line
 
 
 def get_option_parser():

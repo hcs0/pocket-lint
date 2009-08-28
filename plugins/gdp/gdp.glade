@@ -57,7 +57,7 @@
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkCheckButton" id="mach_case_checkbox">
+                  <widget class="GtkCheckButton" id="match_case_checkbox">
                     <property name="label" translatable="yes">Match case</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
