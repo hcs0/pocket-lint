@@ -109,6 +109,16 @@ class Finder(PluginMixin):
             'on_find_in_files' : self.on_find_in_files,
             }
 
+    def update_match_text(self, combobox, text):
+        """Update the match text combobox."""
+        is_unique = True
+        for row in iter(combobox.get_model()):
+            if row[0] == text:
+                is_unique = False
+                break
+        if is_unique:
+            combobox.append_text(text)
+
     def show(self, data):
         """Show the finder pane."""
         panel = self.window.get_bottom_panel()
@@ -119,13 +129,7 @@ class Finder(PluginMixin):
         """Find and present the matches."""
         combobox = self.widgets.get_widget('match_pattern_combobox')
         text = combobox.get_active_text()
-        is_unique = True
-        for row in iter(combobox.get_model()):
-            if row[0] == text:
-                is_unique = False
-                break
-        if is_unique:
-            combobox.append_text(text)
+        self.update_match_text(combobox, text)
         if not self.widgets.get_widget('re_checkbox').get_active():
             text = re.escape(text)
         if not self.widgets.get_widget('match_case_checkbox').get_active():
