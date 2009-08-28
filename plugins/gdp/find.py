@@ -121,9 +121,12 @@ class Finder(PluginMixin):
             gobject.TYPE_STRING, gobject.TYPE_STRING)
         treestore.append(None, ('No matches', None, None, None))
         self.column = gtk.TreeViewColumn('Matches')
+        cell = gtk.CellRendererPixbuf()
+        cell.set_property('stock-size', gtk.ICON_SIZE_MENU)
+        self.column.pack_start(cell, False)
+        self.column.add_attribute(cell, 'icon-name', 1)
         cell = gtk.CellRendererText()
         self.column.pack_start(cell, False)
-        #self.column.add_attribute(cell, 'text', 0)
         self.column.set_cell_data_func(cell, set_file_line)
         match_view = self.widgets.get_widget('match_view')
         match_view.set_model(treestore)
@@ -169,12 +172,17 @@ class Finder(PluginMixin):
         if not self.widgets.get_widget('match_case_checkbox').get_active():
             text = '(?i)%s' % text
         for summary in find_matches('.', '.', text, substitution=None):
+            mime_type = summary['mime_type']
+            if mime_type is None:
+                mime_type = 'unknown'
+            else:
+                mime_type = 'gnome-mimetype-%s' % mime_type.replace('/', '-')
             piter = treestore.append(None, (
-                summary['file_path'], summary['mime_type'], None, None))
+                summary['file_path'],  mime_type, None, None))
             for line in summary['lines']:
                 treestore.append(
                     piter, (
-                        summary['file_path'], summary['mime_type'],
+                        summary['file_path'], None,
                         line['lineno'], line['text']))
 
 
