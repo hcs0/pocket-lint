@@ -141,6 +141,7 @@
                   <widget class="GtkTreeView" id="match_view">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="headers_clickable">False</property>
                   </widget>
                 </child>
               </widget>
