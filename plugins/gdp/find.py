@@ -96,11 +96,23 @@ class Finder(PluginMixin):
     def setup_widgets(self):
         """Setup the widgets with default data."""
         self.widgets.signal_autoconnect(self.glade_callbacks)
-        combobox = self.widgets.get_widget('match_pattern_combobox')
         liststore = gtk.ListStore(gobject.TYPE_STRING)
         liststore.set_sort_column_id(0, gtk.SORT_ASCENDING)
+        combobox = self.widgets.get_widget('match_pattern_combobox')
         combobox.set_model(liststore)
+        # Glade setup the first column from string.
         combobox.set_text_column(0)
+        treestore = gtk.TreeStore(gobject.TYPE_STRING)
+        treestore.append(None, ['No matches'])
+        match_view = self.widgets.get_widget('match_view')
+        match_view.set_model(treestore)
+        self.column = gtk.TreeViewColumn('Matches')
+        match_view.append_column(self.column)
+        cell = gtk.CellRendererText()
+        self.column.pack_start(cell, True)
+        self.column.add_attribute(cell, 'text', 0)
+        match_view.set_search_column(0)
+
 
     @property
     def glade_callbacks(self):
@@ -130,24 +142,20 @@ class Finder(PluginMixin):
         combobox = self.widgets.get_widget('match_pattern_combobox')
         text = combobox.get_active_text()
         self.update_match_text(combobox, text)
+        match_view = self.widgets.get_widget('match_view')
+        treestore = match_view.get_model()
+        treestore.clear()
+        self.column.props.title = "Matches for [%s] in %s" % (
+            text, os.path.abspath('.'))
         if not self.widgets.get_widget('re_checkbox').get_active():
             text = re.escape(text)
         if not self.widgets.get_widget('match_case_checkbox').get_active():
             text = '(?i)%s' % text
-        # XXX sinzui 2009-08-28: Run this as a log until the UI is finished.
-        file_path = os.path.abspath('./_find.log')
-        try:
-            log = open(file_path, 'w')
-            log.write("Looking for [%s] in %s:\n" % (text, '.'))
-            for summary in find_matches('.', '.', text, substitution=None):
-                log.write("\n%(file_path)s\n" % summary)
-                for line in summary['lines']:
-                    log.write("    %(lineno)4s: %(text)s\n" % line)
-        finally:
-            log.close()
-        uri = 'file://%s' % file_path
-        self.open_doc(uri)
-        self.window.set_active_tab(self.window.get_tab_from_uri(uri))
+        for summary in find_matches('.', '.', text, substitution=None):
+            piter = treestore.append(None, [summary['file_path']])
+            for line in summary['lines']:
+                treestore.append(
+                    piter, ['%(lineno)4s: %(text)s' % line])
 
 
 def get_option_parser():
