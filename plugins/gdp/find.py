@@ -16,6 +16,7 @@ import re
 import sys
 from optparse import OptionParser
 
+import gobject
 import gtk
 
 from gdp import PluginMixin
@@ -86,11 +87,20 @@ class Finder(PluginMixin):
         self.window = window
         self.widgets = gtk.glade.XML(
             '%s/gdp.glade' % os.path.dirname(__file__), root='find_panel')
-        self.widgets.signal_autoconnect(self.glade_callbacks)
+        self.setup_widgets()
         self.find_panel = self.widgets.get_widget('find_panel')
         panel = window.get_bottom_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU)
         panel.add_item(self.find_panel, 'Find in files', icon)
+
+    def setup_widgets(self):
+        """Setup the widgets with default data."""
+        self.widgets.signal_autoconnect(self.glade_callbacks)
+        combobox = self.widgets.get_widget('match_pattern_combobox')
+        liststore = gtk.ListStore(gobject.TYPE_STRING)
+        liststore.set_sort_column_id(0, gtk.SORT_ASCENDING)
+        combobox.set_model(liststore)
+        combobox.set_text_column(0)
 
     @property
     def glade_callbacks(self):
@@ -107,12 +117,20 @@ class Finder(PluginMixin):
 
     def on_find_in_files(self, widget=None):
         """Find and present the matches."""
-        text = self.widgets.get_widget(
-            'match_pattern_combobox').get_active_text()
+        combobox = self.widgets.get_widget('match_pattern_combobox')
+        text = combobox.get_active_text()
+        is_unique = True
+        for row in iter(combobox.get_model()):
+            if row[0] == text:
+                is_unique = False
+                break
+        if is_unique:
+            combobox.append_text(text)
         if not self.widgets.get_widget('re_checkbox').get_active():
             text = re.escape(text)
         if not self.widgets.get_widget('match_case_checkbox').get_active():
             text = '(?i)%s' % text
+        # XXX sinzui 2009-08-28: Run this as a log until the UI is finished.
         file_path = os.path.abspath('./_find.log')
         try:
             log = open(file_path, 'w')
