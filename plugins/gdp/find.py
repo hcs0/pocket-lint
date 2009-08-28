@@ -25,10 +25,12 @@ from gdp import PluginMixin
 def find_matches(root_dir, file_pattern, match_pattern, substitution=None):
     """Iterate a summary of matching lines in a file."""
     match_re = re.compile(match_pattern)
-    for file_path in find_files(root_dir, file_pattern=file_pattern):
+    for candidate in find_files(root_dir, file_pattern=file_pattern):
+        file_path, mime_type = candidate
         summary = extract_match(
             file_path, match_re, substitution=substitution)
         if summary:
+            summary['mime_type'] = mime_type
             yield summary
 
 
@@ -46,7 +48,7 @@ def find_files(root_dir, skip_dir_pattern='^[.]', file_pattern='.*'):
             mime_type, encoding_ = mimetypes.guess_type(file_)
             if mime_type is None or 'text/' in mime_type:
                 if file_re.match(file_path) is not None:
-                    yield file_path
+                    yield file_path, mime_type
 
 
 def extract_match(file_path, match_re, substitution=None):
@@ -79,6 +81,18 @@ def extract_match(file_path, match_re, substitution=None):
     return None
 
 
+def set_file_line(column, cell, model, piter):
+    """Set the value as file or line information."""
+    file_path  = model.get_value(piter, 0)
+    mime_type  = model.get_value(piter, 1)
+    line_no = model.get_value(piter, 2)
+    text = model.get_value(piter, 3)
+    if line_no is None:
+        cell.props.text = file_path
+    else:
+        cell.props.text = '%4s  %s' % (line_no, text)
+
+
 class Finder(PluginMixin):
     """Find and replace content in files."""
 
@@ -102,15 +116,15 @@ class Finder(PluginMixin):
         combobox.set_model(liststore)
         # Glade setup the first column from string.
         combobox.set_text_column(0)
-        treestore = gtk.TreeStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
-        treestore.append(None, ['', 'No matches'])
+        treestore = gtk.TreeStore(
+            gobject.TYPE_STRING, gobject.TYPE_STRING,
+            gobject.TYPE_STRING, gobject.TYPE_STRING)
+        treestore.append(None, ('No matches', None, None, None))
         self.column = gtk.TreeViewColumn('Matches')
         cell = gtk.CellRendererText()
         self.column.pack_start(cell, False)
-        self.column.add_attribute(cell, 'text', 0)
-        cell = gtk.CellRendererText()
-        self.column.pack_start(cell, True)
-        self.column.add_attribute(cell, 'text', 1)
+        #self.column.add_attribute(cell, 'text', 0)
+        self.column.set_cell_data_func(cell, set_file_line)
         match_view = self.widgets.get_widget('match_view')
         match_view.set_model(treestore)
         match_view.append_column(self.column)
@@ -155,10 +169,13 @@ class Finder(PluginMixin):
         if not self.widgets.get_widget('match_case_checkbox').get_active():
             text = '(?i)%s' % text
         for summary in find_matches('.', '.', text, substitution=None):
-            piter = treestore.append(None, ['', summary['file_path']])
+            piter = treestore.append(None, (
+                summary['file_path'], summary['mime_type'], None, None))
             for line in summary['lines']:
                 treestore.append(
-                    piter, [line['lineno'], line['text']])
+                    piter, (
+                        summary['file_path'], summary['mime_type'],
+                        line['lineno'], line['text']))
 
 
 def get_option_parser():
