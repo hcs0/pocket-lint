@@ -104,13 +104,13 @@ class Finder(PluginMixin):
         combobox.set_text_column(0)
         treestore = gtk.TreeStore(gobject.TYPE_STRING)
         treestore.append(None, ['No matches'])
-        match_view = self.widgets.get_widget('match_view')
-        match_view.set_model(treestore)
         self.column = gtk.TreeViewColumn('Matches')
-        match_view.append_column(self.column)
         cell = gtk.CellRendererText()
         self.column.pack_start(cell, True)
         self.column.add_attribute(cell, 'text', 0)
+        match_view = self.widgets.get_widget('match_view')
+        match_view.set_model(treestore)
+        match_view.append_column(self.column)
         match_view.set_search_column(0)
 
 
