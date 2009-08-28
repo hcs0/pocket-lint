@@ -14,8 +14,9 @@ import mimetypes
 import os
 import re
 import sys
-
 from optparse import OptionParser
+
+import gtk
 
 
 mimetypes.init()
@@ -81,9 +82,35 @@ def extract_match(file_path, match_re, substitution=None):
 class Finder:
     """Find and replace content in files."""
 
+    def __init__(self, window):
+        self.window = window
+        widgets = gtk.glade.XML(
+            '%s/gdp.glade' % os.path.dirname(__file__), root='find_panel')
+        widgets.signal_autoconnect(self.glade_callbacks)
+        self.find_panel = widgets.get_widget('find_panel')
+        self.match_pattern_combobox = widgets.get_widget(
+            'match_pattern_combobox')
+        self.find_in_files_button = widgets.get_widget('find_in_files_button')
+        panel = window.get_bottom_panel()
+        icon = gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU)
+        panel.add_item(self.find_panel, 'Find in files', icon)
+
+    @property
+    def glade_callbacks(self):
+        """The dict of callbacks for the glade widgets."""
+        return {
+            'on_find_in_files' : self.on_find_in_files,
+            }
+
     def show(self, data):
         """Show the finder pane."""
-        pass
+        panel = self.window.get_bottom_panel()
+        panel.activate_item(self.find_panel)
+        panel.props.visible = True
+
+    def on_find_in_files(self, widget=None):
+        """Find and present the matches."""
+        text = self.match_pattern_combobox.get_active_text()
 
 
 def get_option_parser():

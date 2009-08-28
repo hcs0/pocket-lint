@@ -5,18 +5,126 @@
   <widget class="GtkWindow" id="find_window">
     <property name="title" translatable="yes">Find Window</property>
     <child>
-      <widget class="GtkVBox" id="find_vbox">
+      <widget class="GtkVBox" id="find_panel">
         <property name="visible">True</property>
-        <property name="border_width">6</property>
-        <property name="spacing">6</property>
+        <property name="orientation">vertical</property>
         <child>
-          <widget class="GtkHBox" id="find_form">
+          <widget class="GtkVBox" id="find_vbox">
             <property name="visible">True</property>
+            <property name="border_width">6</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">6</property>
             <child>
-              <widget class="GtkLabel" id="match_label">
+              <widget class="GtkHBox" id="find_form">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Match:</property>
+                <property name="spacing">6</property>
+                <child>
+                  <widget class="GtkLabel" id="match_label">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Match:</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkComboBoxEntry" id="match_pattern_combobox">
+                    <property name="visible">True</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkCheckButton" id="re_checkbox">
+                    <property name="label" translatable="yes">Regular expression</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip" translatable="yes">Is the text to match a Python regular expression?</property>
+                    <property name="use_underline">True</property>
+                    <property name="draw_indicator">True</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkCheckButton" id="mach_case_checkbox">
+                    <property name="label" translatable="yes">Match case</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip" translatable="yes">Match upper and lower case letters?</property>
+                    <property name="use_underline">True</property>
+                    <property name="draw_indicator">True</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="find_in_files_button">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="on_find_in_files"/>
+                    <signal name="activate" handler="on_find_in_files"/>
+                    <child>
+                      <widget class="GtkAlignment" id="alignment1">
+                        <property name="visible">True</property>
+                        <property name="xscale">0</property>
+                        <property name="yscale">0</property>
+                        <child>
+                          <widget class="GtkHBox" id="hbox3">
+                            <property name="visible">True</property>
+                            <property name="spacing">2</property>
+                            <child>
+                              <widget class="GtkImage" id="image1">
+                                <property name="visible">True</property>
+                                <property name="stock">gtk-find</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="label2">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">Find in files</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="pack_type">end</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">4</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -25,118 +133,24 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBoxEntry" id="match_pattern_combobox">
-                <property name="visible">True</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkCheckButton" id="re_checkbox">
-                <property name="label" translatable="yes">Regular expression</property>
+              <widget class="GtkScrolledWindow" id="scrolledwindow1">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip" translatable="yes">Is the text to match a Python regular expression?</property>
-                <property name="use_underline">True</property>
-                <property name="draw_indicator">True</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkCheckButton" id="mach_case_checkbox">
-                <property name="label" translatable="yes">Match case</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip" translatable="yes">Match upper and lower case letters?</property>
-                <property name="use_underline">True</property>
-                <property name="draw_indicator">True</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">3</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="find_in_files_button">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
+                <property name="shadow_type">in</property>
                 <child>
-                  <widget class="GtkAlignment" id="alignment1">
+                  <widget class="GtkTreeView" id="match_view">
                     <property name="visible">True</property>
-                    <property name="xscale">0</property>
-                    <property name="yscale">0</property>
-                    <child>
-                      <widget class="GtkHBox" id="hbox3">
-                        <property name="visible">True</property>
-                        <property name="spacing">2</property>
-                        <child>
-                          <widget class="GtkImage" id="image1">
-                            <property name="visible">True</property>
-                            <property name="stock">gtk-find</property>
-                          </widget>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <widget class="GtkLabel" id="label2">
-                            <property name="visible">True</property>
-                            <property name="label" translatable="yes">Find in files</property>
-                            <property name="use_underline">True</property>
-                          </widget>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="pack_type">end</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                      </widget>
-                    </child>
+                    <property name="can_focus">True</property>
                   </widget>
                 </child>
               </widget>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="pack_type">end</property>
-                <property name="position">4</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </widget>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
             <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkScrolledWindow" id="scrolledwindow1">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="shadow_type">in</property>
-            <child>
-              <widget class="GtkTreeView" id="match_view">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-              </widget>
-            </child>
-          </widget>
-          <packing>
-            <property name="position">1</property>
           </packing>
         </child>
       </widget>
