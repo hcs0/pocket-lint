@@ -122,8 +122,12 @@ class BazaarProjectPlugin(gedit.Plugin):
         self.action_group = gtk.ActionGroup("ProjectActions")
         self.action_group.add_actions(self._actions)
         manager = self.window.get_ui_manager()
-        manager.insert_action_group(self.action_group, 2)
+        manager.insert_action_group(self.action_group, -1)
         self.ui_id = manager.add_ui_from_string(menu_xml)
+        menubar = manager.get_widget('/MenuBar')
+        project_menu = manager.get_widget('/MenuBar/ProjectMenu')
+        menubar.remove(project_menu)
+        menubar.insert(project_menu, 5)
 
     def deactivate(self, window):
         """Deactivate the plugin in the current top-level window."""

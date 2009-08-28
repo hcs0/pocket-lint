@@ -19,9 +19,9 @@ from gdp.format import Formatter
 menu_xml = """
 <ui>
   <menubar name="MenuBar">
-    <menu name="EditMenu">
+    <menu name='EditMenu' action='Edit'>
       <placeholder name="EditOps_6">
-          <menu action="FormatMenu">
+          <menu action="GDPFormatMenu">
             <menuitem action="RewrapText"/>
             <menuitem action="FixLineEnding"/>
             <menuitem action="QuoteLines"/>
@@ -49,7 +49,7 @@ class FormatPlugin(gedit.Plugin):
         (name, stock_id, label, accelerator, tooltip, callback)
         """
         return  [
-            ('FormatMenu', None, _('_Format'), None, None, None),
+            ('GDPFormatMenu', None, _('_Format'), None, None, None),
             ('RewrapText', None, _("Rewrap _text"), None,
                 _("Rewrap the text to 78 characters."),
                 self.formatter.rewrap_text),
@@ -85,7 +85,7 @@ class FormatPlugin(gedit.Plugin):
         """
         self.window = window
         self.formatter = Formatter(window)
-        self.action_group = gtk.ActionGroup("FormatActions")
+        self.action_group = gtk.ActionGroup("GDPFormatActions")
         self.action_group.add_actions(self._actions)
         manager = self.window.get_ui_manager()
         manager.insert_action_group(self.action_group, 1)
