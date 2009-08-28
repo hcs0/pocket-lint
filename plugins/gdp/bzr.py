@@ -1,7 +1,6 @@
 # Copyright (C) 2009 - Curtis Hovey <sinzui.is at verizon.net>
 """Bazaar integration."""
 
-import mimetypes
 import os
 
 import gtk
@@ -24,21 +23,21 @@ try:
 except ImportError:
     HAS_BZR_GTK = False
 
+from gdp import PluginMixin
+
 
 __all__  = [
     'BzrProject',
     ]
 
 
-class BzrProject:
+class BzrProject(PluginMixin):
     """View and manage a bazaar branch."""
 
     def __init__(self, gedit, window, working_tree=None):
-        self.gedit = gedit
         self.window = window
-        self.utf8_encoding = gedit.encoding_get_from_charset('UTF-8')
-        mimetypes.init()
         self.working_tree = working_tree
+        self.initialize(gedit)
 
     @property
     def has_bzr_gtk(self):
@@ -81,23 +80,6 @@ class BzrProject:
         """The parent location tree."""
         return self._get_branch_revision_tree(
             self.working_tree.branch.get_parent())
-
-    def is_doc_open(self, uri):
-        """Return True if the window already has a document opened for uri."""
-        for doc in self.window.get_documents():
-            if doc.get_uri() == uri:
-                return True
-        return False
-
-    def open_doc(self, uri):
-        """Open document at uri if it can be, and is not already, opened."""
-        if self.is_doc_open(uri):
-            return
-        mime_type, charset_ = mimetypes.guess_type(uri)
-        if mime_type is None or 'text/' in mime_type:
-            # This appears to be a file that gedit can open.
-            encoding = self.utf8_encoding
-            self.window.create_tab_from_uri(uri, encoding, 0, False, False)
 
     def open_changed_files(self, other_tree):
         """Open files in the bzr branch."""

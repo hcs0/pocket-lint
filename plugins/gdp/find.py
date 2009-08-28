@@ -18,8 +18,7 @@ from optparse import OptionParser
 
 import gtk
 
-
-mimetypes.init()
+from gdp import PluginMixin
 
 
 def find_matches(root_dir, file_pattern, match_pattern, substitution=None):
@@ -79,10 +78,11 @@ def extract_match(file_path, match_re, substitution=None):
     return None
 
 
-class Finder:
+class Finder(PluginMixin):
     """Find and replace content in files."""
 
-    def __init__(self, window):
+    def __init__(self, gedit, window):
+        self.initialize(gedit)
         self.window = window
         self.widgets = gtk.glade.XML(
             '%s/gdp.glade' % os.path.dirname(__file__), root='find_panel')
@@ -109,17 +109,23 @@ class Finder:
         """Find and present the matches."""
         text = self.widgets.get_widget(
             'match_pattern_combobox').get_active_text()
-        is_re = self.widgets.get_widget('re_checkbox').get_active()
-        if not is_re:
+        if not self.widgets.get_widget('re_checkbox').get_active():
             text = re.escape(text)
-        is_case = self.widgets.get_widget('match_case_checkbox').get_active()
-        if not is_case:
+        if not self.widgets.get_widget('match_case_checkbox').get_active():
             text = '(?i)%s' % text
-        print "Looking for [%s] in %s:" % (text, '.')
-        for summary in find_matches('.', '.', text, substitution=None):
-            print "\n%(file_path)s" % summary
-            for line in summary['lines']:
-                print "    %(lineno)4s: %(text)s" % line
+        file_path = os.path.abspath('./_find.log')
+        try:
+            log = open(file_path, 'w')
+            log.write("Looking for [%s] in %s:\n" % (text, '.'))
+            for summary in find_matches('.', '.', text, substitution=None):
+                log.write("\n%(file_path)s\n" % summary)
+                for line in summary['lines']:
+                    log.write("    %(lineno)4s: %(text)s\n" % line)
+        finally:
+            log.close()
+        uri = 'file://%s' % file_path
+        self.open_doc(uri)
+        self.window.set_active_tab(self.window.get_tab_from_uri(uri))
 
 
 def get_option_parser():

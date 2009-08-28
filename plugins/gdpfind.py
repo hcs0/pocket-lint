@@ -65,7 +65,7 @@ class FindPlugin(gedit.Plugin):
         Add 'Find in files' to the menu.
         """
         self.window = window
-        self.finder = Finder(window)
+        self.finder = Finder(gedit, window)
         self.action_group = gtk.ActionGroup("GDPFindActions")
         self.action_group.set_translation_domain('gedit')
         self.action_group.add_actions(self._actions)
