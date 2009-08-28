@@ -102,12 +102,15 @@ class Finder(PluginMixin):
         combobox.set_model(liststore)
         # Glade setup the first column from string.
         combobox.set_text_column(0)
-        treestore = gtk.TreeStore(gobject.TYPE_STRING)
-        treestore.append(None, ['No matches'])
+        treestore = gtk.TreeStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
+        treestore.append(None, ['', 'No matches'])
         self.column = gtk.TreeViewColumn('Matches')
         cell = gtk.CellRendererText()
-        self.column.pack_start(cell, True)
+        self.column.pack_start(cell, False)
         self.column.add_attribute(cell, 'text', 0)
+        cell = gtk.CellRendererText()
+        self.column.pack_start(cell, True)
+        self.column.add_attribute(cell, 'text', 1)
         match_view = self.widgets.get_widget('match_view')
         match_view.set_model(treestore)
         match_view.append_column(self.column)
@@ -152,10 +155,10 @@ class Finder(PluginMixin):
         if not self.widgets.get_widget('match_case_checkbox').get_active():
             text = '(?i)%s' % text
         for summary in find_matches('.', '.', text, substitution=None):
-            piter = treestore.append(None, [summary['file_path']])
+            piter = treestore.append(None, ['', summary['file_path']])
             for line in summary['lines']:
                 treestore.append(
-                    piter, ['%(lineno)4s: %(text)s' % line])
+                    piter, [line['lineno'], line['text']])
 
 
 def get_option_parser():
