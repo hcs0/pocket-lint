@@ -174,9 +174,9 @@ class Finder(PluginMixin):
         for summary in find_matches('.', '.', text, substitution=None):
             mime_type = summary['mime_type']
             if mime_type is None:
-                mime_type = 'unknown'
+                mime_type = 'gnome-mime-text'
             else:
-                mime_type = 'gnome-mimetype-%s' % mime_type.replace('/', '-')
+                mime_type = 'gnome-mime-%s' % mime_type.replace('/', '-')
             piter = treestore.append(None, (
                 summary['file_path'],  mime_type, None, None))
             for line in summary['lines']:
