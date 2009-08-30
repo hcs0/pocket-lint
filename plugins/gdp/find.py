@@ -110,16 +110,17 @@ class Finder(PluginMixin):
     def setup_widgets(self):
         """Setup the widgets with default data."""
         self.widgets.signal_autoconnect(self.glade_callbacks)
-        liststore = gtk.ListStore(gobject.TYPE_STRING)
-        liststore.set_sort_column_id(0, gtk.SORT_ASCENDING)
-        combobox = self.widgets.get_widget('match_pattern_combobox')
-        combobox.set_model(liststore)
-        # Glade setup the first column from string.
-        combobox.set_text_column(0)
-        treestore = gtk.TreeStore(
+        self.pattern_comboentry = self.widgets.get_widget(
+            'pattern_comboentry')
+        self.setup_comboentry(self.pattern_comboentry)
+        self.path_comboentry = self.widgets.get_widget('path_comboentry')
+        self.setup_comboentry(self.path_comboentry, os.getcwd())
+        self.file_comboentry = self.widgets.get_widget('file_comboentry')
+        self.setup_comboentry(self.file_comboentry, '.')
+        self.treestore = gtk.TreeStore(
             gobject.TYPE_STRING, gobject.TYPE_STRING,
             gobject.TYPE_STRING, gobject.TYPE_STRING)
-        treestore.append(None, ('No matches', None, None, None))
+        self.treestore.append(None, ('No matches', None, None, None))
         self.column = gtk.TreeViewColumn('Matches')
         cell = gtk.CellRendererPixbuf()
         cell.set_property('stock-size', gtk.ICON_SIZE_MENU)
@@ -129,10 +130,27 @@ class Finder(PluginMixin):
         self.column.pack_start(cell, False)
         self.column.set_cell_data_func(cell, set_file_line)
         match_view = self.widgets.get_widget('match_view')
-        match_view.set_model(treestore)
+        match_view.set_model(self.treestore)
         match_view.append_column(self.column)
         match_view.set_search_column(0)
 
+    def setup_comboentry(self, comboentry, default=None):
+        liststore = gtk.ListStore(gobject.TYPE_STRING)
+        liststore.set_sort_column_id(0, gtk.SORT_ASCENDING)
+        comboentry.set_model(liststore)
+        comboentry.set_text_column(0)
+        if default is not None:
+            self.update_comboentry(comboentry, default)
+
+    def update_comboentry(self, comboentry, text):
+        """Update the match text combobox."""
+        is_unique = True
+        for row in iter(comboentry.get_model()):
+            if row[0] == text:
+                is_unique = False
+                break
+        if is_unique:
+            comboentry.append_text(text)
 
     @property
     def glade_callbacks(self):
@@ -140,16 +158,6 @@ class Finder(PluginMixin):
         return {
             'on_find_in_files' : self.on_find_in_files,
             }
-
-    def update_match_text(self, combobox, text):
-        """Update the match text combobox."""
-        is_unique = True
-        for row in iter(combobox.get_model()):
-            if row[0] == text:
-                is_unique = False
-                break
-        if is_unique:
-            combobox.append_text(text)
 
     def show(self, data):
         """Show the finder pane."""
@@ -159,28 +167,28 @@ class Finder(PluginMixin):
 
     def on_find_in_files(self, widget=None):
         """Find and present the matches."""
-        combobox = self.widgets.get_widget('match_pattern_combobox')
-        text = combobox.get_active_text()
-        self.update_match_text(combobox, text)
-        match_view = self.widgets.get_widget('match_view')
-        treestore = match_view.get_model()
-        treestore.clear()
+        pattern = self.pattern_comboentry.get_active_text()
+        self.update_comboentry(self.pattern_comboentry, pattern)
+        self.treestore.clear()
         self.column.props.title = "Matches for [%s] in %s" % (
-            text, os.path.abspath('.'))
+            pattern, os.path.abspath('.'))
         if not self.widgets.get_widget('re_checkbox').get_active():
-            text = re.escape(text)
+            pattern = re.escape(pattern)
         if not self.widgets.get_widget('match_case_checkbox').get_active():
-            text = '(?i)%s' % text
-        for summary in find_matches('.', '.', text, substitution=None):
+            pattern = '(?i)%s' % pattern
+        path = self.path_comboentry.get_active_text() or '.'
+        file_ = self.file_comboentry.get_active_text() or '.'
+        for summary in find_matches(path, file_, pattern, substitution=None):
             mime_type = summary['mime_type']
             if mime_type is None:
                 mime_type = 'gnome-mime-text'
             else:
-                mime_type = 'gnome-mime-%s' % mime_type.replace('/', '-')
-            piter = treestore.append(None, (
+                # mime_type = 'gnome-mime-%s' % mime_type.replace('/', '-')
+                mime_type = 'gnome-mime-text'
+            piter = self.treestore.append(None, (
                 summary['file_path'],  mime_type, None, None))
             for line in summary['lines']:
-                treestore.append(
+                self.treestore.append(
                     piter, (
                         summary['file_path'], None,
                         line['lineno'], line['text']))
