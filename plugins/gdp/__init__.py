@@ -7,6 +7,7 @@ __all__  = [
     ]
 
 
+import os
 import mimetypes
 
 import gobject
@@ -29,7 +30,7 @@ class PluginMixin:
                 return True
         return False
 
-    def open_doc(self, uri):
+    def open_doc(self, uri, jump_to=None):
         """Open document at uri if it can be, and is not already, opened."""
         if self.is_doc_open(uri):
             return
@@ -37,7 +38,17 @@ class PluginMixin:
         if mime_type is None or 'text/' in mime_type:
             # This appears to be a file that gedit can open.
             encoding = self.utf8_encoding
-            self.window.create_tab_from_uri(uri, encoding, 0, False, False)
+            jump_to = jump_to or 0
+            self.window.create_tab_from_uri(
+                uri, encoding, jump_to, False, False)
+
+    def activate_open_doc(self, uri, jump_to=None):
+        """Activate (or open) a document and jump to the line number."""
+        self.open_doc(uri, jump_to)
+        self.window.set_active_tab(self.window.get_tab_from_uri(uri))
+        if jump_to is not None:
+            self.window.get_active_document().goto_line(jump_to)
+            self.window.get_active_view().scroll_to_cursor()
 
 
 def set_file_line(column, cell, model, piter):
@@ -46,18 +57,32 @@ def set_file_line(column, cell, model, piter):
     mime_type  = model.get_value(piter, 1)
     line_no = model.get_value(piter, 2)
     text = model.get_value(piter, 3)
-    if line_no is None:
+    if text is None:
         cell.props.text = file_path
     else:
         cell.props.text = '%4s:  %s' % (line_no, text)
 
 
-def setup_file_lines_view(match_view):
+def on_file_lines_row_activated(treeview, path, view_column, plugin):
+    """Open the file and jump to the line."""
+    treestore = treeview.get_model()
+    piter = treestore.get_iter(path)
+    base_dir = treestore.get_value(piter, 4)
+    path = treestore.get_value(piter, 0)
+    if base_dir is None or path is None:
+        # There is not enough information to open a document.
+        return
+    uri  = 'file://%s' % os.path.abspath(os.path.join(base_dir, path))
+    line_no = treestore.get_value(piter, 2)
+    plugin.activate_open_doc(uri, jump_to=line_no)
+
+
+def setup_file_lines_view(match_view, plugin):
     """Setup a TreeView to displau files and their lines."""
     treestore = gtk.TreeStore(
-        gobject.TYPE_STRING, gobject.TYPE_STRING,
+        gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_INT,
         gobject.TYPE_STRING, gobject.TYPE_STRING)
-    treestore.append(None, ('No matches', None, None, None))
+    treestore.append(None, ('No matches', None, 0, None, None))
     column = gtk.TreeViewColumn('Matches')
     cell = gtk.CellRendererPixbuf()
     cell.set_property('stock-size', gtk.ICON_SIZE_MENU)
@@ -69,3 +94,4 @@ def setup_file_lines_view(match_view):
     match_view.set_model(treestore)
     match_view.append_column(column)
     match_view.set_search_column(0)
+    match_view.connect('row-activated', on_file_lines_row_activated, plugin)

@@ -132,8 +132,7 @@ class BzrProject(PluginMixin):
         finally:
             diff_file.close()
         uri = 'file://%s' % self.diff_file_path
-        self.open_doc(uri)
-        self.window.set_active_tab(self.window.get_tab_from_uri(uri))
+        self.activate_open_doc(uri)
 
     def diff_uncommited_changes(self, data):
         """Create a diff of uncommitted changes."""

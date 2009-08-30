@@ -109,7 +109,7 @@ class Finder(PluginMixin):
             'substitution_comboentry')
         self.setup_comboentry(self.substitution_comboentry)
         self.match_view = self.widgets.get_widget('match_view')
-        setup_file_lines_view(self.match_view)
+        setup_file_lines_view(self.match_view, self)
 
     def setup_comboentry(self, comboentry, default=None):
         liststore = gtk.ListStore(gobject.TYPE_STRING)
@@ -154,14 +154,15 @@ class Finder(PluginMixin):
         self.update_comboentry(self.pattern_comboentry, pattern)
         treestore = self.match_view.get_model()
         treestore.clear()
+        path = self.path_comboentry.get_active_text() or '.'
+        base_dir = os.path.abspath(path)
+        file_ = self.file_comboentry.get_active_text() or '.'
         self.match_view.get_column(0).props.title = (
-            "Matches for [%s] in %s" % (pattern, os.path.abspath('.')))
+            "Matches for [%s] in %s" % (pattern, base_dir))
         if not self.widgets.get_widget('re_checkbox').get_active():
             pattern = re.escape(pattern)
         if not self.widgets.get_widget('match_case_checkbox').get_active():
             pattern = '(?i)%s' % pattern
-        path = self.path_comboentry.get_active_text() or '.'
-        file_ = self.file_comboentry.get_active_text() or '.'
         for summary in find_matches(
             path, file_, pattern, substitution=substitution):
             file_path = summary['file_path']
@@ -172,10 +173,11 @@ class Finder(PluginMixin):
                 # mime_type = 'gnome-mime-%s' % mime_type.replace('/', '-')
                 mime_type = 'gnome-mime-text'
             piter = treestore.append(
-                None, (file_path,  mime_type, None, None))
+                None, (file_path,  mime_type, 0, None, base_dir))
             for line in summary['lines']:
                 treestore.append(
-                    piter, (file_path, None, line['lineno'], line['text']))
+                    piter,
+                    (file_path, None, line['lineno'], line['text'], base_dir))
 
     def on_replace_in_files(self, widget=None):
         """Find, replace, and present the matches."""
