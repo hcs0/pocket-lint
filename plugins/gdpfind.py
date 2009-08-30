@@ -32,6 +32,7 @@ ui_xml = """
   <menubar name="MenuBar">
     <menu name="SearchMenu">
       <menuitem action="FindFiles"/>
+      <menuitem action="ReplaceFiles"/>
     </menu>
   </menubar>
 </ui>
@@ -55,9 +56,13 @@ class FindPlugin(gedit.Plugin):
         (name, stock_id, label, accelerator, tooltip, callback)
         """
         return [
-            ('FindFiles', None, _('Find i_n files...'),
-                '<Control><Shift>f', _('Find in files'),
-                self.finder.show)]
+            ('FindFiles', None, _('Find in files...'),
+                '<Control><Shift>f', _('Fi_nd in files'),
+                self.finder.show),
+            ('ReplaceFiles', None, _('R_eplace in files...'),
+                '<Control><Shift>h', _('Replace in files'),
+                self.finder.show_replace)
+            ]
 
     def activate(self, window):
         """Activate the plugin in the current top-level window.

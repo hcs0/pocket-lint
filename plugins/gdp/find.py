@@ -169,6 +169,11 @@ class Finder(PluginMixin):
         panel.activate_item(self.find_panel)
         panel.props.visible = True
 
+    def show_replace(self, data):
+        """Show the finder pane and expand replace."""
+        self.show(None)
+        self.widgets.get_widget('actions').activate()
+
     def on_find_in_files(self, widget=None, substitution=None):
         """Find and present the matches."""
         pattern = self.pattern_comboentry.get_active_text()
