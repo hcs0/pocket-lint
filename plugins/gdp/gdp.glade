@@ -158,14 +158,14 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkScrolledWindow" id="scrolledwindow1">
+              <widget class="GtkScrolledWindow" id="file_lines_scrolledwindow">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
                 <child>
-                  <widget class="GtkTreeView" id="match_view">
+                  <widget class="GtkTreeView" id="file_lines_view">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                   </widget>

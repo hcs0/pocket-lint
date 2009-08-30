@@ -108,8 +108,8 @@ class Finder(PluginMixin):
         self.substitution_comboentry = self.widgets.get_widget(
             'substitution_comboentry')
         self.setup_comboentry(self.substitution_comboentry)
-        self.match_view = self.widgets.get_widget('match_view')
-        setup_file_lines_view(self.match_view, self)
+        self.file_lines_view = self.widgets.get_widget('file_lines_view')
+        setup_file_lines_view(self.file_lines_view, self)
 
     def setup_comboentry(self, comboentry, default=None):
         liststore = gtk.ListStore(gobject.TYPE_STRING)
@@ -152,12 +152,12 @@ class Finder(PluginMixin):
         """Find and present the matches."""
         pattern = self.pattern_comboentry.get_active_text()
         self.update_comboentry(self.pattern_comboentry, pattern)
-        treestore = self.match_view.get_model()
+        treestore = self.file_lines_view.get_model()
         treestore.clear()
         path = self.path_comboentry.get_active_text() or '.'
         base_dir = os.path.abspath(path)
         file_ = self.file_comboentry.get_active_text() or '.'
-        self.match_view.get_column(0).props.title = (
+        self.file_lines_view.get_column(0).props.title = (
             "Matches for [%s] in %s" % (pattern, base_dir))
         if not self.widgets.get_widget('re_checkbox').get_active():
             pattern = re.escape(pattern)
