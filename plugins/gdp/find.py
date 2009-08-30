@@ -19,7 +19,7 @@ from optparse import OptionParser
 import gobject
 import gtk
 
-from gdp import PluginMixin
+from gdp import PluginMixin, setup_file_lines_view
 
 
 def find_matches(root_dir, file_pattern, match_pattern, substitution=None):
@@ -81,18 +81,6 @@ def extract_match(file_path, match_re, substitution=None):
     return None
 
 
-def set_file_line(column, cell, model, piter):
-    """Set the value as file or line information."""
-    file_path  = model.get_value(piter, 0)
-    mime_type  = model.get_value(piter, 1)
-    line_no = model.get_value(piter, 2)
-    text = model.get_value(piter, 3)
-    if line_no is None:
-        cell.props.text = file_path
-    else:
-        cell.props.text = '%4s:  %s' % (line_no, text)
-
-
 class Finder(PluginMixin):
     """Find and replace content in files."""
 
@@ -120,22 +108,8 @@ class Finder(PluginMixin):
         self.substitution_comboentry = self.widgets.get_widget(
             'substitution_comboentry')
         self.setup_comboentry(self.substitution_comboentry)
-        self.treestore = gtk.TreeStore(
-            gobject.TYPE_STRING, gobject.TYPE_STRING,
-            gobject.TYPE_STRING, gobject.TYPE_STRING)
-        self.treestore.append(None, ('No matches', None, None, None))
-        self.column = gtk.TreeViewColumn('Matches')
-        cell = gtk.CellRendererPixbuf()
-        cell.set_property('stock-size', gtk.ICON_SIZE_MENU)
-        self.column.pack_start(cell, False)
-        self.column.add_attribute(cell, 'icon-name', 1)
-        cell = gtk.CellRendererText()
-        self.column.pack_start(cell, False)
-        self.column.set_cell_data_func(cell, set_file_line)
-        match_view = self.widgets.get_widget('match_view')
-        match_view.set_model(self.treestore)
-        match_view.append_column(self.column)
-        match_view.set_search_column(0)
+        self.match_view = self.widgets.get_widget('match_view')
+        setup_file_lines_view(self.match_view)
 
     def setup_comboentry(self, comboentry, default=None):
         liststore = gtk.ListStore(gobject.TYPE_STRING)
@@ -178,9 +152,10 @@ class Finder(PluginMixin):
         """Find and present the matches."""
         pattern = self.pattern_comboentry.get_active_text()
         self.update_comboentry(self.pattern_comboentry, pattern)
-        self.treestore.clear()
-        self.column.props.title = "Matches for [%s] in %s" % (
-            pattern, os.path.abspath('.'))
+        treestore = self.match_view.get_model()
+        treestore.clear()
+        self.match_view.get_column(0).props.title = (
+            "Matches for [%s] in %s" % (pattern, os.path.abspath('.')))
         if not self.widgets.get_widget('re_checkbox').get_active():
             pattern = re.escape(pattern)
         if not self.widgets.get_widget('match_case_checkbox').get_active():
@@ -189,19 +164,18 @@ class Finder(PluginMixin):
         file_ = self.file_comboentry.get_active_text() or '.'
         for summary in find_matches(
             path, file_, pattern, substitution=substitution):
+            file_path = summary['file_path']
             mime_type = summary['mime_type']
             if mime_type is None:
                 mime_type = 'gnome-mime-text'
             else:
                 # mime_type = 'gnome-mime-%s' % mime_type.replace('/', '-')
                 mime_type = 'gnome-mime-text'
-            piter = self.treestore.append(None, (
-                summary['file_path'],  mime_type, None, None))
+            piter = treestore.append(
+                None, (file_path,  mime_type, None, None))
             for line in summary['lines']:
-                self.treestore.append(
-                    piter, (
-                        summary['file_path'], None,
-                        line['lineno'], line['text']))
+                treestore.append(
+                    piter, (file_path, None, line['lineno'], line['text']))
 
     def on_replace_in_files(self, widget=None):
         """Find, replace, and present the matches."""
