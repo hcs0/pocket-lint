@@ -117,6 +117,9 @@ class Finder(PluginMixin):
         self.setup_comboentry(self.path_comboentry, os.getcwd())
         self.file_comboentry = self.widgets.get_widget('file_comboentry')
         self.setup_comboentry(self.file_comboentry, '.')
+        self.substitution_comboentry = self.widgets.get_widget(
+            'substitution_comboentry')
+        self.setup_comboentry(self.substitution_comboentry)
         self.treestore = gtk.TreeStore(
             gobject.TYPE_STRING, gobject.TYPE_STRING,
             gobject.TYPE_STRING, gobject.TYPE_STRING)
@@ -157,6 +160,7 @@ class Finder(PluginMixin):
         """The dict of callbacks for the glade widgets."""
         return {
             'on_find_in_files' : self.on_find_in_files,
+            'on_replace_in_files' : self.on_replace_in_files,
             }
 
     def show(self, data):
@@ -165,7 +169,7 @@ class Finder(PluginMixin):
         panel.activate_item(self.find_panel)
         panel.props.visible = True
 
-    def on_find_in_files(self, widget=None):
+    def on_find_in_files(self, widget=None, substitution=None):
         """Find and present the matches."""
         pattern = self.pattern_comboentry.get_active_text()
         self.update_comboentry(self.pattern_comboentry, pattern)
@@ -178,7 +182,8 @@ class Finder(PluginMixin):
             pattern = '(?i)%s' % pattern
         path = self.path_comboentry.get_active_text() or '.'
         file_ = self.file_comboentry.get_active_text() or '.'
-        for summary in find_matches(path, file_, pattern, substitution=None):
+        for summary in find_matches(
+            path, file_, pattern, substitution=substitution):
             mime_type = summary['mime_type']
             if mime_type is None:
                 mime_type = 'gnome-mime-text'
@@ -192,6 +197,12 @@ class Finder(PluginMixin):
                     piter, (
                         summary['file_path'], None,
                         line['lineno'], line['text']))
+
+    def on_replace_in_files(self, widget=None):
+        """Find, replace, and present the matches."""
+        substitution = self.substitution_comboentry.get_active_text() or ''
+        self.update_comboentry(self.substitution_comboentry, substitution)
+        self.on_find_in_files(substitution=substitution)
 
 
 def get_option_parser():
