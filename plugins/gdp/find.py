@@ -90,7 +90,7 @@ def set_file_line(column, cell, model, piter):
     if line_no is None:
         cell.props.text = file_path
     else:
-        cell.props.text = '%4s  %s' % (line_no, text)
+        cell.props.text = '%4s:  %s' % (line_no, text)
 
 
 class Finder(PluginMixin):
