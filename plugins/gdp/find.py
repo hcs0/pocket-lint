@@ -109,7 +109,7 @@ class Finder(PluginMixin):
             'substitution_comboentry')
         self.setup_comboentry(self.substitution_comboentry)
         self.file_lines_view = self.widgets.get_widget('file_lines_view')
-        setup_file_lines_view(self.file_lines_view, self)
+        setup_file_lines_view(self.file_lines_view, self, 'Matches')
 
     def setup_comboentry(self, comboentry, default=None):
         liststore = gtk.ListStore(gobject.TYPE_STRING)
@@ -178,6 +178,9 @@ class Finder(PluginMixin):
                 treestore.append(
                     piter,
                     (file_path, None, line['lineno'], line['text'], base_dir))
+        if treestore.get_iter_first() is None:
+            treestore.append(None, ('No matches found',  None, 0, None, None))
+
 
     def on_replace_in_files(self, widget=None):
         """Find, replace, and present the matches."""

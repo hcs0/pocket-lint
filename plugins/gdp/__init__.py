@@ -85,13 +85,13 @@ def on_file_lines_row_activated(treeview, path, view_column, plugin):
     plugin.activate_open_doc(uri, jump_to=line_no)
 
 
-def setup_file_lines_view(file_lines_view, plugin):
+def setup_file_lines_view(file_lines_view, plugin, column_title):
     """Setup a TreeView to displau files and their lines."""
     treestore = gtk.TreeStore(
         gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_INT,
         gobject.TYPE_STRING, gobject.TYPE_STRING)
-    treestore.append(None, ('No matches', None, 0, None, None))
-    column = gtk.TreeViewColumn('Matches')
+    treestore.append(None, ('', None, 0, None, None))
+    column = gtk.TreeViewColumn(column_title)
     cell = gtk.CellRendererPixbuf()
     cell.set_property('stock-size', gtk.ICON_SIZE_MENU)
     column.pack_start(cell, False)

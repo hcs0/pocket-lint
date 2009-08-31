@@ -11,7 +11,7 @@ from gtk import glade
 
 from gdp import PluginMixin, setup_file_lines_view
 from gdp.formatdoctest import DoctestReviewer
-from gdp.formatcheck import UniversalChecker
+from gdp.formatcheck import Reporter, UniversalChecker
 
 __all__  = [
     'Formatter',
@@ -40,7 +40,7 @@ class Formatter(PluginMixin):
             root='file_lines_scrolledwindow')
         self.file_lines = self.widgets.get_widget('file_lines_scrolledwindow')
         self.file_lines_view = self.widgets.get_widget('file_lines_view')
-        setup_file_lines_view(self.file_lines_view, self)
+        setup_file_lines_view(self.file_lines_view, self, 'Problems')
         panel = window.get_bottom_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)
         panel.add_item(self.file_lines, 'Check syntax and style', icon)
@@ -228,8 +228,13 @@ class Formatter(PluginMixin):
             language_id = 'text'
         self.file_lines_view.get_model().clear()
         self.show(None)
+        reporter = Reporter(
+            Reporter.FILE_LINES, treeview=self.file_lines_view)
         checker = UniversalChecker(
-            file_path, text=self.text, language=language_id)
-        checker.set_report(
-            checker.FILE_LINES, treeview=self.file_lines_view)
+            file_path, text=self.text, language=language_id,
+            reporter=reporter)
         checker.check()
+        model = self.file_lines_view.get_model()
+        if model.get_iter_first() is None:
+            model.append(
+                None, ('No problems found',  None, 0, None, None))
