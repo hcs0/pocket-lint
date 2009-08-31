@@ -4,24 +4,28 @@
 import os
 import re
 
+import gtk
 from textwrap import wrap
 from gettext import gettext as _
 from gtk import glade
 
+from gdp import PluginMixin, setup_file_lines_view
 from gdp.formatdoctest import DoctestReviewer
-
+from gdp.formatcheck import UniversalChecker
 
 __all__  = [
     'Formatter',
     ]
 
 
-class Formatter:
+class Formatter(PluginMixin):
     """Format Gedit Document and selection text."""
 
     def __init__(self, window):
         self.window = window
-        widgets = glade.XML('%s/gdp.glade' % os.path.dirname(__file__))
+        # The replace in text uses the replace dialog.
+        widgets = glade.XML(
+            '%s/gdp.glade' % os.path.dirname(__file__), root='replace_dialog')
         widgets.signal_autoconnect(self.glade_callbacks)
         self.replace_dialog = widgets.get_widget('replace_dialog')
         self.replace_label = widgets.get_widget('replace_label')
@@ -30,6 +34,16 @@ class Formatter:
             'replace_pattern_entry')
         self.replace_replacement_entry = widgets.get_widget(
             'replace_replacement_entry')
+        # Syntax and style reporting use the panel.
+        self.widgets = gtk.glade.XML(
+            '%s/gdp.glade' % os.path.dirname(__file__),
+            root='file_lines_scrolledwindow')
+        self.file_lines = self.widgets.get_widget('file_lines_scrolledwindow')
+        self.file_lines_view = self.widgets.get_widget('file_lines_view')
+        setup_file_lines_view(self.file_lines_view, self)
+        panel = window.get_bottom_panel()
+        icon = gtk.image_new_from_stock(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)
+        panel.add_item(self.file_lines, 'Check syntax and style', icon)
 
 
     @property
@@ -39,7 +53,6 @@ class Formatter:
             'on_replace_quit' : self.on_replace_quit,
             'on_replace' : self.on_replace,
             }
-
 
     def _get_bounded_text(self):
         """Return tuple of the bounds and formattable text.
@@ -190,6 +203,12 @@ class Formatter:
         self._put_bounded_text(bounds, '\n'.join(lines))
         self.on_replace_quit()
 
+    def show(self, data):
+        """Show the finder pane."""
+        panel = self.window.get_bottom_panel()
+        panel.activate_item(self.file_lines_view)
+        panel.props.visible = True
+
     def reformat_doctest(self, data):
         """Reformat the doctest."""
         bounds, text = self._get_bounded_text()
@@ -197,3 +216,19 @@ class Formatter:
         reviewer = DoctestReviewer(text, file_name)
         new_text = reviewer.format()
         self._put_bounded_text(bounds, new_text)
+
+    def check_style(self, data):
+        """Check the style and syntax of the active document."""
+        document = self.window.get_active_document()
+        file_path = document.get_uri_for_display()
+        language = document.get_language()
+        if language is not None:
+            language_id = language.get_id()
+        else:
+            language_id = 'text'
+        self.file_lines_view.get_model().clear()
+        checker = UniversalChecker(
+            file_path, text=self.text, language=language_id)
+        checker.set_report(
+            checker.FILE_LINES, treeview=self.file_lines_view)
+        checker.check()

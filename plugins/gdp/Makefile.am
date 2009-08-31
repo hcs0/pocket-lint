@@ -5,6 +5,7 @@ plugin_PYTHON = \
 	bzr.py \
 	find.py \
 	format.py \
+	formatcheck.py \
 	formatdoctest.py \
 	syntaxcompleter.py
 

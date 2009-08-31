@@ -7,8 +7,8 @@ __all__  = [
     ]
 
 
-import os
 import mimetypes
+import os
 
 import gobject
 import gtk
@@ -49,6 +49,14 @@ class PluginMixin:
         if jump_to is not None:
             self.window.get_active_document().goto_line(jump_to)
             self.window.get_active_view().scroll_to_cursor()
+
+    @property
+    def text(self):
+        """The text of the active gedit.Document or None."""
+        document = self.window.get_active_document()
+        start_iter = document.get_start_iter()
+        end_iter = document.get_end_iter()
+        return document.get_text(start_iter , end_iter)
 
 
 def set_file_line(column, cell, model, piter):

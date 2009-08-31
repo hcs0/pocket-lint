@@ -32,6 +32,11 @@ menu_xml = """
           </menu>
       </placeholder>
     </menu>
+    <menu name='ToolsMenu' action='Tools'>
+      <placeholder name="EditOps_6">
+        <menuitem action="CheckProblems"/>
+      </placeholder>
+    </menu>
   </menubar>
 </ui>
 """
@@ -71,6 +76,9 @@ class FormatPlugin(gedit.Plugin):
             ('ReformatDoctest', None, _("Reformat _doctest"), None,
                 _("Reformat the doctest."),
                 self.formatter.reformat_doctest),
+            ('CheckProblems', None, _("C_heck syntax and style"), 'F3',
+                _("Check syntax and style problems."),
+                self.formatter.check_style),
             ]
 
     def __init__(self):
