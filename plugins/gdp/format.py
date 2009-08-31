@@ -227,6 +227,7 @@ class Formatter(PluginMixin):
         else:
             language_id = 'text'
         self.file_lines_view.get_model().clear()
+        self.show(None)
         checker = UniversalChecker(
             file_path, text=self.text, language=language_id)
         checker.set_report(
