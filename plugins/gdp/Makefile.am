@@ -9,8 +9,10 @@ plugin_PYTHON = \
 	formatdoctest.py \
 	syntaxcompleter.py
 
-gladedir = $(plugindir)
-glade_DATA = gdp.glade find.ui format.ui
+uidir = $(plugindir)
+ui_DATA = \
+	find.ui \
+	format.ui
 
 CLEANFILES = *.bak *.pyc *.pyo
 DISTCLEANFILES = *.bak *.pyc *.pyo

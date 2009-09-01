@@ -2,7 +2,7 @@
 
 __metaclass__ = type
 
-__all__  = [
+__all__ = [
     'PluginMixin',
     ]
 
@@ -56,13 +56,13 @@ class PluginMixin:
         document = self.window.get_active_document()
         start_iter = document.get_start_iter()
         end_iter = document.get_end_iter()
-        return document.get_text(start_iter , end_iter)
+        return document.get_text(start_iter, end_iter)
 
 
 def set_file_line(column, cell, model, piter):
     """Set the value as file or line information."""
-    file_path  = model.get_value(piter, 0)
-    mime_type  = model.get_value(piter, 1)
+    file_path = model.get_value(piter, 0)
+    mime_type = model.get_value(piter, 1)
     line_no = model.get_value(piter, 2)
     text = model.get_value(piter, 3)
     if text is None:
@@ -80,8 +80,10 @@ def on_file_lines_row_activated(treeview, path, view_column, plugin):
     if base_dir is None or path is None:
         # There is not enough information to open a document.
         return
-    uri  = 'file://%s' % os.path.abspath(os.path.join(base_dir, path))
-    line_no = treestore.get_value(piter, 2)
+    uri = 'file://%s' % os.path.abspath(os.path.join(base_dir, path))
+    line_no = treestore.get_value(piter, 2) - 1
+    if line_no < 0:
+        line_no = 0
     plugin.activate_open_doc(uri, jump_to=line_no)
 
 

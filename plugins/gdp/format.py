@@ -7,13 +7,12 @@ import re
 import gtk
 from textwrap import wrap
 from gettext import gettext as _
-from gtk import glade
 
 from gdp import PluginMixin, setup_file_lines_view
 from gdp.formatdoctest import DoctestReviewer
 from gdp.formatcheck import Reporter, UniversalChecker
 
-__all__  = [
+__all__ = [
     'Formatter',
     ]
 
@@ -36,23 +35,22 @@ class Formatter(PluginMixin):
         self.replace_replacement_entry = widgets.get_object(
             'replace_replacement_entry')
         # Syntax and style reporting use the panel.
-        other_widgets = gtk.glade.XML(
-            '%s/gdp.glade' % os.path.dirname(__file__),
-            root='file_lines_scrolledwindow')
-        self.file_lines = other_widgets.get_widget('file_lines_scrolledwindow')
-        self.file_lines_view = other_widgets.get_widget('file_lines_view')
+        other_widgets = gtk.Builder()
+        other_widgets.add_from_file(
+            '%s/format.ui' % os.path.dirname(__file__))
+        self.file_lines = other_widgets.get_object('file_lines_scrolledwindow')
+        self.file_lines_view = other_widgets.get_object('file_lines_view')
         setup_file_lines_view(self.file_lines_view, self, 'Problems')
         panel = window.get_bottom_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)
         panel.add_item(self.file_lines, 'Check syntax and style', icon)
 
-
     @property
     def ui_callbacks(self):
         """The dict of callbacks for the ui widgets."""
         return {
-            'on_replace_quit' : self.on_replace_quit,
-            'on_replace' : self.on_replace,
+            'on_replace_quit': self.on_replace_quit,
+            'on_replace': self.on_replace,
             }
 
     def _get_bounded_text(self):
@@ -238,4 +236,4 @@ class Formatter(PluginMixin):
         model = self.file_lines_view.get_model()
         if model.get_iter_first() is None:
             model.append(
-                None, ('No problems found',  None, 0, None, None))
+                None, ('No problems found', None, 0, None, None))
