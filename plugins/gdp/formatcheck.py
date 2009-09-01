@@ -4,8 +4,8 @@
 __metatype__ = type
 
 __all__ = [
-    'Reporter'
-    'UniversalChecker'
+    'Reporter',
+    'UniversalChecker',
     ]
 
 
@@ -14,6 +14,7 @@ import os
 
 from gdp.formatdoctest import DoctestReviewer
 
+import pep8
 from pyflakes.checker import Checker
 
 
@@ -48,7 +49,7 @@ class Reporter:
         mime_type = 'gnome-mime-text'
         if self.piter is None:
             self.piter = self.treestore.append(
-                None, (file_name,  mime_type, 0, None, base_dir))
+                None, (file_name, mime_type, 0, None, base_dir))
         self.treestore.append(
             self.piter, (file_name, None, line_no, message, base_dir))
 
@@ -171,4 +172,15 @@ class PythonChecker(BaseChecker):
             for warning in warnings.messages:
                 dummy, line_no, message = str(warning).split(':')
                 self.message(int(line_no), message.strip())
+        try:
+            # Monkey patch pep8 for direct access to the messages.
+            original_report_error = pep8.Checker.report_error
 
+            def pep8_report_error(ignore, line_no, offset, message, check):
+                self.message(line_no, message)
+
+            pep8.Checker.report_error = pep8_report_error
+            pep8.process_options([self.file_path])
+            pep8.Checker(self.file_path).check_all()
+        finally:
+            Checker.report_error = original_report_error
