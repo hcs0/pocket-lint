@@ -1,7 +1,7 @@
 General Information
 ===================
 
-This is version 2.22.0 of gedit-developer-plugins (GDP). GDP are a
+This is version 2.26.0 of gedit-developer-plugins (GDP). GDP are a
 set of plugins for gedit that provide additional editing features
 for software development.
 
@@ -23,18 +23,24 @@ Or you may choose to install the plugins in another location.
     make install
 
 To install the plugins in the same location as the standard
-Gedit plugins, set the prefix path to the same as gedit (usually
+gedit plugins, set the prefix path to the same as gedit (usually
 /usr).
 
 
 Working versions
 ----------------
 
-The version number is synced to the Gedit version. Plugins may work
-with older versions of Gedit. Run the following command from a
+The version number is synced to the gedit version. Plugins may work
+with older versions of gedit. Run the following command from a
 terminal to run the test suite.
 
     make check
 
 If the test suite passes, the plugins will probably work.
 
+
+Contrib
+-------
+
+GDP includes the work of other projects when it simplifies dependencies.
+    * pep8.py

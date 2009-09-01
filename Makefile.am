@@ -1,4 +1,4 @@
-SUBDIRS = po testing plugins snippets tools language-specs
+SUBDIRS = po testing plugins snippets tools language-specs contrib
 
 NULL =
 

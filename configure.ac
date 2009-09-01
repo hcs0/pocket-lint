@@ -89,6 +89,7 @@ AC_CONFIG_FILES([
     tools/Makefile
     snippets/Makefile
     language-specs/Makefile
+    contrib/Makefile
 ])
 AC_OUTPUT
 
