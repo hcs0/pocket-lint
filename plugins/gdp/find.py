@@ -62,7 +62,7 @@ def extract_match(file_path, match_re, substitution=None):
             match = match_re.search(line)
             if match:
                 lines.append(
-                    {'lineno' : lineno + 1, 'text' : line.strip(),
+                    {'lineno': lineno + 1, 'text': line.strip(),
                      'match': match})
                 if substitution is not None:
                     line = match_re.sub(substitution, line)
@@ -77,7 +77,7 @@ def extract_match(file_path, match_re, substitution=None):
                 file_.write(''.join(content))
             finally:
                 file_.close()
-        return {'file_path' : file_path, 'lines' : lines}
+        return {'file_path': file_path, 'lines': lines}
     return None
 
 
@@ -87,28 +87,29 @@ class Finder(PluginMixin):
     def __init__(self, gedit, window):
         self.initialize(gedit)
         self.window = window
-        self.widgets = gtk.glade.XML(
-            '%s/gdp.glade' % os.path.dirname(__file__), root='find_panel')
+        self.widgets = gtk.Builder()
+        self.widgets.add_from_file(
+            '%s/find.ui' % os.path.dirname(__file__))
         self.setup_widgets()
-        self.find_panel = self.widgets.get_widget('find_panel')
+        self.find_panel = self.widgets.get_object('find_panel')
         panel = window.get_bottom_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU)
         panel.add_item(self.find_panel, 'Find in files', icon)
 
     def setup_widgets(self):
         """Setup the widgets with default data."""
-        self.widgets.signal_autoconnect(self.glade_callbacks)
-        self.pattern_comboentry = self.widgets.get_widget(
+        self.widgets.connect_signals(self.ui_callbacks)
+        self.pattern_comboentry = self.widgets.get_object(
             'pattern_comboentry')
         self.setup_comboentry(self.pattern_comboentry)
-        self.path_comboentry = self.widgets.get_widget('path_comboentry')
+        self.path_comboentry = self.widgets.get_object('path_comboentry')
         self.setup_comboentry(self.path_comboentry, os.getcwd())
-        self.file_comboentry = self.widgets.get_widget('file_comboentry')
+        self.file_comboentry = self.widgets.get_object('file_comboentry')
         self.setup_comboentry(self.file_comboentry, '.')
-        self.substitution_comboentry = self.widgets.get_widget(
+        self.substitution_comboentry = self.widgets.get_object(
             'substitution_comboentry')
         self.setup_comboentry(self.substitution_comboentry)
-        self.file_lines_view = self.widgets.get_widget('file_lines_view')
+        self.file_lines_view = self.widgets.get_object('file_lines_view')
         setup_file_lines_view(self.file_lines_view, self, 'Matches')
 
     def setup_comboentry(self, comboentry, default=None):
@@ -130,11 +131,11 @@ class Finder(PluginMixin):
             comboentry.append_text(text)
 
     @property
-    def glade_callbacks(self):
-        """The dict of callbacks for the glade widgets."""
+    def ui_callbacks(self):
+        """The dict of callbacks for the ui widgets."""
         return {
-            'on_find_in_files' : self.on_find_in_files,
-            'on_replace_in_files' : self.on_replace_in_files,
+            'on_find_in_files': self.on_find_in_files,
+            'on_replace_in_files': self.on_replace_in_files,
             }
 
     def show(self, data):
@@ -146,7 +147,7 @@ class Finder(PluginMixin):
     def show_replace(self, data):
         """Show the finder pane and expand replace."""
         self.show(None)
-        self.widgets.get_widget('actions').activate()
+        self.widgets.get_object('actions').activate()
 
     def on_find_in_files(self, widget=None, substitution=None):
         """Find and present the matches."""
@@ -159,9 +160,9 @@ class Finder(PluginMixin):
         file_ = self.file_comboentry.get_active_text() or '.'
         self.file_lines_view.get_column(0).props.title = (
             "Matches for [%s] in %s" % (pattern, base_dir))
-        if not self.widgets.get_widget('re_checkbox').get_active():
+        if not self.widgets.get_object('re_checkbox').get_active():
             pattern = re.escape(pattern)
-        if not self.widgets.get_widget('match_case_checkbox').get_active():
+        if not self.widgets.get_object('match_case_checkbox').get_active():
             pattern = '(?i)%s' % pattern
         for summary in find_matches(
             path, file_, pattern, substitution=substitution):
@@ -173,14 +174,13 @@ class Finder(PluginMixin):
                 # mime_type = 'gnome-mime-%s' % mime_type.replace('/', '-')
                 mime_type = 'gnome-mime-text'
             piter = treestore.append(
-                None, (file_path,  mime_type, 0, None, base_dir))
+                None, (file_path, mime_type, 0, None, base_dir))
             for line in summary['lines']:
                 treestore.append(
                     piter,
                     (file_path, None, line['lineno'], line['text'], base_dir))
         if treestore.get_iter_first() is None:
-            treestore.append(None, ('No matches found',  None, 0, None, None))
-
+            treestore.append(None, ('No matches found', None, 0, None, None))
 
     def on_replace_in_files(self, widget=None):
         """Find, replace, and present the matches."""

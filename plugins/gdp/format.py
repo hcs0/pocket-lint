@@ -24,22 +24,23 @@ class Formatter(PluginMixin):
     def __init__(self, window):
         self.window = window
         # The replace in text uses the replace dialog.
-        widgets = glade.XML(
-            '%s/gdp.glade' % os.path.dirname(__file__), root='replace_dialog')
-        widgets.signal_autoconnect(self.glade_callbacks)
-        self.replace_dialog = widgets.get_widget('replace_dialog')
-        self.replace_label = widgets.get_widget('replace_label')
+        widgets = gtk.Builder()
+        widgets.add_from_file(
+            '%s/format.ui' % os.path.dirname(__file__))
+        widgets.connect_signals(self.ui_callbacks)
+        self.replace_dialog = widgets.get_object('replace_dialog')
+        self.replace_label = widgets.get_object('replace_label')
         self.replace_label_text = self.replace_label.get_text()
-        self.replace_pattern_entry = widgets.get_widget(
+        self.replace_pattern_entry = widgets.get_object(
             'replace_pattern_entry')
-        self.replace_replacement_entry = widgets.get_widget(
+        self.replace_replacement_entry = widgets.get_object(
             'replace_replacement_entry')
         # Syntax and style reporting use the panel.
-        self.widgets = gtk.glade.XML(
+        other_widgets = gtk.glade.XML(
             '%s/gdp.glade' % os.path.dirname(__file__),
             root='file_lines_scrolledwindow')
-        self.file_lines = self.widgets.get_widget('file_lines_scrolledwindow')
-        self.file_lines_view = self.widgets.get_widget('file_lines_view')
+        self.file_lines = other_widgets.get_widget('file_lines_scrolledwindow')
+        self.file_lines_view = other_widgets.get_widget('file_lines_view')
         setup_file_lines_view(self.file_lines_view, self, 'Problems')
         panel = window.get_bottom_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)
@@ -47,8 +48,8 @@ class Formatter(PluginMixin):
 
 
     @property
-    def glade_callbacks(self):
-        """The dict of callbacks for the glade widgets."""
+    def ui_callbacks(self):
+        """The dict of callbacks for the ui widgets."""
         return {
             'on_replace_quit' : self.on_replace_quit,
             'on_replace' : self.on_replace,

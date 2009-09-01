@@ -10,7 +10,7 @@ plugin_PYTHON = \
 	syntaxcompleter.py
 
 gladedir = $(plugindir)
-glade_DATA = gdp.glade
+glade_DATA = gdp.glade find.ui format.ui
 
 CLEANFILES = *.bak *.pyc *.pyo
 DISTCLEANFILES = *.bak *.pyc *.pyo
