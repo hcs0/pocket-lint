@@ -7,7 +7,7 @@ import gtk
 
 from bzrlib import workingtree
 from bzrlib.diff import show_diff_trees
-from bzrlib.errors import NotBranchError
+from bzrlib.errors import NotBranchError, NoWorkingTree
 from bzrlib.revisionspec import RevisionSpec
 
 try:
@@ -26,7 +26,7 @@ except ImportError:
 from gdp import PluginMixin
 
 
-__all__  = [
+__all__ = [
     'BzrProject',
     ]
 
@@ -59,7 +59,7 @@ class BzrProject(PluginMixin):
             working_tree, relpath_ = workingtree.WorkingTree.open_containing(
                 cwd)
             self.working_tree = working_tree
-        except NotBranchError:
+        except (NotBranchError, NoWorkingTree):
             self.working_tree = None
 
     def _get_branch_revision_tree(self, uri):
