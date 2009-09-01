@@ -9,11 +9,12 @@ __all__ = [
 
 
 import compiler
+import os
+import re
+import sys
 from difflib import unified_diff
 from doctest import DocTestParser, Example
 from optparse import OptionParser
-import re
-import sys
 from textwrap import wrap
 
 import pyflakes
@@ -30,12 +31,14 @@ class DoctestReviewer:
     WANT = 'want'
     NARRATIVE = 'narrative'
 
-    def __init__(self, doctest, file_name):
+    def __init__(self, doctest, file_path, reporter=None):
         self.doctest = doctest
-        self.file_name = file_name
+        self.file_path = file_path
+        self.base_dir = os.path.dirname(file_path)
+        self.file_name = os.path.basename(file_path)
         doctest = self._disambuguate_doctest(doctest)
         parser = DocTestParser()
-        self.parts = parser.parse(doctest, file_name)
+        self.parts = parser.parse(doctest, file_path)
         self.blocks = []
         self.block = []
         self.block_method = self.preserve_block
@@ -43,6 +46,7 @@ class DoctestReviewer:
         self.example = None
         self.last_bad_indent = 0
         self.has_printed_filename = False
+        self._reporter = reporter
 
     def _disambuguate_doctest(self, doctest):
         """Clarify continuations that the doctest parser hides."""
@@ -54,10 +58,15 @@ class DoctestReviewer:
         :param message: The message to print.
         :param lineno: The line number the message pertains to.
         """
-        if not self.has_printed_filename:
-            print '%s:' % self.file_name
-            self.has_printed_filename = True
-        print '    % 4s: %s' % (lineno, message)
+        if self._reporter is None:
+            if not self.has_printed_filename:
+                print '%s:' % self.file_path
+                self.has_printed_filename = True
+            print '    % 4s: %s' % (lineno, message)
+        else:
+           self._reporter(
+                int(lineno), message,
+                base_dir=self.base_dir, file_name=self.file_name)
 
     def _is_formatted(self, text):
         """Return True if the text is pre-formatted, otherwise False.
@@ -373,13 +382,13 @@ def main(argv=None):
     if len(args) == 0:
         parser.error("A doctest must be specified.")
 
-    for file_name in args:
+    for file_path in args:
         try:
-            doctest_file = open(file_name)
+            doctest_file = open(file_path)
             old_doctest = doctest_file.read()
         finally:
             doctest_file.close()
-        reviewer = DoctestReviewer(old_doctest, file_name)
+        reviewer = DoctestReviewer(old_doctest, file_path)
 
         if not options.is_format:
             reviewer.check()
@@ -399,11 +408,11 @@ def main(argv=None):
 
             if do_save.upper() == 'S':
                 try:
-                    doctest_file = open(file_name, 'w')
+                    doctest_file = open(file_path, 'w')
                     doctest_file.write(new_doctest)
                 finally:
                     doctest_file.close()
-            reviewer = DoctestReviewer(new_doctest, file_name)
+            reviewer = DoctestReviewer(new_doctest, file_path)
             reviewer.check()
 
 

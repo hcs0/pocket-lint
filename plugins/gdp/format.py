@@ -206,7 +206,7 @@ class Formatter(PluginMixin):
     def show(self, data):
         """Show the finder pane."""
         panel = self.window.get_bottom_panel()
-        panel.activate_item(self.file_lines_view)
+        panel.activate_item(self.file_lines)
         panel.props.visible = True
 
     def reformat_doctest(self, data):

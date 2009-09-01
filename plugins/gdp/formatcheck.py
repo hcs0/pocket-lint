@@ -12,6 +12,8 @@ __all__ = [
 import compiler
 import os
 
+from gdp.formatdoctest import DoctestReviewer
+
 from pyflakes.checker import Checker
 
 
@@ -95,6 +97,10 @@ class UniversalChecker(BaseChecker):
             python_checker = PythonChecker(
                 self.file_path, self.text, self._reporter)
             python_checker.check()
+        elif self.language == 'doctest':
+            doctest_reviewer = DoctestReviewer(
+                self.text, self.file_path, self._reporter)
+            doctest_reviewer.check()
         else:
             anytextchecker = AnyTextChecker(
                 self.file_path, self.text, self._reporter)
