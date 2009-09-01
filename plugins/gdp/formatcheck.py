@@ -11,6 +11,7 @@ __all__ = [
 
 import compiler
 import os
+from lxml import etree
 
 from gdp.formatdoctest import DoctestReviewer
 
@@ -60,6 +61,13 @@ class BaseChecker:
     The Decedent must provide self.file_name and self.base_dir
     """
 
+    def __init__(self, file_path, text, reporter=None):
+        self.file_path = file_path
+        self.base_dir = os.path.dirname(file_path)
+        self.file_name = os.path.basename(file_path)
+        self.text = text
+        self.set_reporter(reporter=reporter)
+
     def set_reporter(self, reporter=None):
         """Set the reporter for messages."""
         if reporter is None:
@@ -88,24 +96,20 @@ class UniversalChecker(BaseChecker):
         self.base_dir = os.path.dirname(file_path)
         self.file_name = os.path.basename(file_path)
         self.text = text
+        self.set_reporter(reporter=reporter)
         self.language = language
         self.file_lines_view = None
-        self.set_reporter(reporter=reporter)
 
     def check(self):
         """Check the file syntax and style."""
         if self.language == 'python':
-            python_checker = PythonChecker(
-                self.file_path, self.text, self._reporter)
-            python_checker.check()
+            PythonChecker(self.file_path, self.text, self._reporter).check()
         elif self.language == 'doctest':
-            doctest_reviewer = DoctestReviewer(
-                self.text, self.file_path, self._reporter)
-            doctest_reviewer.check()
+            DoctestReviewer(self.text, self.file_path, self._reporter).check()
+        elif self.language in ('xml', 'xslt', 'html', 'pt', 'docbook'):
+            XMLChecker(self.file_path, self.text, self._reporter).check()
         else:
-            anytextchecker = AnyTextChecker(
-                self.file_path, self.text, self._reporter)
-            anytextchecker.check()
+            AnyTextChecker(self.file_path, self.text, self._reporter).check()
 
 
 class AnyTextChecker(BaseChecker):
@@ -141,25 +145,35 @@ class AnyTextChecker(BaseChecker):
             self.message(line_no, 'Line has trailing whitespace.')
 
 
+class XMLChecker(BaseChecker):
+    """Check XML documents."""
+
+    def check(self):
+        """Check the syntax of the python code."""
+        if self.text == '':
+            return
+        try:
+            parser = etree.XMLParser()
+            root = etree.XML(self.text, parser)
+        except:
+            # The log is more important than the traceback.
+            pass
+        for error in parser.error_log:
+            self.message(error.line, error.message)
+
+
 class PythonChecker(BaseChecker):
     """Check python source code."""
 
-    def __init__(self, file_path, text, reporter=None):
-        """Check for source code problems in the doctest using pyflakes.
-
-        The most common problem found are unused imports. `UndefinedName`
-        errors are suppressed because the test setup is not known.
-        """
-        self.file_path = file_path
-        self.base_dir = os.path.dirname(file_path)
-        self.file_name = os.path.basename(file_path)
-        self.text = text
-        self.set_reporter(reporter=reporter)
-
     def check(self):
-        """Check the syntax of the pythong code."""
+        """Check the syntax of the python code."""
         if self.text == '':
             return
+        self.check_flakes()
+        self.check_pep8()
+
+    def check_flakes(self):
+        """Check compilation and syntax."""
         try:
             tree = compiler.parse(self.text)
         except (SyntaxError, IndentationError), exc:
@@ -172,6 +186,9 @@ class PythonChecker(BaseChecker):
             for warning in warnings.messages:
                 dummy, line_no, message = str(warning).split(':')
                 self.message(int(line_no), message.strip())
+
+    def check_pep8(self):
+        """Check style."""
         try:
             # Monkey patch pep8 for direct access to the messages.
             original_report_error = pep8.Checker.report_error
