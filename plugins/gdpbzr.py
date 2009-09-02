@@ -32,9 +32,10 @@ menu_xml = """
         <menuitem action="ShowStatus"/>
         <menuitem action="ShowConflicts"/>
         <separator />
+        <menuitem action="ShowTags"/>
         <menuitem action="ShowAnnotations"/>
-        <menuitem action="CommitChanges"/>
         <separator />
+        <menuitem action="CommitChanges"/>
         <menuitem action="PushChanges"/>
       </placeholder>
     </menu>
@@ -90,6 +91,9 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('ShowConflicts', None, _("Show co_nflicts"),
                 None, _("Show the conflicts in the working tree."),
                 self.bzr.show_conflicts),
+            ('ShowTags', None, _("Show _tags"),
+                None, _("Show the tags in the branch."),
+                self.bzr.show_tags),
             ('CommitChanges', None, _("_Commit changes"),
                 '<Control><Alt><Super>C',
                 _("Commit the changes in the working tree."),
@@ -109,12 +113,13 @@ class BazaarProjectPlugin(gedit.Plugin):
         ]
 
     bzr_gtk_actions = [
+        'CommitChanges',
+        'PushChanges',
         'ShowAnnotations',
         'ShowConflicts',
         'ShowInfo',
         'ShowStatus',
-        'CommitChanges',
-        'PushChanges',
+        'ShowTags',
         ]
 
     def __init__(self):

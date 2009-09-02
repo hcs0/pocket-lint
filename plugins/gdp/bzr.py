@@ -21,6 +21,7 @@ try:
     from bzrlib.plugins.gtk.olive.info import InfoDialog
     from bzrlib.plugins.gtk.push import PushDialog
     from bzrlib.plugins.gtk.status import StatusWindow
+    from bzrlib.plugins.gtk.tags import TagsWindow
     HAS_BZR_GTK = True
 except ImportError:
     HAS_BZR_GTK = False
@@ -178,6 +179,11 @@ class BzrProject(PluginMixin):
         response = dialog.run()
         dialog.hide()
         dialog.destroy()
+
+    def show_tags(self, data):
+        """Show the tags in the brancg."""
+        window = TagsWindow(self.working_tree.branch, self.window)
+        window.show()
 
     def show_annotations(self, data):
         """Show the annotated revisions of the file."""
