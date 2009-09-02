@@ -18,6 +18,8 @@ try:
     from bzrlib.plugins.gtk.annotate.gannotate import GAnnotateWindow
     from bzrlib.plugins.gtk.commit import CommitDialog
     from bzrlib.plugins.gtk.conflicts import ConflictsDialog
+    from bzrlib.plugins.gtk.dialog import error_dialog
+    from bzrlib.plugins.gtk.merge import MergeDialog
     from bzrlib.plugins.gtk.olive.info import InfoDialog
     from bzrlib.plugins.gtk.push import PushDialog
     from bzrlib.plugins.gtk.status import StatusWindow
@@ -60,9 +62,10 @@ class BzrProject(PluginMixin):
         else:
             cwd = os.path.dirname(file_path)
         try:
-            working_tree, relpath_ = workingtree.WorkingTree.open_containing(
+            working_tree, relpath = workingtree.WorkingTree.open_containing(
                 cwd)
             self.working_tree = working_tree
+            self.relpath = relpath
         except (NotBranchError, NoWorkingTree):
             self.working_tree = None
 
@@ -215,6 +218,23 @@ class BzrProject(PluginMixin):
         revisions = [branch.last_revision()]
         window = BranchWindow(branch, revisions, limit)
         window.show()
+
+    def merge_changes(self, data):
+        """Merge changes from another branch into te working tree."""
+        branch = self.working_tree.branch
+        old_tree = branch.repository.revision_tree(branch.last_revision())
+        delta = self.working_tree.changes_from(old_tree)
+        if (len(delta.added) or len(delta.removed)
+            or len(delta.renamed) or len(delta.modified)):
+            error_dialog(
+                _('There are local changes in the branch'),
+                 _('Commit or revert the changes before merging.'))
+        else:
+            parent_branch_path = branch.get_parent()
+            merge = MergeDialog(
+                self.working_tree, self.relpath, parent_branch_path)
+            response = merge.run()
+            merge.destroy()
 
     def push_changes(self, data):
         """Push the changes in the working tree."""

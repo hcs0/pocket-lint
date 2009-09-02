@@ -37,6 +37,7 @@ menu_xml = """
         <menuitem action="VisualiseBranch"/>
         <separator />
         <menuitem action="CommitChanges"/>
+        <menuitem action="MergeChanges"/>
         <menuitem action="PushChanges"/>
       </placeholder>
     </menu>
@@ -102,6 +103,10 @@ class BazaarProjectPlugin(gedit.Plugin):
                 '<Control><Alt><Super>C',
                 _("Commit the changes in the working tree."),
                 self.bzr.commit_changes),
+            ('MergeChanges', None, _("_Merge changes"),
+                None,
+                _("Merge changes from another branch into the working tree."),
+                self.bzr.merge_changes),
             ('PushChanges', None, _("_Push changes"),
                 None, _("Push the changes in the working tree."),
                 self.bzr.push_changes),
@@ -118,6 +123,7 @@ class BazaarProjectPlugin(gedit.Plugin):
 
     bzr_gtk_actions = [
         'CommitChanges',
+        'MergeChanges',
         'PushChanges',
         'ShowAnnotations',
         'ShowConflicts',
