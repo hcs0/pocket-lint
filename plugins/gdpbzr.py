@@ -28,8 +28,11 @@ menu_xml = """
         <menuitem action="DiffChangesFromParent"/>
         <menuitem action="DiffChangesToPush"/>
         <separator />
-        <menuitem action="ShowAnnotations"/>
+        <menuitem action="ShowInfo"/>
         <menuitem action="ShowStatus"/>
+        <menuitem action="ShowConflicts"/>
+        <separator />
+        <menuitem action="ShowAnnotations"/>
         <menuitem action="CommitChanges"/>
         <separator />
         <menuitem action="PushChanges"/>
@@ -44,8 +47,6 @@ PROJECT_PATH = '/MenuBar/ProjectMenu/ProjectOpt1'
 
 class BazaarProjectPlugin(gedit.Plugin):
     """Plugin for formatting code."""
-    # This is a new-style class that call and old-style __init__().
-    # pylint: disable-msg=W0233
 
     @property
     def _actions(self):
@@ -78,9 +79,17 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('ShowAnnotations', None, _("Show _annotations"),
                 None, _("Show the revision annotations of the current file."),
                 self.bzr.show_annotations),
+            ('ShowInfo', None, _("Show _info"),
+                None,
+                _("Show information about the working tree, branch "
+                  "or repository."),
+                self.bzr.show_info),
             ('ShowStatus', None, _("Show _status"),
                 None, _("Show the status of the working tree."),
                 self.bzr.show_status),
+            ('ShowConflicts', None, _("Show co_nflicts"),
+                None, _("Show the conflicts in the working tree."),
+                self.bzr.show_conflicts),
             ('CommitChanges', None, _("_Commit changes"),
                 '<Control><Alt><Super>C',
                 _("Commit the changes in the working tree."),
@@ -101,6 +110,8 @@ class BazaarProjectPlugin(gedit.Plugin):
 
     bzr_gtk_actions = [
         'ShowAnnotations',
+        'ShowConflicts',
+        'ShowInfo',
         'ShowStatus',
         'CommitChanges',
         'PushChanges',

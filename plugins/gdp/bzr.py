@@ -17,6 +17,8 @@ try:
     from bzrlib.plugins.gtk.annotate.config import GAnnotateConfig
     from bzrlib.plugins.gtk.annotate.gannotate import GAnnotateWindow
     from bzrlib.plugins.gtk.commit import CommitDialog
+    from bzrlib.plugins.gtk.conflicts import ConflictsDialog
+    from bzrlib.plugins.gtk.olive.info import InfoDialog
     from bzrlib.plugins.gtk.push import PushDialog
     from bzrlib.plugins.gtk.status import StatusWindow
     HAS_BZR_GTK = True
@@ -158,11 +160,24 @@ class BzrProject(PluginMixin):
         finally:
             self.working_tree.unlock()
 
+    def show_info(self, data):
+        """Show information about the working tree, branch or repository."""
+        dialog = InfoDialog(self.working_tree.branch)
+        dialog.display()
+        dialog.window.run()
+
     def show_status(self, data):
         """Show the status of the working tree."""
         base_dir = self.working_tree.basedir
         window = StatusWindow(self.working_tree, base_dir, None)
         window.show()
+
+    def show_conflicts(self, data):
+        """Show the merge, revert, or pull conflicts in the working tree."""
+        dialog = ConflictsDialog(self.working_tree)
+        response = dialog.run()
+        dialog.hide()
+        dialog.destroy()
 
     def show_annotations(self, data):
         """Show the annotated revisions of the file."""
