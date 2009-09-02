@@ -62,7 +62,7 @@ class PluginMixin:
 def set_file_line(column, cell, model, piter):
     """Set the value as file or line information."""
     file_path = model.get_value(piter, 0)
-    mime_type = model.get_value(piter, 1)
+    icon = model.get_value(piter, 1)
     line_no = model.get_value(piter, 2)
     text = model.get_value(piter, 3)
     if text is None:

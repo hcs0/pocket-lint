@@ -175,12 +175,18 @@ class Finder(PluginMixin):
                 mime_type = 'gnome-mime-text'
             piter = treestore.append(
                 None, (file_path, mime_type, 0, None, base_dir))
+            if substitution is None:
+                icon = 'stock_mail-forward'
+            else:
+                icon = 'stock_mail-reply'
             for line in summary['lines']:
-                treestore.append(
-                    piter,
-                    (file_path, None, line['lineno'], line['text'], base_dir))
+                treestore.append(piter,
+                    (file_path, icon, line['lineno'], line['text'],
+                     base_dir))
         if treestore.get_iter_first() is None:
-            treestore.append(None, ('No matches found', None, 0, None, None))
+            treestore.append(
+                None,
+                ('No matches found', 'stock_dialog-info', 0, None, None))
 
     def on_replace_in_files(self, widget=None):
         """Find, replace, and present the matches."""

@@ -236,4 +236,4 @@ class Formatter(PluginMixin):
         model = self.file_lines_view.get_model()
         if model.get_iter_first() is None:
             model.append(
-                None, ('No problems found', None, 0, None, None))
+                None, ('No problems found', 'emblem-default', 0, None, None))

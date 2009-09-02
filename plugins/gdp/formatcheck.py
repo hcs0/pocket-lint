@@ -30,29 +30,32 @@ class Reporter:
         self.treestore = self.file_lines_view.get_model()
         self.piter = None
 
-    def __call__(self, line_no, message, base_dir=None, file_name=None):
+    def __call__(self, line_no, message, icon=None,
+                 base_dir=None, file_name=None):
         """Report a message."""
         if self.report_type == self.FILE_LINES:
             self._message_file_lines(
-                line_no, message, base_dir=base_dir, file_name=file_name)
+                line_no, message, icon=icon,
+                base_dir=base_dir, file_name=file_name)
         else:
             self._message_console(
-                line_no, message, base_dir=base_dir, file_name=file_name)
+                line_no, message, icon=icon,
+                base_dir=base_dir, file_name=file_name)
 
-    def _message_console(self, line_no, message,
+    def _message_console(self, line_no, message, icon=None,
                          base_dir=None, file_name=None):
         """Print the messages to the console."""
         print '%4s: %s' % line_no, message
 
-    def _message_file_lines(self, line_no, message,
+    def _message_file_lines(self, line_no, message, icon=None,
                             base_dir=None, file_name=None):
         """Display the messages in the file_lines_view."""
-        mime_type = 'gnome-mime-text'
         if self.piter is None:
+            mime_type = 'gnome-mime-text'
             self.piter = self.treestore.append(
                 None, (file_name, mime_type, 0, None, base_dir))
         self.treestore.append(
-            self.piter, (file_name, None, line_no, message, base_dir))
+            self.piter, (file_name, icon, line_no, message, base_dir))
 
 
 class BaseChecker:
@@ -74,14 +77,16 @@ class BaseChecker:
             Reporter(Reporter.CONSOLE)
         self._reporter = reporter
 
-    def message(self, line_no, message, base_dir=None, file_name=None):
+    def message(self, line_no, message, icon=None,
+                base_dir=None, file_name=None):
         """Report the message."""
         if base_dir is None:
             base_dir = self.base_dir
         if file_name is None:
             file_name = self.file_name
         self._reporter(
-            line_no, message, base_dir=base_dir, file_name=file_name)
+            line_no, message, icon=icon,
+            base_dir=base_dir, file_name=file_name)
 
     def check(self):
         """Check the content."""
@@ -132,17 +137,19 @@ class AnyTextChecker(BaseChecker):
     def check_conflicts(self, line_no, line):
         """Check that there are no merge conflict markers."""
         if line.startswith('<<<<<<<'):
-            self.message(line_no, 'File has conficts.')
+            self.message(line_no, 'File has conficts.', icon='errror')
 
     def check_length(self, line_no, line):
         """Check the length of the line."""
         if len(line) > 78:
-            self.message(line_no, 'Line exceeds 78 characters.')
+            self.message(
+                line_no, 'Line exceeds 78 characters.', icon='info')
 
     def check_trailing_whitespace(self, line_no, line):
         """Check for the presence of trailing whitespace in the line."""
         if line.endswith(' '):
-            self.message(line_no, 'Line has trailing whitespace.')
+            self.message(
+                line_no, 'Line has trailing whitespace.', icon='info')
 
 
 class XMLChecker(BaseChecker):
@@ -159,7 +166,7 @@ class XMLChecker(BaseChecker):
             # The log is more important than the traceback.
             pass
         for error in parser.error_log:
-            self.message(error.line, error.message)
+            self.message(error.line, error.message, icon='errror')
 
 
 class PythonChecker(BaseChecker):
@@ -180,12 +187,12 @@ class PythonChecker(BaseChecker):
             (line_no, offset, line) = exc[1][1:]
             message = 'Could not compile offset %s: %s' % (
                 offset, line.strip())
-            self.message(line_no, message)
+            self.message(line_no, message, icon='error')
         else:
             warnings = Checker(tree)
             for warning in warnings.messages:
                 dummy, line_no, message = str(warning).split(':')
-                self.message(int(line_no), message.strip())
+                self.message(int(line_no), message.strip(), icon='error')
 
     def check_pep8(self):
         """Check style."""
@@ -194,7 +201,7 @@ class PythonChecker(BaseChecker):
             original_report_error = pep8.Checker.report_error
 
             def pep8_report_error(ignore, line_no, offset, message, check):
-                self.message(line_no, message)
+                self.message(line_no, message, icon='info')
 
             pep8.Checker.report_error = pep8_report_error
             pep8.process_options([self.file_path])

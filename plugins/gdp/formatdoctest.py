@@ -4,7 +4,7 @@
 __metatype__ = type
 
 __all__ = [
-    'DoctestReviewer'
+    'DoctestReviewer',
     ]
 
 
@@ -64,7 +64,7 @@ class DoctestReviewer:
                 self.has_printed_filename = True
             print '    % 4s: %s' % (lineno, message)
         else:
-           self._reporter(
+            self._reporter(
                 int(lineno), message,
                 base_dir=self.base_dir, file_name=self.file_name)
 
@@ -83,7 +83,7 @@ class DoctestReviewer:
         Yield the content of the line, and its kind (SOURCE, WANT, NARRATIVE).
         SOURCE and WANT lines are stripped of indentation, SOURCE is also
         stripped of the interpreter symbols.
-        
+
         :param doctest_parts: The output of DocTestParser.parse.
         """
         for part in doctest_parts:
@@ -163,7 +163,8 @@ class DoctestReviewer:
             self.check_length,
             self.check_heading,
             self.check_indentation,
-            self.check_trailing_whitespace,]
+            self.check_trailing_whitespace,
+            ]
         self._apply(line_checkers)
         code = '\n'.join(self.code_lines)
         self.check_source_code(code)
@@ -185,7 +186,8 @@ class DoctestReviewer:
             self.fix_trailing_whitespace,
             self.fix_indentation,
             self.fix_heading,
-            self.fix_narrative_paragraph,]
+            self.fix_narrative_paragraph,
+            ]
         self.block_method = self.format_block
         self._apply(line_checkers)
         self.block_method = self.preserve_block
@@ -365,7 +367,7 @@ def get_option_parser():
         "-f", "--format", dest="is_format", action="store_true",
         help="Reformat the doctest.")
     parser.add_option(
-        "-i", "--interactive", dest="is_interactive",  action="store_true",
+        "-i", "--interactive", dest="is_interactive", action="store_true",
         help="Approve each change.")
     parser.set_defaults(
         is_format=False,
