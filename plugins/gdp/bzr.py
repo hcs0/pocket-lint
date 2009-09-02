@@ -22,6 +22,7 @@ try:
     from bzrlib.plugins.gtk.push import PushDialog
     from bzrlib.plugins.gtk.status import StatusWindow
     from bzrlib.plugins.gtk.tags import TagsWindow
+    from bzrlib.plugins.gtk.viz import BranchWindow
     HAS_BZR_GTK = True
 except ImportError:
     HAS_BZR_GTK = False
@@ -206,6 +207,14 @@ class BzrProject(PluginMixin):
             window.annotate(self.working_tree, branch, file_id)
         finally:
             branch.unlock()
+
+    def visualise_branch(self, data):
+        """Visualise the tree."""
+        limit = None
+        branch = self.working_tree.branch
+        revisions = [branch.last_revision()]
+        window = BranchWindow(branch, revisions, limit)
+        window.show()
 
     def push_changes(self, data):
         """Push the changes in the working tree."""

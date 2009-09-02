@@ -34,6 +34,7 @@ menu_xml = """
         <separator />
         <menuitem action="ShowTags"/>
         <menuitem action="ShowAnnotations"/>
+        <menuitem action="VisualiseBranch"/>
         <separator />
         <menuitem action="CommitChanges"/>
         <menuitem action="PushChanges"/>
@@ -80,6 +81,9 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('ShowAnnotations', None, _("Show _annotations"),
                 None, _("Show the revision annotations of the current file."),
                 self.bzr.show_annotations),
+            ('VisualiseBranch', None, _("_Visualise branch"),
+                None, _("Graphically visualise this branch.."),
+                self.bzr.visualise_branch),
             ('ShowInfo', None, _("Show _info"),
                 None,
                 _("Show information about the working tree, branch "
@@ -120,6 +124,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         'ShowInfo',
         'ShowStatus',
         'ShowTags',
+        'VisualiseBranch',
         ]
 
     def __init__(self):
