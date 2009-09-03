@@ -24,6 +24,7 @@ menu_xml = """
           <menu action="GDPFormatMenu">
             <menuitem action="RewrapText"/>
             <menuitem action="FixLineEnding"/>
+            <menuitem action="TabsToSpaces"/>
             <menuitem action="QuoteLines"/>
             <menuitem action="SortImports"/>
             <menuitem action="SingleLine"/>
@@ -44,8 +45,6 @@ menu_xml = """
 
 class FormatPlugin(gedit.Plugin):
     """Plugin for formatting code."""
-    # This is a new-style class that call and old-style __init__().
-    # pylint: disable-msg=W0233
 
     @property
     def _actions(self):
@@ -61,6 +60,9 @@ class FormatPlugin(gedit.Plugin):
             ('FixLineEnding', None, _("Fix _line endings"), None,
                 _('Remove trailing whitespace and use newline endings.'),
                 self.formatter.newline_ending),
+            ('TabsToSpaces', None, _("Convert t_abs to spaces"), None,
+                _('Convert tabs to spaces using the preferred tab size.'),
+                self.formatter.tabs_to_spaces),
             ('QuoteLines', None, _("_Quote lines"), '<Alt>Q',
                 _("Format the text as a quoted email."),
                 self.formatter.quote_lines),
@@ -116,5 +118,3 @@ class FormatPlugin(gedit.Plugin):
         This plugin is always active.
         """
         pass
-
-    # Callbacks.

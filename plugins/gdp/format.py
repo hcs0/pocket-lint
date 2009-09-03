@@ -4,6 +4,7 @@
 import os
 import re
 
+import gconf
 import gtk
 from textwrap import wrap
 from gettext import gettext as _
@@ -91,6 +92,16 @@ class Formatter(PluginMixin):
         """Fix the selection's line endings."""
         bounds, text = self._get_bounded_text()
         lines = [line.rstrip() for line in text.splitlines()]
+        self._put_bounded_text(bounds, '\n'.join(lines))
+
+    def tabs_to_spaces(self, data):
+        """Fix the selection's line endings."""
+        bounds, text = self._get_bounded_text()
+        gconf_client = gconf.client_get_default()
+        tab_size = gconf_client.get_int(
+            '/apps/gedit-2/preferences/editor/tabs/tabs_size') or 4
+        tab_spaces = ' ' * tab_size
+        lines = [line.replace('\t', tab_spaces) for line in text.splitlines()]
         self._put_bounded_text(bounds, '\n'.join(lines))
 
     def quote_lines(self, data):
