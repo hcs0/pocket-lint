@@ -169,7 +169,8 @@ class BazaarProjectPlugin(gedit.Plugin):
 
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window."""
-        if self.window is window and self.bzr.working_tree is not None:
+        if (self.window is window
+            and self.bzr is not None and self.bzr.working_tree is not None):
             return
         self.window = window
         self.bzr.window = window
