@@ -84,6 +84,10 @@ def extract_match(file_path, match_re, substitution=None):
 class Finder(PluginMixin):
     """Find and replace content in files."""
 
+    WORKING_DIRECTORY = '<Working Directory>'
+    CURRENT_FILE= '<Current File>'
+    ANY_FILE = '<Any Text File>'
+
     def __init__(self, gedit, window):
         self.initialize(gedit)
         self.window = window
@@ -104,8 +108,9 @@ class Finder(PluginMixin):
         self.setup_comboentry(self.pattern_comboentry)
         self.path_comboentry = self.widgets.get_object('path_comboentry')
         self.setup_comboentry(self.path_comboentry, os.getcwd())
+        self.update_comboentry(self.path_comboentry, self.CURRENT_FILE)
         self.file_comboentry = self.widgets.get_object('file_comboentry')
-        self.setup_comboentry(self.file_comboentry, '.')
+        self.setup_comboentry(self.file_comboentry, self.ANY_FILE)
         self.substitution_comboentry = self.widgets.get_object(
             'substitution_comboentry')
         self.setup_comboentry(self.substitution_comboentry)
@@ -149,15 +154,35 @@ class Finder(PluginMixin):
         self.show(None)
         self.widgets.get_object('actions').activate()
 
+    @property
+    def path(self):
+        """The base directory to traverse set by the user."""
+        path_ = self.path_comboentry.get_active_text()
+        if path_ in (self.WORKING_DIRECTORY, '', None):
+            path_ = '.'
+        elif path_ == self.CURRENT_FILE:
+            document = self.window.get_active_document()
+            path_ = os.path.dirname(document.get_uri_for_display())
+        return path_
+
+    @property
+    def file_pattern(self):
+        """The pattern to match the file name with."""
+        pattern = self.file_comboentry.get_active_text()
+        if pattern in (self.ANY_FILE, '', None):
+            pattern = '.'
+        if self.path_comboentry.get_active_text() == self.CURRENT_FILE:
+            document = self.window.get_active_document()
+            pattern = os.path.basename(document.get_uri_for_display())
+        return pattern
+
     def on_find_in_files(self, widget=None, substitution=None):
         """Find and present the matches."""
         pattern = self.pattern_comboentry.get_active_text()
         self.update_comboentry(self.pattern_comboentry, pattern)
         treestore = self.file_lines_view.get_model()
         treestore.clear()
-        path = self.path_comboentry.get_active_text() or '.'
-        base_dir = os.path.abspath(path)
-        file_ = self.file_comboentry.get_active_text() or '.'
+        base_dir = os.path.abspath(self.path)
         self.file_lines_view.get_column(0).props.title = (
             "Matches for [%s] in %s" % (pattern, base_dir))
         if not self.widgets.get_object('re_checkbox').get_active():
@@ -165,7 +190,7 @@ class Finder(PluginMixin):
         if not self.widgets.get_object('match_case_checkbox').get_active():
             pattern = '(?i)%s' % pattern
         for summary in find_matches(
-            path, file_, pattern, substitution=substitution):
+            self.path, self.file_pattern, pattern, substitution=substitution):
             file_path = summary['file_path']
             mime_type = summary['mime_type']
             if mime_type is None:
