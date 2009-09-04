@@ -20,11 +20,11 @@ from xml.sax import saxutils
 
 import gobject
 import gtk
-from gettext import gettext as _
 from gtk import gdk
 from gtksourceview2 import language_manager_get_default
 
 from snippets.SnippetComplete import SnippetComplete, CompleteModel
+
 
 lang_manager = language_manager_get_default()
 doctest_language = lang_manager.get_language('doctest')
@@ -130,7 +130,7 @@ class BaseSyntaxGenerator:
             return None
         start_iter = self._document.get_start_iter()
         end_iter = self._document.get_end_iter()
-        return self._document.get_text(start_iter , end_iter)
+        return self._document.get_text(start_iter, end_iter)
 
 
 class TextGenerator(BaseSyntaxGenerator):
@@ -252,9 +252,6 @@ class SyntaxModel(CompleteModel):
     This model determine the words that can be inserted at the cursor.
     The model understands the free text in the document and the Python syntax.
     """
-    # The class intentionally skips CompleteModel.__init__().
-    # pylint: disable-msg=W0233
-
     column_types = (str, str)
 
     def __init__(self, document, prefix=None, description_only=False):
@@ -316,15 +313,15 @@ class SyntaxModel(CompleteModel):
         new_len = len(new_words)
 
         for index in range(0, min(new_len, old_len)):
-            path = (index,)
+            path = (index, )
             self.row_changed(path, self.get_iter(path))
 
         if old_len > new_len:
             for index in range(old_len - 1, new_len - 1, -1):
-                self.row_deleted((index,))
+                self.row_deleted((index, ))
         elif new_len > old_len:
             for index in range(old_len, new_len):
-                path = (index,)
+                path = (index, )
                 self.row_inserted(path, self.get_iter(path))
 
     def get_word(self, path):
@@ -342,9 +339,6 @@ class SyntaxModel(CompleteModel):
         # XXX sinzui 2008-06-08 gnome-bug=537248:
         # This method can be removed when this bug is fixed in GNOME.
         return len(self.column_types)
-
-    # These properties maintain compatibility with CompleteModel
-    # and SnippetComplete in snippets.
 
     @property
     def nodes(self):
@@ -395,10 +389,10 @@ class SyntaxView(SnippetComplete):
 
 gobject.signal_new(
     'syntax-activated', SyntaxView, gobject.SIGNAL_RUN_LAST,
-    gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
+    gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT, ))
 
 
-class SyntaxController(object):
+class SyntaxController:
     """This class manages the gedit.View's interaction with the SyntaxView."""
 
     def __init__(self, view):
@@ -517,8 +511,6 @@ class SyntaxController(object):
         if doctest_pattern.match(file_path):
             document.set_language(doctest_language)
 
-    # Callbacks
-
     def on_syntaxview_row_activated(self, syntax_view, word):
         """Insert the word into the Document."""
         if not word:
@@ -544,4 +536,3 @@ class SyntaxController(object):
     def on_view_destroy(self, view):
         """Disconnect the controller."""
         self.deactivate()
-

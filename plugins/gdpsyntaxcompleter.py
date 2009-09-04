@@ -18,7 +18,6 @@ __all__ = [
     'SyntaxCompleterPlugin',
     ]
 
-
 import gedit
 
 from gdp.syntaxcompleter import SyntaxController
@@ -26,8 +25,6 @@ from gdp.syntaxcompleter import SyntaxController
 
 class SyntaxCompleterPlugin(gedit.Plugin):
     """Automatically complete words from the list of words in the document."""
-    # This is a new-style class that call and old-style __init__().
-    # pylint: disable-msg=W0233
 
     def __init__(self):
         """Initialize the plugin the whole Gedit application."""
@@ -37,7 +34,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
 
     def activate(self, window):
         """Activate the plugin in the current top-level window.
-        
+
         Add a SyntaxControler to every view.
         """
         self.window = window
@@ -50,7 +47,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
 
     def deactivate(self, window):
         """Deactivate the plugin in the current top-level window.
-        
+
         Remove the SyntaxControler from every view.
         """
         for view in window.get_views():
@@ -58,13 +55,12 @@ class SyntaxCompleterPlugin(gedit.Plugin):
                 view.gdp_syntax_controller.deactivate()
                 view.gdp_syntax_controller = None
                 del view.gdp_syntax_controller
-
         self.window = None
         self.controller = None
 
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window.
-        
+
         Set the current controler.
         """
         view = window.get_active_view()
@@ -79,12 +75,9 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         has_controller = hasattr(view, 'gdp_syntax_controller')
         return has_controller and view.gdp_syntax_controller
 
-    # Callbacks    
-
     def on_tab_added(self, window, tab):
         """Create a new SyntaxController for this tab."""
         view = tab.get_view()
         if isinstance(view, gedit.View) and not self.has_controller(view):
             view.gdp_syntax_controller = SyntaxController(view)
             self.update_ui(window)
-
