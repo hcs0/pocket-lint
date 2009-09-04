@@ -14,10 +14,33 @@ import gobject
 import gtk
 
 
+class GDPWindow:
+    """Decorate a `GeditWindow` with GDP state"""
+
+    def __init__(self, window):
+        self.window = window
+
+    def activate(self, plugin):
+        """Activate the plugin for the window."""
+        self.action_group = gtk.ActionGroup(plugin.action_group_name)
+        self.action_group.set_translation_domain('gedit')
+        self.action_group.add_actions(plugin.actions)
+        manager = self.window.get_ui_manager()
+        manager.insert_action_group(self.action_group, -1)
+        self.ui_id = manager.add_ui_from_string(plugin.menu_xml)
+
+    def deactivate(self):
+        """Deactivate the plugin for the window."""
+        manager = self.window.get_ui_manager()
+        manager.remove_ui(self.ui_id)
+        manager.remove_action_group(self.action_group)
+        manager.ensure_update()
+
+
 class PluginMixin:
     """Provide common features to plugins"""
 
-    def initialize(self, gedit):
+    def activate(self, gedit):
         """Initialize the common plugin services"""
         self.gedit = gedit
         self.utf8_encoding = gedit.encoding_get_from_charset('UTF-8')
@@ -49,6 +72,11 @@ class PluginMixin:
         if jump_to is not None:
             self.window.get_active_document().goto_line(jump_to)
             self.window.get_active_view().scroll_to_cursor()
+
+    @property
+    def active_document(self):
+        """The active document in the window."""
+        return self.window.get_active_document()
 
     @property
     def text(self):

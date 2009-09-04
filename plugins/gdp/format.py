@@ -59,7 +59,7 @@ class Formatter(PluginMixin):
 
         The bounds mark either the selection or the document.
         """
-        document = self.window.get_active_document()
+        document = self.active_document
         bounds = document.get_selection_bounds()
         if not bounds:
             bounds = (document.get_start_iter(), document.get_end_iter())
@@ -71,7 +71,7 @@ class Formatter(PluginMixin):
 
         This change is undoable.
         """
-        document = self.window.get_active_document()
+        document = self.active_document
         document.begin_user_action()
         document.delete(*bounds)
         document.insert_at_cursor(text)
@@ -222,14 +222,14 @@ class Formatter(PluginMixin):
     def reformat_doctest(self, data):
         """Reformat the doctest."""
         bounds, text = self._get_bounded_text()
-        file_name = self.window.get_active_document().get_uri_for_display()
+        file_name = self.active_document.get_uri_for_display()
         reviewer = DoctestReviewer(text, file_name)
         new_text = reviewer.format()
         self._put_bounded_text(bounds, new_text)
 
     def check_style(self, data):
         """Check the style and syntax of the active document."""
-        document = self.window.get_active_document()
+        document = self.active_document
         file_path = document.get_uri_for_display()
         language = document.get_language()
         if language is not None:

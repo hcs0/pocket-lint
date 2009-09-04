@@ -10,49 +10,69 @@ __all__ = [
 from gettext import gettext as _
 
 import gedit
-import gtk
 
+from gdp import GDPWindow
 from gdp.bzr import BzrProject
-
-
-menu_xml = """
-<ui>
-  <menubar name="MenuBar">
-    <menu action="ProjectMenu">
-      <placeholder name="ProjectOpt1">
-        <menuitem action="OpenUncommittedFiles"/>
-        <menuitem action="OpenChangedFilesFromParent"/>
-        <menuitem action="OpenChangedFilesToPush"/>
-        <separator />
-        <menuitem action="DiffUncommittedChanges"/>
-        <menuitem action="DiffChangesFromParent"/>
-        <menuitem action="DiffChangesToPush"/>
-        <separator />
-        <menuitem action="ShowInfo"/>
-        <menuitem action="ShowStatus"/>
-        <menuitem action="ShowConflicts"/>
-        <separator />
-        <menuitem action="ShowTags"/>
-        <menuitem action="ShowAnnotations"/>
-        <menuitem action="VisualiseBranch"/>
-        <separator />
-        <menuitem action="CommitChanges"/>
-        <menuitem action="MergeChanges"/>
-        <menuitem action="PushChanges"/>
-      </placeholder>
-    </menu>
-  </menubar>
-</ui>
-"""
-
-PROJECT_PATH = '/MenuBar/ProjectMenu/ProjectOpt1'
 
 
 class BazaarProjectPlugin(gedit.Plugin):
     """Plugin for formatting code."""
 
+    action_group_name = 'GDPProjectActions'
+    menu_path = '/MenuBar/ProjectMenu/GDPProject'
+    menu_xml = """
+        <ui>
+          <menubar name="MenuBar">
+            <menu action="ProjectMenu">
+              <placeholder name="GDPProject">
+                <menuitem action="OpenUncommittedFiles"/>
+                <menuitem action="OpenChangedFilesFromParent"/>
+                <menuitem action="OpenChangedFilesToPush"/>
+                <separator />
+                <menuitem action="DiffUncommittedChanges"/>
+                <menuitem action="DiffChangesFromParent"/>
+                <menuitem action="DiffChangesToPush"/>
+                <separator />
+                <menuitem action="ShowInfo"/>
+                <menuitem action="ShowStatus"/>
+                <menuitem action="ShowConflicts"/>
+                <separator />
+                <menuitem action="ShowTags"/>
+                <menuitem action="ShowAnnotations"/>
+                <menuitem action="VisualiseBranch"/>
+                <separator />
+                <menuitem action="CommitChanges"/>
+                <menuitem action="MergeChanges"/>
+                <menuitem action="PushChanges"/>
+              </placeholder>
+            </menu>
+          </menubar>
+        </ui>
+        """
+
+    tree_actions = [
+        'OpenChangedFilesToPush',
+        'OpenChangedFilesFromParent',
+        'OpenUncommittedFiles',
+        'DiffUncommittedChanges',
+        'DiffChangesFromParent',
+        'DiffChangesToPush',
+        ]
+
+    bzr_gtk_actions = [
+        'CommitChanges',
+        'MergeChanges',
+        'PushChanges',
+        'ShowAnnotations',
+        'ShowConflicts',
+        'ShowInfo',
+        'ShowStatus',
+        'ShowTags',
+        'VisualiseBranch',
+        ]
+
     @property
-    def _actions(self):
+    def actions(self):
         """Return a list of action tuples.
 
         (name, stock_id, label, accelerator, tooltip, callback)
@@ -112,45 +132,22 @@ class BazaarProjectPlugin(gedit.Plugin):
                 self.bzr.push_changes),
             ]
 
-    tree_actions = [
-        'OpenChangedFilesToPush',
-        'OpenChangedFilesFromParent',
-        'OpenUncommittedFiles',
-        'DiffUncommittedChanges',
-        'DiffChangesFromParent',
-        'DiffChangesToPush',
-        ]
-
-    bzr_gtk_actions = [
-        'CommitChanges',
-        'MergeChanges',
-        'PushChanges',
-        'ShowAnnotations',
-        'ShowConflicts',
-        'ShowInfo',
-        'ShowStatus',
-        'ShowTags',
-        'VisualiseBranch',
-        ]
-
     def __init__(self):
-        """Initialize the plugin the whole Gedit application."""
+        """Initialize the plugin for the Gedit application."""
         gedit.Plugin.__init__(self)
-        self.window = None
+        self.windows = {}
 
     def activate(self, window):
         """Activate the plugin in the current top-level window.
 
         Add 'Project' to the main menu and create a BzrProject.
         """
-        self.window = window
+        self.windows[window] = GDPWindow(window)
         self.bzr = BzrProject(gedit, window)
         self.bzr.set_working_tree()
-        self.action_group = gtk.ActionGroup("ProjectActions")
-        self.action_group.add_actions(self._actions)
-        manager = self.window.get_ui_manager()
-        manager.insert_action_group(self.action_group, -1)
-        self.ui_id = manager.add_ui_from_string(menu_xml)
+        self.windows[window].activate(self)
+        # Moved the menu to a less surprising position.
+        manager = window.get_ui_manager()
         menubar = manager.get_widget('/MenuBar')
         project_menu = manager.get_widget('/MenuBar/ProjectMenu')
         menubar.remove(project_menu)
@@ -158,36 +155,26 @@ class BazaarProjectPlugin(gedit.Plugin):
 
     def deactivate(self, window):
         """Deactivate the plugin in the current top-level window."""
-        manager = self.window.get_ui_manager()
-        manager.remove_ui(self.ui_id)
-        manager.remove_action_group(self.action_group)
-        manager.ensure_update()
-        self.ui_id = None
-        self.action_group = None
-        self.bzr = None
-        self.window = None
+        self.windows[window].deactivate()
+        del self.windows[window]
 
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window."""
-        if (self.window is window
-            and self.bzr is not None and self.bzr.working_tree is not None):
-            return
-        self.window = window
-        self.bzr.window = window
+        gdp_window =self.windows[window]
         self.bzr.set_working_tree()
         if self.bzr.working_tree is None:
-            self.toggle_tree_menus(False)
+            self.toggle_tree_menus(gdp_window, False)
         else:
-            self.toggle_tree_menus(True)
+            self.toggle_tree_menus(gdp_window, True)
 
-    def toggle_tree_menus(self, sensitive):
+    def toggle_tree_menus(self, gdp_window, sensitive):
         """Enable or disable the menu items that require a working tree."""
-        manager = self.window.get_ui_manager()
+        manager = gdp_window.window.get_ui_manager()
         for name in self.tree_actions:
-            path = '%s/%s' % (PROJECT_PATH, name)
+            path = '%s/%s' % (self.menu_path, name)
             manager.get_action(path).props.sensitive = sensitive
         if not self.bzr.has_bzr_gtk:
             sensitive = False
         for name in self.bzr_gtk_actions:
-            path = '%s/%s' % (PROJECT_PATH, name)
+            path = '%s/%s' % (self.menu_path, name)
             manager.get_action(path).props.sensitive = sensitive

@@ -43,7 +43,7 @@ class BzrProject(PluginMixin):
     def __init__(self, gedit, window, working_tree=None):
         self.window = window
         self.working_tree = working_tree
-        self.initialize(gedit)
+        self.activate(gedit)
 
     @property
     def has_bzr_gtk(self):
@@ -52,7 +52,7 @@ class BzrProject(PluginMixin):
 
     def set_working_tree(self):
         """Return the working tree for the working directory or document"""
-        doc = self.window.get_active_document()
+        doc = self.active_document
         if doc is None:
             self.working_tree = None
             return

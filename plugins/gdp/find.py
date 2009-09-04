@@ -89,7 +89,7 @@ class Finder(PluginMixin):
     ANY_FILE = '<Any Text File>'
 
     def __init__(self, gedit, window):
-        self.initialize(gedit)
+        self.activate(gedit)
         self.window = window
         self.widgets = gtk.Builder()
         self.widgets.add_from_file(
@@ -161,7 +161,7 @@ class Finder(PluginMixin):
         if path_ in (self.WORKING_DIRECTORY, '', None):
             path_ = '.'
         elif path_ == self.CURRENT_FILE:
-            document = self.window.get_active_document()
+            document = self.active_document
             path_ = os.path.dirname(document.get_uri_for_display())
         return path_
 
@@ -172,7 +172,7 @@ class Finder(PluginMixin):
         if pattern in (self.ANY_FILE, '', None):
             pattern = '.'
         if self.path_comboentry.get_active_text() == self.CURRENT_FILE:
-            document = self.window.get_active_document()
+            document = self.active_document
             pattern = os.path.basename(document.get_uri_for_display())
         return pattern
 
