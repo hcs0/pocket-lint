@@ -24,11 +24,6 @@ $0]]></text>
     <description>__main__ function</description>
   </snippet>
   <snippet>
-    <text><![CDATA[import rpdb2; rpdb2.start_embedded_debugger('password')]]></text>
-    <tag>winpdb</tag>
-    <description>winpdb</description>
-  </snippet>
-  <snippet>
     <text><![CDATA[import pdb; pdb.set_trace()]]></text>
     <tag>pdb</tag>
     <description>pdb</description>
@@ -39,7 +34,7 @@ $0]]></text>
     <description>dict item</description>
   </snippet>
   <snippet>
-    <text><![CDATA[# Copyright 2008 Canonical Ltd.  All rights reserved.
+    <text><![CDATA[# Copyright 2009 Canonical Ltd.  All rights reserved.
 
 """Module docstring goes here."""
 

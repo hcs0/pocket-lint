@@ -1,6 +1,62 @@
-<snippets language="ruby"><snippet><text>t.column :${1:name}, :${2:string}</text><tag>tc</tag><description>rails t.column</description><accelerator /></snippet><snippet><text>create_table (:${1:table_name}) do |t|
+<snippets language="ruby">
+<snippet>
+<text>t.column :${1:name}, :${2:string}</text>
+<tag>tc</tag>
+<description>rails t.column</description>
+</snippet>
+<snippet>
+<text>create_table (:${1:table_name}) do |t|
   $0
-end</text><tag>ct</tag><description>rails create_table</description><accelerator /></snippet><snippet><text>drop_table (:${1:table_name})</text><tag>dt</tag><description>rails drop_table</description><accelerator /></snippet><snippet><text>add_column (:${1:table_name}, :${2:column_name}, :${3:string})</text><tag>ac</tag><description>rails add_column</description><accelerator /></snippet><snippet><text>add_index (:${1:table_name}, :${2:column_name})</text><tag>ai</tag><description>rails add_index</description><accelerator /></snippet><snippet><text>rename_table (:${1:old_name}, :${2:new_name})</text><tag>rt</tag><description>rails rename_table</description><accelerator /></snippet><snippet><text>remove_column (:${1:table_name}, :${2:column_name})</text><tag>rmc</tag><description>rails remove_column</description><accelerator /></snippet><snippet><text>rename_column (:${1:table_name}, :${2:old_name}, :${3:new_name})</text><tag>rc</tag><description>rails rename_column</description><accelerator /></snippet><snippet><text>remove_index (:${1:table_name}, :${2:column_name})</text><tag>rmi</tag><description>rails remove_index</description><accelerator /></snippet><snippet><text>create_table (:${1:table_name}), :force =&gt; true do |t|
+end</text>
+<tag>ct</tag>
+<description>rails create_table</description>
+</snippet>
+<snippet>
+<text>drop_table (:${1:table_name})</text>
+<tag>dt</tag>
+<description>rails drop_table</description>
+</snippet>
+<snippet>
+<text>add_column (:${1:table_name}, :${2:column_name}, :${3:string})</text>
+<tag>ac</tag>
+<description>rails add_column</description>
+</snippet>
+<snippet>
+<text>add_index (:${1:table_name}, :${2:column_name})</text>
+<tag>ai</tag>
+<description>rails add_index</description>
+</snippet>
+<snippet>
+<text>rename_table (:${1:old_name}, :${2:new_name})</text>
+<tag>rt</tag>
+<description>rails rename_table</description>
+</snippet>
+<snippet>
+<text>remove_column (:${1:table_name}, :${2:column_name})</text>
+<tag>rmc</tag>
+<description>rails remove_column</description>
+</snippet>
+<snippet>
+<text>rename_column (:${1:table_name}, :${2:old_name}, :${3:new_name})</text>
+<tag>rc</tag>
+<description>rails rename_column</description>
+</snippet>
+<snippet>
+<text>remove_index (:${1:table_name}, :${2:column_name})</text>
+<tag>rmi</tag>
+<description>rails remove_index</description>
+</snippet>
+<snippet>
+<text>create_table (:${1:table_name}), :force =&gt; true do |t|
   $0
-end</text><tag>ctf</tag><description>rails create_table force</description><accelerator /></snippet><snippet><text>def $1
-end</text><tag /><description>rails class</description><accelerator>&lt;Shift&gt;&lt;Control&gt;c</accelerator></snippet></snippets>
+end</text>
+<tag>ctf</tag>
+<description>rails create_table force</description>
+</snippet>
+<snippet>
+<text>def $1
+end</text>
+<tag />
+<description>rails class</description>
+</snippet>
+</snippets>

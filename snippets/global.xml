@@ -1,18 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <snippets>
   <snippet>
-    <text><![CDATA[ * \`bzr+ssh://devpad.canonical.com/code/curtis/launchpad/${1:branch}\`
-   ${2:Summary} [[BR]]
-   Cover Letter: ${3:http://pastebin/} [[BR]]
-   Demo URL: ${4:http://launchpad.dev/} [[BR]]
-   Test command: ./test -t "${5:regexp}" [[BR]]
-   Pre-implementation call with: ''${6:who}'' [[BR]]
-   Target release: ''1.1.${7:releaseno}'' [[BR]]
-   needs-review [@DATE@]]]></text>
-    <tag>prb</tag>
-    <description>Review mesage</description>
-  </snippet>
-  <snippet>
     <text><![CDATA[bzr pqm-submit -m "[r=${1:reviewer}][ui=${2:none}][bug ${3:bugnumber}]
 ${4:What feature does this provide to the user}.
 Currently listening to $(banshee-1 --query-artist --query-title | sed 's,^[^:]*: ,,;' | sed 'N; s,\n, -- ,')."]]></text>

@@ -2,10 +2,7 @@ NULL =
 
 toolsdir = $(GEDIT_TOOLS_DIR)
 
-tools_DATA = \
-	4-shift-test \
-	4-test \
-	$(NULL)
+tools_DATA = 
 
-install-data-hook:
-	chmod +x $(toolsdir)/*
+#install-data-hook:
+#	chmod +x $(toolsdir)/*
