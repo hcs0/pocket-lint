@@ -36,7 +36,7 @@ class FindPlugin(gedit.Plugin):
     menu_xml = """
         <ui>
           <menubar name="MenuBar">
-            <menu name="SearchMenu">
+            <menu name="SearchMenu" action='Search'>
               <menuitem action="FindFiles"/>
               <menuitem action="ReplaceFiles"/>
             </menu>
