@@ -19,12 +19,12 @@ class BazaarProjectPlugin(gedit.Plugin):
     """Plugin for formatting code."""
 
     action_group_name = 'GDPProjectActions'
-    menu_path = '/MenuBar/ProjectMenu/GDPProject'
+    menu_path = '/MenuBar/ProjectMenu/ProjectOps_1'
     menu_xml = """
         <ui>
           <menubar name="MenuBar">
             <menu action="ProjectMenu">
-              <placeholder name="GDPProject">
+              <placeholder name="ProjectOps_1">
                 <menuitem action="OpenUncommittedFiles"/>
                 <menuitem action="OpenChangedFilesFromParent"/>
                 <menuitem action="OpenChangedFilesToPush"/>

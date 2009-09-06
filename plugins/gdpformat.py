@@ -24,7 +24,8 @@ class FormatPlugin(gedit.Plugin):
         <ui>
           <menubar name="MenuBar">
             <menu name='EditMenu' action='Edit'>
-              <placeholder name="GEPEdit1">
+              <placeholder name="EditOps_3">
+                  <separator />
                   <menu action="GDPFormatMenu">
                     <menuitem action="RewrapText"/>
                     <menuitem action="FixLineEnding"/>
@@ -35,11 +36,14 @@ class FormatPlugin(gedit.Plugin):
                     <menuitem action="REReplace"/>
                     <menuitem action="ReformatDoctest"/>
                   </menu>
+                  <separator />
               </placeholder>
             </menu>
             <menu name='ToolsMenu' action='Tools'>
-              <placeholder name="GDPTools1">
+              <placeholder name="ToolsOps_2">
+                <separator />
                 <menuitem action="CheckProblems"/>
+                <separator />
               </placeholder>
             </menu>
           </menubar>
