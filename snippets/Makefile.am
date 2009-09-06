@@ -9,7 +9,6 @@ snippets_DATA = \
 	html.xml \
 	python.xml \
 	rst.xml \
-	ruby.xml \
 	sql.xml \
 	$(NULL)
 

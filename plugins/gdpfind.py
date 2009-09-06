@@ -37,8 +37,10 @@ class FindPlugin(gedit.Plugin):
         <ui>
           <menubar name="MenuBar">
             <menu name="SearchMenu" action='Search'>
-              <menuitem action="FindFiles"/>
-              <menuitem action="ReplaceFiles"/>
+              <placeholder name="GDPSearch3">
+                <menuitem action="FindFiles"/>
+                <menuitem action="ReplaceFiles"/>
+              </placeholder>
             </menu>
           </menubar>
         </ui>
