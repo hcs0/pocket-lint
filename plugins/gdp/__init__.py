@@ -21,15 +21,12 @@ mimetypes.init()
 class GDPWindow:
     """Decorate a `GeditWindow` with GDP state"""
 
-    def __init__(self, window, controller):
+    def __init__(self, window, controller, plugin):
         self.window = window
         self.controller = controller
-
-    def activate(self, plugin):
-        """Activate the plugin for the window."""
         self.action_group = gtk.ActionGroup(plugin.action_group_name)
         self.action_group.set_translation_domain('gedit')
-        self.action_group.add_actions(plugin.actions(self.controller))
+        self.action_group.add_actions(plugin.actions(controller))
         manager = self.window.get_ui_manager()
         manager.insert_action_group(self.action_group, -1)
         self.ui_id = manager.add_ui_from_string(plugin.menu_xml)

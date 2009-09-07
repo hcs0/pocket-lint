@@ -96,8 +96,7 @@ class FormatPlugin(gedit.Plugin):
 
         Add 'Format' to the edit menu and create a Formatter.
         """
-        self.windows[window] = GDPWindow(window, Formatter(window))
-        self.windows[window].activate(self)
+        self.windows[window] = GDPWindow(window, Formatter(window), self)
 
     def deactivate(self, window):
         """Deactivate the plugin in the current top-level window."""

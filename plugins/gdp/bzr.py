@@ -42,7 +42,7 @@ class BzrProject(PluginMixin):
 
     def __init__(self, window, working_tree=None):
         self.window = window
-        self.working_tree = working_tree
+        self.working_tree = working_tree or self.set_working_tree()
 
     @property
     def has_bzr_gtk(self):

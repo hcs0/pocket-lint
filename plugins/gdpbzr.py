@@ -141,10 +141,7 @@ class BazaarProjectPlugin(gedit.Plugin):
 
         Add 'Project' to the main menu and create a BzrProject.
         """
-        controller = BzrProject(window)
-        self.windows[window] = GDPWindow(window, controller)
-        controller.set_working_tree()
-        self.windows[window].activate(self)
+        self.windows[window] = GDPWindow(window, BzrProject(window), self)
         # Moved the menu to a less surprising position.
         manager = window.get_ui_manager()
         menubar = manager.get_widget('/MenuBar')
@@ -159,7 +156,7 @@ class BazaarProjectPlugin(gedit.Plugin):
 
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window."""
-        gdp_window =self.windows[window]
+        gdp_window = self.windows[window]
         gdp_window.controller.set_working_tree()
         if gdp_window.controller.working_tree is None:
             self.toggle_tree_menus(gdp_window, False)

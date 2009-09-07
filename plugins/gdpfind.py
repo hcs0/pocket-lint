@@ -72,8 +72,7 @@ class FindPlugin(gedit.Plugin):
 
         Add 'Find in files' to the menu.
         """
-        self.windows[window]= GDPWindow(window, Finder(window))
-        self.windows[window].activate(self)
+        self.windows[window]= GDPWindow(window, Finder(window), self)
 
     def deactivate(self, window):
         """Deactivate the plugin in the current top-level window.
