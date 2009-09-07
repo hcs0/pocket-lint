@@ -86,7 +86,6 @@ AC_CONFIG_FILES([
     plugins/Makefile
     plugins/gdp/Makefile
     po/Makefile.in
-    tools/Makefile
     snippets/Makefile
     language-specs/Makefile
     contrib/Makefile
