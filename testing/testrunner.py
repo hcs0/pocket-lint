@@ -1,4 +1,7 @@
 #!/usr/bin/python
+# Copyright (C) 2007-2009 - Curtis Hovey <sinzui.is at verizon.net>
+# This software is licensed under the GNU General Public License version 2
+# (see the file COPYING).
 """A simple doctest runner.
 
 This test app can be run from test.py which sets the default options.
@@ -14,8 +17,10 @@ from unittest import _WritelnDecorator
 
 from testing import Dummy, SignalTester, literal, proof
 
+
 class Env(object):
     """The test environment properties."""
+
     @classmethod
     def get(cls, key, default):
         """Return the key value when exists, or the default."""
@@ -105,7 +110,7 @@ def parse_args():
 
 def setup_env(params=None):
     """Setup the test environment.
-    
+
     This function merges the command line args with Env customizations
     and the default values.
     """
@@ -113,7 +118,7 @@ def setup_env(params=None):
     if 'paths' in params:
         [sys.path.append(os.path.abspath(path)) for path in params['paths']]
     if 'verbosity' in params:
-        Env.verbosity  = params['verbosity']
+        Env.verbosity = params['verbosity']
 
     (options, args) = parse_args()
     Env.verbosity = options.verbosity
@@ -173,7 +178,7 @@ def tearDown(doctest):
 
 def main(params=None):
     """Run the specified tests or all.
-    
+
     Uses an option command line argument that is a regulat expression to
     select a subset of tests to run.
     """
@@ -183,8 +188,8 @@ def main(params=None):
     option_flags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
     globs = get_globs()
     tests = {}
-    for test in find_tests('./' , Env.dir_re, Env.test_pattern):
-        top_dir = test[2:test.find('/', 2,) - 0]
+    for test in find_tests('./', Env.dir_re, Env.test_pattern):
+        top_dir = test[2:test.find('/', 2, ) - 0]
         if top_dir not in tests:
             tests[top_dir] = []
         tests[top_dir].append(test)

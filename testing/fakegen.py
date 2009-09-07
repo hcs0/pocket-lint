@@ -1,5 +1,7 @@
 #!/usr/bin/python
-# Copyright (C) 2007 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2007-2009 - Curtis Hovey <sinzui.is at verizon.net>
+# This software is licensed under the GNU General Public License version 2
+# (see the file COPYING).
 """Generate dummy python implementations from a defs file."""
 
 from codegen.definitions import (BoxedDef, EnumDef, FlagsDef,
@@ -26,18 +28,19 @@ class DummyBoxedDef(BoxedDef):
 
 class DummyEnumDef(EnumDef):
     """Enumerated constants."""
-    template = Template ("""
+    template = Template("""
 $val = '$name'""")
 
     def write_code(self, fp=sys.stdout):
         """Write dummy python implemention."""
         for name, val in self.values:
-            params = {'name' : name, 'val' : val}
+            params = {'name': name, 'val': val}
             fp.write(self.template.substitute(params))
 
 
 class DummyFlagsDef(FlagsDef):
     """Python flags defined at the start of the block."""
+
     def write_code(self, fp=sys.stdout):
         """Write dummy python implemention."""
 
@@ -45,7 +48,7 @@ class DummyFlagsDef(FlagsDef):
 class DummyFunctionDef(FunctionDef):
     """A dummy python function that returns data from the test environment."""
 
-    module_template = Template ("""
+    module_template = Template("""
 def $name($params):
     \"\"\"A dummy implementation of $name.\"\"\"
     if '$name' in dummy:
@@ -54,7 +57,7 @@ def $name($params):
         raise NotImplementedError
 """)
 
-    class_template = Template ("""
+    class_template = Template("""
     def $name($params):
         \"\"\"A dummy implementation of $name.\"\"\"
 """)
@@ -73,7 +76,7 @@ def $name($params):
             params = ', '.join(symbols)
         else:
             params = ''
-        params = {'name' : self.name, 'params' : params}
+        params = {'name': self.name, 'params': params}
         fp.write(template.substitute(params))
 
 
@@ -86,7 +89,7 @@ class DummyInterfaceDef(InterfaceDef):
 
 class DummyMethodDef(MethodDef):
     """A dummy python method that returns data from the test environment."""
-    template = Template ("""
+    template = Template("""
     def $name(self$params):
         \"\"\"A dummy implementation of $name.\"\"\"
         key = '%s.$name' % self.__class__.__name__
@@ -106,13 +109,13 @@ class DummyMethodDef(MethodDef):
             params = ', ' + ', '.join(symbols)
         else:
             params = ''
-        subs = {'name' : self.name, 'params' : params}
+        subs = {'name': self.name, 'params': params}
         fp.write(self.template.substitute(subs))
 
 
 class DummyObjectDef(ObjectDef):
     """A dummy Python class."""
-    template = Template ("""
+    template = Template("""
 
 class $name($parent):
     \"\"\"A dummy/fake implementation of $name.\"\"\"
@@ -120,7 +123,7 @@ class $name($parent):
 
     def write_code(self, fp=sys.stdout, methods=None):
         """Write dummy python implemention."""
-        params = {'name' : self.name, 'parent' : parent_name(self.parent)}
+        params = {'name': self.name, 'parent': parent_name(self.parent)}
         fp.write(self.template.substitute(params))
         for method in methods:
             method.write_code(fp)
@@ -202,7 +205,7 @@ class DefOverridesMixer(object):
 
     def __init__(self, defs, overrides=None):
         """Initialize the DefOverridesMixer with the defs and overrides.
-        
+
         When overrides is none, the defs are used exclusively to create the
         python source file.
         """
@@ -277,7 +280,7 @@ def parent_name(name):
 
 def safe_name(name):
     """Return a safe parameter name.
-    
+
     When name conflicts with a keyword or builtin, it is escaped with
     a leading underscore ('_').
     """

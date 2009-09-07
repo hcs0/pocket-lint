@@ -1,3 +1,6 @@
+# Copyright (C) 2007-2009 - Curtis Hovey <sinzui.is at verizon.net>
+# This software is licensed under the GNU General Public License version 2
+# (see the file COPYING).
 """Test utilities."""
 
 __metaclass__ = type
@@ -90,7 +93,7 @@ class SignalTester(object):
 
     def receiver(self, *args):
         """A generic method for testing a signal is received.
-        
+
         The arguments received are assigned to the list of attrs passed
         when the class was initialized. Order is very important. Example:
         handler_id = testee.connect('signal-sent', signal_tester.receiver)
@@ -100,7 +103,7 @@ class SignalTester(object):
 
     def emitter(self, signal_name, target, *args):
         """A generic method for emitting a signal.
-        
+
         The args are sent as the data when signal_name is emitted. Order
         is very important.
         """
@@ -109,7 +112,7 @@ class SignalTester(object):
     @classmethod
     def attachReceptionHarness(cls, testee):
         """Attached the methods need for testing callbacks.
-        
+
         To test that a callback receives and handles a signal correctly,
         a dictionary and two methods are added to the testee:
         signal_tester_signal_ids is a dictionary of the signal ids that
@@ -123,7 +126,7 @@ class SignalTester(object):
     @classmethod
     def detachReceptionHarness(cls, testee):
         """Detached the methods need for testing callbacks.
-        
+
         Remove the callback test harness.
         """
         if testee.signal_tester_signal_ids:
@@ -137,7 +140,7 @@ class SignalTester(object):
     def testeeConnect(
         cls, testee, target, target_name, signal_name, callback):
         """A generic method for connecting the testee to SignalTester.
-        
+
         This method can be monkey patched to the testee to connect the
         code being tested to the test.
         """
@@ -148,7 +151,7 @@ class SignalTester(object):
     @classmethod
     def testeeDisconnect(cls, testee, target, target_name, signal_name):
         """A generic method for disconnecting the testee from SignalTester.
-        
+
         This method can be monkey patched to the testee to connect the
         code being tested to the test.
         """
@@ -159,7 +162,7 @@ class SignalTester(object):
 
 def literal(value):
     """Print the literal value.
-    
+
     Display None, string, and numbers as raw values. Objects are
     presented using repr()
     """
@@ -171,7 +174,7 @@ _re_tokens = re.compile(r'[\w]+')
 
 def proof(outcome):
     """Print True when the outcome of an expression evaluates to True.
-    
+
     When the outcome is False, the values in the expression are
     printed for verification.
     """
@@ -192,4 +195,3 @@ def proof(outcome):
             value = repr(inspect.stack()[1][0].f_locals[token])
             expression = expression.replace(token, value)
     print expression
-
