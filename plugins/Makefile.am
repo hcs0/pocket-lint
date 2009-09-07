@@ -1,7 +1,6 @@
-NULL =
-
-DIST_DIRS = gdp
 SUBDIRS = gdp
+
+NULL =
 
 plugindir = $(GEDIT_PLUGIN_DIR)
 
@@ -27,6 +26,11 @@ plugin_in_files = \
 plugin_DATA = $(plugin_in_files:.gedit-plugin.desktop.in=.gedit-plugin)
 
 EXTRA_DIST = $(plugin_in_files)
+
+dist-hook:
+	mkdir $(distdir)/tests
+	cp -p $(srcdir)/tests/* $(distdir)/tests
+	rm -f $(distdir)/tests/*.pyc
 
 CLEANFILES = *.bak *.pyc *.pyo $(plugin_DATA)
 DISTCLEANFILES = *.bak *.pyc *.pyo $(plugin_DATA)

@@ -16,6 +16,13 @@ ui_DATA = \
 
 EXTRA_DIST = $(ui_DATA)
 
+dist-hook:
+	mkdir $(distdir)/tests
+	cp -p $(srcdir)/tests/* $(distdir)/tests
+	rm -f $(distdir)/tests/*.pyc
+	mkdir $(distdir)/data
+	cp -p $(srcdir)/data/* $(distdir)/data
+
 CLEANFILES = *.bak *.pyc *.pyo
 DISTCLEANFILES = *.bak *.pyc *.pyo
 
