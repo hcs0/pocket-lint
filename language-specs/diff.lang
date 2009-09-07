@@ -3,6 +3,7 @@
 
  Author: Paolo Maggi <paolo.maggi@polito.it>
  Copyright (C) 2003 Paolo Maggi <paolo.maggi@polito.it>
+ Copyright (C) 2009 Curtis Hovey <sinzui.is@verizon.net>
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Library General Public
@@ -79,7 +80,7 @@
           <include>
             <context ref="def:escape"/>
           </include>
-        </context>    
+        </context>
 
         <context id="special-case" style-ref="special-case">
           <prefix>(&gt; )?^</prefix>
@@ -94,7 +95,7 @@
 <!--
         <context id="annotation" style-ref="annotation" end-at-line-end="true">
           <start>^[a-zA-Z]{1,72}</start>
-        </context>    
+        </context>
 
         <context style-ref="ignore" end-at-line-end="true">
           <start>^\S</start>
