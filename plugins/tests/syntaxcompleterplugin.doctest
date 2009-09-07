@@ -9,7 +9,7 @@ language.
 The plugin, like the gedit.Plugin object it descends from does not
 require any parameters during initialization.
 
-    >>> from syntaxcompleterplugin import SyntaxCompleterPlugin
+    >>> from gdpsyntaxcompleter import SyntaxCompleterPlugin
     >>> plugin = SyntaxCompleterPlugin()
     >>> plugin
     <SyntaxCompleterPlugin object at ... (GObject at ...)>
@@ -34,12 +34,10 @@ It also adds the controller to the view.
     >>> import gedit
     >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
     >>> plugin.activate(window)
-    >>> plugin.window is window
+    >>> window in plugin.windows
     True
-    >>> plugin.controller is window.get_active_view().gdp_syntax_controller
-    True
-    >>> plugin.controller
-    <gdp.syntaxcompleter.SyntaxController object at ...>
+    >>> plugin.windows[window].controller
+    <gdp.syntaxcompleter.SyntaxController ...>
 
 
 update_ui()
@@ -50,7 +48,6 @@ the application's UI. for instance, when a tab becomes active, such as
 when a new tab is created, the plugin will bind the controller to the
 tab's view.
 
-    >>> old_controller = plugin.controller
     >>> window.get_child().get_current_page()
     0
 
@@ -58,49 +55,14 @@ tab's view.
     ...     None, 0, False, True)
     >>> window.get_child().get_current_page()
     1
-    >>> new_view = window.get_active_view()
 
-    >>> new_view.gdp_syntax_controller
-    <gdp.syntaxcompleter.SyntaxController object at ...>
+    # The gedit plugin system calls this when the current page is changed.
+    >>> plugin.update_ui(window)
+    >>> new_view = window.get_active_view()
     >>> new_view is view
     False
-    >>> new_view.gdp_syntax_controller is old_controller
-    False
-    >>> new_view.gdp_syntax_controller is plugin.controller
+    >>> new_view is plugin.windows[window].controller.view
     True
-
-
-GSignals
---------
-
-The SyntaxCompleter plugin receives the gedit Window's tab-added
-signal.
-
-
-on_tab_added
-~~~~~~~~~~~~
-
-When a new tab is created, the plugin will bind the controller to the
-tab's view.
-
-    >>> signal_tester = SignalTester()
-    >>> signal_tester.attachReceptionHarness(plugin)
-    >>> signal_tester.testeeConnect(
-    ...     plugin, window, 'window', 'tab-added', plugin.on_tab_added)
-    >>> tab = gedit.Tab()
-    >>> dummy = Dummy()
-    >>> dummy['Tab.get_view'] = gedit.View(document)
-
-    >>> hasattr(tab.get_view(), 'gdp_syntax_controller')
-    False
-    >>> signal_tester.emitter('tab-added', window, tab)
-    >>> hasattr(tab.get_view(), 'gdp_syntax_controller')
-    True
-
-    >>> dummy['Tab.get_view'].destroy()
-    >>> del dummy['Tab.get_view']
-    >>> plugin.testeeDisconnect(plugin, window, 'window', 'tab-added')
-    >>> signal_tester.detachReceptionHarness(plugin)
 
 
 Gedit plugin API part 2
@@ -118,11 +80,7 @@ controller from the views, then removes its own bindings to the window
 and the controller.
 
     >>> plugin.deactivate(window)
-    >>> literal(plugin.window)
-    None
-    >>> literal(plugin.controller)
-    None
-    >>> hasattr(view, 'gdp_syntax_controller')
+    >>> window in plugin.windows
     False
 
 

@@ -20,13 +20,13 @@ requests to complete words.
     TypeError: __init__() takes exactly 2 arguments (1 given)
 
     >>> from testing.gedithelpers import get_window
-    >>> from syntaxcompleterplugin import SyntaxCompleterPlugin
+    >>> from gdpsyntaxcompleter import SyntaxCompleterPlugin
     >>> import gtk
     >>> import gedit
     >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
-    >>> controller = SyntaxController(view)
+    >>> controller = SyntaxController(window)
     >>> controller
-    <gdp.syntaxcompleter.SyntaxController object at ...>
+    <gdp.syntaxcompleter.SyntaxController ...>
 
 
 set_view()
@@ -230,7 +230,7 @@ contain underscores are included in the list of words.
 
     >>> hacker_window, hacker_view, hacker_doc = get_window(
     ...     'plugins/gdp/data/hackerese.txt')
-    >>> hacker_controller = SyntaxController(hacker_view)
+    >>> hacker_controller = SyntaxController(window)
     >>> print hacker_doc.get_text(hacker_doc.get_start_iter(),
     ...     hacker_doc.get_end_iter())
     H... syntax_generator syntax_completer __call__(self) __dict__ file_ ...

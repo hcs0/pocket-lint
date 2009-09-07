@@ -20,29 +20,27 @@ __all__ = [
 
 import gedit
 
+from gdp import GDPWindow
 from gdp.syntaxcompleter import SyntaxController
 
 
 class SyntaxCompleterPlugin(gedit.Plugin):
     """Automatically complete words from the list of words in the document."""
 
+    action_group_name = None
+
     def __init__(self):
         """Initialize the plugin the whole Gedit application."""
         gedit.Plugin.__init__(self)
-        self.window = None
-        self.controller = None
+        self.windows = {}
 
     def activate(self, window):
         """Activate the plugin in the current top-level window.
 
         Add a SyntaxControler to every view.
         """
-        self.window = window
-        window.connect('tab-added', self.on_tab_added)
-        for view in self.window.get_views():
-            if isinstance(view, gedit.View) and not self.has_controller(view):
-                view.gdp_syntax_controller = SyntaxController(view)
-
+        self.windows[window] = GDPWindow(
+            window, SyntaxController(window), self)
         self.update_ui(window)
 
     def deactivate(self, window):
@@ -50,13 +48,9 @@ class SyntaxCompleterPlugin(gedit.Plugin):
 
         Remove the SyntaxControler from every view.
         """
-        for view in window.get_views():
-            if isinstance(view, gedit.View) and self.has_controller(view):
-                view.gdp_syntax_controller.deactivate()
-                view.gdp_syntax_controller = None
-                del view.gdp_syntax_controller
-        self.window = None
-        self.controller = None
+        self.windows[window].controller.deactivate()
+        self.windows[window].deactivate()
+        del self.windows[window]
 
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window.
@@ -64,20 +58,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         Set the current controler.
         """
         view = window.get_active_view()
-        if isinstance(view, gedit.View) and self.has_controller(view):
-            self.controller = view.gdp_syntax_controller
-            self.controller.correct_language(window.get_active_document())
-        else:
-            self.controller = None
-
-    def has_controller(self, view):
-        """Return True when the view has a SyntaxControler."""
-        has_controller = hasattr(view, 'gdp_syntax_controller')
-        return has_controller and view.gdp_syntax_controller
-
-    def on_tab_added(self, window, tab):
-        """Create a new SyntaxController for this tab."""
-        view = tab.get_view()
-        if isinstance(view, gedit.View) and not self.has_controller(view):
-            view.gdp_syntax_controller = SyntaxController(view)
-            self.update_ui(window)
+        if isinstance(view, gedit.View):
+            self.windows[window].controller.set_view(view)
+            self.windows[window].controller.correct_language(
+                window.get_active_document())

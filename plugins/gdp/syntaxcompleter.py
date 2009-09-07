@@ -25,6 +25,8 @@ from gtksourceview2 import language_manager_get_default
 
 from snippets.SnippetComplete import SnippetComplete, CompleteModel
 
+from gdp import PluginMixin
+
 
 lang_manager = language_manager_get_default()
 doctest_language = lang_manager.get_language('doctest')
@@ -392,14 +394,14 @@ gobject.signal_new(
     gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT, ))
 
 
-class SyntaxController:
+class SyntaxController(PluginMixin):
     """This class manages the gedit.View's interaction with the SyntaxView."""
 
-    def __init__(self, view):
+    def __init__(self, window):
         """Initialize the controller for the gedit.View."""
         self.signal_ids = {}
         self.view = None
-        self.set_view(view)
+        self.set_view(window.get_active_view())
 
     def set_view(self, view, is_reset=False):
         """Set the view to be controlled.

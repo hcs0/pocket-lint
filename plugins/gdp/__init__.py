@@ -24,6 +24,9 @@ class GDPWindow:
     def __init__(self, window, controller, plugin):
         self.window = window
         self.controller = controller
+        self.ui_id = None
+        if plugin.action_group_name is None:
+            return
         self.action_group = gtk.ActionGroup(plugin.action_group_name)
         self.action_group.set_translation_domain('gedit')
         self.action_group.add_actions(plugin.actions(controller))
@@ -33,6 +36,8 @@ class GDPWindow:
 
     def deactivate(self):
         """Deactivate the plugin for the window."""
+        if self.ui_id is None:
+            return
         manager = self.window.get_ui_manager()
         manager.remove_ui(self.ui_id)
         manager.remove_action_group(self.action_group)
