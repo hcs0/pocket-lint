@@ -1,6 +1,8 @@
 %%
 headers
-# pylint: disable-msg=C0301,C0302,E1002,R0904
+# Copyright (C) 2007-2009 - Curtis Hovey <sinzui.is at verizon.net>
+# This software is licensed under the GNU General Public License version 2
+# (see the file COPYING).
 
 __metaclass__ = type
 %%
@@ -369,6 +371,7 @@ body
 # The Gedit python environment has gettext builtin
 __builtin__.__dict__['_'] = gettext
 
+
 def dummy_mime_types():
     """Return a dictionary mime-types and gtksourceview2 Language ids."""
     mime_types = {}
@@ -379,7 +382,9 @@ def dummy_mime_types():
             mime_types[mime_type] = lang_id
     return mime_types
 
+
 MIME_TYPES = dummy_mime_types()
+
 
 gobject.signal_new(
     'tab-added', Window, gobject.SIGNAL_RUN_LAST,
