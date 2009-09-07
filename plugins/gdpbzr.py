@@ -1,4 +1,6 @@
 # Copyright (C) 2009 - Curtis Hovey <sinzui.is at verizon.net>
+# This software is licensed under the GNU General Public License version 2
+# (see the file COPYING).
 """Bazaar project management and integration."""
 
 __metaclass__ = type

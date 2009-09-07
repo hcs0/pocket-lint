@@ -1,5 +1,6 @@
 # Copyright (C) 2009 - Curtis Hovey <sinzui.is at verizon.net>
-"""Text formatting features for the edit menu."""
+# This software is licensed under the GNU General Public License version 2
+# (see the file COPYING)."""Text formatting features for the edit menu."""
 
 __metaclass__ = type
 
