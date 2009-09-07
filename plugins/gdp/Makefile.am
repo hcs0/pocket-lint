@@ -14,6 +14,8 @@ ui_DATA = \
 	find.ui \
 	format.ui
 
+EXTRA_DIST = $(ui_DATA)
+
 CLEANFILES = *.bak *.pyc *.pyo
 DISTCLEANFILES = *.bak *.pyc *.pyo
 

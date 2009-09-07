@@ -11,3 +11,4 @@ langs_DATA = \
 	python.lang \
 	$(NULL)
 
+EXTRA_DIST = $(langs_DATA)

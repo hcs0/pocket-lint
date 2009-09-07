@@ -13,6 +13,7 @@ EXTRA_DIST = \
 	INSTALL \
 	NEWS \
 	README \
+	test.py \
 	$(NULL)
 
 DISTCLEANFILES = \
@@ -29,6 +30,13 @@ check: test
 
 test:
 	(cd $(srcdir) && ./test.py)
+
+dist-hook:
+	mkdir $(distdir)/gedit
+	cp -p $(srcdir)/gedit/*.defs $(distdir)/gedit
+	cp -p $(srcdir)/gedit/*.overrides $(distdir)/gedit
+	mkdir $(distdir)/utils
+	cp -p $(srcdir)/utils/* $(distdir)/utils
 
 dist: ChangeLog
 

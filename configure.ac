@@ -3,7 +3,7 @@
 AC_PREREQ(2.61)
 
 m4_define(gdp_major_version,  2)
-m4_define(gdp_minor_version, 20)
+m4_define(gdp_minor_version, 26)
 m4_define(gdp_micro_version,  0)
 m4_define(gdp_version, gdp_major_version.gdp_minor_version.gdp_micro_version)
 

@@ -12,3 +12,4 @@ snippets_DATA = \
 	sql.xml \
 	$(NULL)
 
+EXTRA_DIST = $(snippets_DATA)
