@@ -17,7 +17,7 @@ import gtksourceview2
 define app_get_default
 def app_get_default():
     """A fake implementation of app_get_default.
-    
+
     Return a Gedit.App.
     """
     return App()
@@ -68,7 +68,7 @@ define Document.get_mime_type
 define Document.load
     def load(self, uri, encoding, line_pos, create):
         """A fake implementation of load.
-        
+
         The encoding, line_pos, and create args are ignored.
         The uri must use the file:// protocol.
         """
@@ -124,7 +124,7 @@ define View.__init__
 define View.get_window
     def get_window(self, win):
         """Return the real or dummy gdk.window.
-        
+
         When View.get_window is a key in dummy, a testing value is returned,
         other the real window is returned.
         """
@@ -253,6 +253,21 @@ define Window.get_documents
         if key in dummy:
             return dummy[key]
         return [tab.get_document() for tab in self.tabs_]
+%%
+define Window.get_bottom_panel
+    def get_bottom_panel(self):
+        """A fake bottom panel."""
+        class FakePanel:
+            def __init__(self):
+               self.widget = None
+               self.label = None
+               self.icon = None
+
+            def add_item(self, widget, label, icon):
+               self.widget = widget
+               self.label = label
+               self.icon = icon
+        return FakePanel()
 %%
 define Window.get_group
     def get_group(self):

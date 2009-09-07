@@ -7,7 +7,7 @@ text that matches the requested patten.
 The plugin, like the gedit.Plugin object it descends from does not
 require any parameters during initialization.
 
-    >>> from findplugin import FindPlugin
+    >>> from gdpfind import FindPlugin
     >>> plugin = FindPlugin()
     >>> plugin
     <FindPlugin object at ... (GObject at ...)>
@@ -32,17 +32,18 @@ It also adds the controller to the view.
     >>> import gedit
     >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
     >>> plugin.activate(window)
-    >>> plugin.window is window
+    >>> plugin.windows[window].window is window
     True
-    >>> plugin.controller
-    <gdp.find.FindController object at ...>
+    >>> plugin.windows[window].controller
+    <gdp.find.Finder object at ...>
 
 The 'Find in files' item was created and added to the Search menu in
 the UI.
 
-    >>> plugin.action_group.get_action('FindFiles').get_property('label')
-    'Find i_n files...'
-    >>> plugin.ui_id
+    >>> plugin.windows[window].action_group.get_action(
+    ...     'FindFiles').get_property('label')
+    'Find in files...'
+    >>> plugin.windows[window].ui_id
     2
 
 
@@ -53,21 +54,6 @@ Nothing happen with update_ui() is called. The menu it is valid for
 the Gedit Window; the Gedit Document is not important.
 
     >>> plugin.update_ui(window)
-
-
-callbacks
----------
-
-The FindPlugin provides a callback for the 'Find in files' menu item.
-
-
-on_find_files
-~~~~~~~~~~~~~
-
-The bottom pane is displayed with the 'Find in files' dialog when
-on_find_file() is called.
-
-    >>> plugin.on_find_files(None)
 
 
 Gedit plugin API part 2
@@ -85,15 +71,9 @@ controller from the views, then removes its own bindings to the window
 and the controller.
 
     >>> plugin.deactivate(window)
-    >>> literal(plugin.ui_id)
-    None
-    >>> literal(plugin.action_group)
-    None
-    >>> literal(plugin.controller)
-    None
+    >>> window in plugin.windows
+    False
 
-    >>> literal(plugin.window)
-    None
 
 Tear down
 ---------
