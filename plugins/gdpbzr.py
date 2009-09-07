@@ -141,7 +141,7 @@ class BazaarProjectPlugin(gedit.Plugin):
 
         Add 'Project' to the main menu and create a BzrProject.
         """
-        controller = BzrProject(gedit, window)
+        controller = BzrProject(window)
         self.windows[window] = GDPWindow(window, controller)
         controller.set_working_tree()
         self.windows[window].activate(self)

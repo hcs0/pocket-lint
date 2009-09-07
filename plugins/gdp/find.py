@@ -88,8 +88,7 @@ class Finder(PluginMixin):
     CURRENT_FILE= '<Current File>'
     ANY_FILE = '<Any Text File>'
 
-    def __init__(self, gedit, window):
-        self.activate(gedit)
+    def __init__(self, window):
         self.window = window
         self.widgets = gtk.Builder()
         self.widgets.add_from_file(

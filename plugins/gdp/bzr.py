@@ -40,10 +40,9 @@ __all__ = [
 class BzrProject(PluginMixin):
     """View and manage a bazaar branch."""
 
-    def __init__(self, gedit, window, working_tree=None):
+    def __init__(self, window, working_tree=None):
         self.window = window
         self.working_tree = working_tree
-        self.activate(gedit)
 
     @property
     def has_bzr_gtk(self):

@@ -45,11 +45,6 @@ class GDPWindow:
 class PluginMixin:
     """Provide common features to plugins"""
 
-    def activate(self, gedit):
-        """Initialize the common plugin services"""
-        self.gedit = gedit
-        self.utf8_encoding = gedit.encoding_get_from_charset('UTF-8')
-
     def is_doc_open(self, uri):
         """Return True if the window already has a document opened for uri."""
         for doc in self.window.get_documents():
@@ -64,10 +59,8 @@ class PluginMixin:
         mime_type, charset_ = mimetypes.guess_type(uri)
         if mime_type is None or 'text/' in mime_type:
             # This appears to be a file that gedit can open.
-            encoding = self.utf8_encoding
             jump_to = jump_to or 0
-            self.window.create_tab_from_uri(
-                uri, encoding, jump_to, False, False)
+            self.window.create_tab_from_uri(uri, None, jump_to, False, False)
 
     def activate_open_doc(self, uri, jump_to=None):
         """Activate (or open) a document and jump to the line number."""
