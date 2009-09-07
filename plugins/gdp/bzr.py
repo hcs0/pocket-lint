@@ -205,12 +205,16 @@ class BzrProject(PluginMixin):
         window.set_title(file_path + " - Annotate")
         GAnnotateConfig(window)
         window.show()
-        try:
-            branch = self.working_tree.branch
-            branch.lock_read()
-            window.annotate(self.working_tree, branch, file_id)
-        finally:
+        branch = self.working_tree.branch
+
+        def destroy_window(window):
             branch.unlock()
+            self.working_tree.unlock()
+
+        window.connect("destroy", destroy_window)
+        branch.lock_read()
+        self.working_tree.lock_read()
+        window.annotate(self.working_tree, branch, file_id)
 
     def visualise_branch(self, data):
         """Visualise the tree."""
