@@ -158,6 +158,19 @@ def project_dir():
     return '/'.join(script_path.split('/')[0:-1])
 
 
+def setUp(doctest):
+    """Gedit has gettext compiled into builtins."""
+    import __builtin__
+    from gettext import gettext
+    __builtin__.__dict__['_'] = gettext
+
+
+def tearDown(doctest):
+    """Remove the gedit's gettext from builtins."""
+    import __builtin__
+    del __builtin__.__dict__['_']
+
+
 def main(params=None):
     """Run the specified tests or all.
     
@@ -171,7 +184,7 @@ def main(params=None):
     globs = get_globs()
     tests = {}
     for test in find_tests('./' , Env.dir_re, Env.test_pattern):
-        top_dir = test[2:test.find('/', 2,) - 1]
+        top_dir = test[2:test.find('/', 2,) - 0]
         if top_dir not in tests:
             tests[top_dir] = []
         tests[top_dir].append(test)
@@ -180,8 +193,8 @@ def main(params=None):
     suite = unittest.TestSuite()
     for top_dir in tests:
         suite.addTest(doctest.DocFileSuite(
-            module_relative=False, globs=globs, optionflags=option_flags,
-            *tests[top_dir]))
+            module_relative=False, setUp=setUp, tearDown=tearDown,
+            globs=globs, optionflags=option_flags, *tests[top_dir]))
     unittest.TextTestRunner(verbosity=Env.verbosity).run(suite)
 
 
