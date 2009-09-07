@@ -6,8 +6,6 @@ __init__ method requires a gedit window. An error is raised if it is not
 provided.
 
     >>> from testing.gedithelpers import get_window
-    >>> import gtk
-    >>> import gedit
     >>> from gdp.find import Finder
 
     >>> finder = Finder()
