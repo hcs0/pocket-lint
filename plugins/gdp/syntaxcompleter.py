@@ -1,4 +1,6 @@
-# Copyright (C) 2007 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2007-2009 - Curtis Hovey <sinzui.is at verizon.net>
+# This software is licensed under the GNU General Public License version 2
+# (see the file COPYING).
 """A syntax completer for document words and python symbols."""
 
 
