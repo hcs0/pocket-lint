@@ -50,8 +50,7 @@ class FormatPlugin(gedit.Plugin):
         </ui>
         """
 
-    @property
-    def actions(self):
+    def actions(self, formatter):
         """Return a list of action tuples.
 
         (name, stock_id, label, accelerator, tooltip, callback)
@@ -60,31 +59,31 @@ class FormatPlugin(gedit.Plugin):
             ('GDPFormatMenu', None, _('_Format'), None, None, None),
             ('RewrapText', None, _("Rewrap _text"), None,
                 _("Rewrap the text to 78 characters."),
-                self.formatter.rewrap_text),
+                formatter.rewrap_text),
             ('FixLineEnding', None, _("Fix _line endings"), None,
                 _('Remove trailing whitespace and use newline endings.'),
-                self.formatter.newline_ending),
+                formatter.newline_ending),
             ('TabsToSpaces', None, _("Convert t_abs to spaces"), None,
                 _('Convert tabs to spaces using the preferred tab size.'),
-                self.formatter.tabs_to_spaces),
+                formatter.tabs_to_spaces),
             ('QuoteLines', None, _("_Quote lines"), '<Alt>Q',
                 _("Format the text as a quoted email."),
-                self.formatter.quote_lines),
+                formatter.quote_lines),
             ('SortImports', None, _("Sort _imports"), None,
                 _('Sort and wrap imports.'),
-                self.formatter.sort_imports),
+                formatter.sort_imports),
             ('SingleLine', None, _("_Single line"), None,
                 _("Format the text as a single line."),
-                self.formatter.single_line),
+                formatter.single_line),
             ('REReplace', None, _("Regular _expression line replace"), None,
                 _("Reformat each line using a regular expression."),
-                self.formatter.re_replace),
+                formatter.re_replace),
             ('ReformatDoctest', None, _("Reformat _doctest"), None,
                 _("Reformat the doctest."),
-                self.formatter.reformat_doctest),
+                formatter.reformat_doctest),
             ('CheckProblems', None, _("C_heck syntax and style"), 'F3',
                 _("Check syntax and style problems."),
-                self.formatter.check_style),
+                formatter.check_style),
             ]
 
     def __init__(self):
@@ -97,8 +96,7 @@ class FormatPlugin(gedit.Plugin):
 
         Add 'Format' to the edit menu and create a Formatter.
         """
-        self.windows[window] = GDPWindow(window)
-        self.formatter = Formatter(window)
+        self.windows[window] = GDPWindow(window, Formatter(window))
         self.windows[window].activate(self)
 
     def deactivate(self, window):

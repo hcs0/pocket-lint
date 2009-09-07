@@ -71,8 +71,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         'VisualiseBranch',
         ]
 
-    @property
-    def actions(self):
+    def actions(self, bzr):
         """Return a list of action tuples.
 
         (name, stock_id, label, accelerator, tooltip, callback)
@@ -81,55 +80,55 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('ProjectMenu', None, _('_Project'), None, None, None),
             ('OpenUncommittedFiles', None, _("Open _uncommitted files"), None,
                 _("Open uncommitted in the bzr branch."),
-                self.bzr.open_uncommitted_files),
+                bzr.open_uncommitted_files),
             ('OpenChangedFilesFromParent', None, _("_Open diverged files"),
                 '<Shift><Control>O',
                 _("Open files that have diverged from the parent."),
-                self.bzr.open_changed_files_from_parent),
+                bzr.open_changed_files_from_parent),
             ('OpenChangedFilesToPush', None, _("Open unpushed files"),
                 None, _("Open changed files that have not been pushed."),
-                self.bzr.open_changed_files_to_push),
+                bzr.open_changed_files_to_push),
             ('DiffUncommittedChanges', None, _("_Diff uncommitted changes"),
                 'F5', _("Create a diff of the uncommitted changes."),
-                self.bzr.diff_uncommited_changes),
+                bzr.diff_uncommited_changes),
             ('DiffChangesFromParent', None, _("Diff changes from _parent"),
                 '<Shift>F5',
                  _("Create a diff of the changes from the parent tree."),
-                self.bzr.diff_changes_from_parent),
+                bzr.diff_changes_from_parent),
             ('DiffChangesToPush', None, _("Diff changes to push"),
                 None, _("Create a diff of the changes from the push tree."),
-                self.bzr.diff_changes_to_push),
+                bzr.diff_changes_to_push),
             ('ShowAnnotations', None, _("Show _annotations"),
                 None, _("Show the revision annotations of the current file."),
-                self.bzr.show_annotations),
+                bzr.show_annotations),
             ('VisualiseBranch', None, _("_Visualise branch"),
                 None, _("Graphically visualise this branch.."),
-                self.bzr.visualise_branch),
+                bzr.visualise_branch),
             ('ShowInfo', None, _("Show _info"),
                 None,
                 _("Show information about the working tree, branch "
                   "or repository."),
-                self.bzr.show_info),
+                bzr.show_info),
             ('ShowStatus', None, _("Show _status"),
                 None, _("Show the status of the working tree."),
-                self.bzr.show_status),
+                bzr.show_status),
             ('ShowConflicts', None, _("Show co_nflicts"),
                 None, _("Show the conflicts in the working tree."),
-                self.bzr.show_conflicts),
+                bzr.show_conflicts),
             ('ShowTags', None, _("Show _tags"),
                 None, _("Show the tags in the branch."),
-                self.bzr.show_tags),
+                bzr.show_tags),
             ('CommitChanges', None, _("_Commit changes"),
                 '<Control><Alt><Super>C',
                 _("Commit the changes in the working tree."),
-                self.bzr.commit_changes),
+                bzr.commit_changes),
             ('MergeChanges', None, _("_Merge changes"),
                 None,
                 _("Merge changes from another branch into the working tree."),
-                self.bzr.merge_changes),
+                bzr.merge_changes),
             ('PushChanges', None, _("_Push changes"),
                 None, _("Push the changes in the working tree."),
-                self.bzr.push_changes),
+                bzr.push_changes),
             ]
 
     def __init__(self):
@@ -142,9 +141,9 @@ class BazaarProjectPlugin(gedit.Plugin):
 
         Add 'Project' to the main menu and create a BzrProject.
         """
-        self.windows[window] = GDPWindow(window)
-        self.bzr = BzrProject(gedit, window)
-        self.bzr.set_working_tree()
+        controller = BzrProject(gedit, window)
+        self.windows[window] = GDPWindow(window, controller)
+        controller.set_working_tree()
         self.windows[window].activate(self)
         # Moved the menu to a less surprising position.
         manager = window.get_ui_manager()
@@ -161,8 +160,8 @@ class BazaarProjectPlugin(gedit.Plugin):
     def update_ui(self, window):
         """Toggle the plugin's sensativity in the top-level window."""
         gdp_window =self.windows[window]
-        self.bzr.set_working_tree()
-        if self.bzr.working_tree is None:
+        gdp_window.controller.set_working_tree()
+        if gdp_window.controller.working_tree is None:
             self.toggle_tree_menus(gdp_window, False)
         else:
             self.toggle_tree_menus(gdp_window, True)
@@ -173,7 +172,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         for name in self.tree_actions:
             path = '%s/%s' % (self.menu_path, name)
             manager.get_action(path).props.sensitive = sensitive
-        if not self.bzr.has_bzr_gtk:
+        if not gdp_window.controller.has_bzr_gtk:
             sensitive = False
         for name in self.bzr_gtk_actions:
             path = '%s/%s' % (self.menu_path, name)

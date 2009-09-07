@@ -48,8 +48,7 @@ class FindPlugin(gedit.Plugin):
         </ui>
         """
 
-    @property
-    def actions(self):
+    def actions(self, finder):
         """Return a list of action tuples.
 
         (name, stock_id, label, accelerator, tooltip, callback)
@@ -57,10 +56,10 @@ class FindPlugin(gedit.Plugin):
         return [
             ('FindFiles', None, _('Find in files...'),
                 '<Control><Shift>f', _('Fi_nd in files'),
-                self.finder.show),
+                finder.show),
             ('ReplaceFiles', None, _('R_eplace in files...'),
                 '<Control><Shift>h', _('Replace in files'),
-                self.finder.show_replace),
+                finder.show_replace),
             ]
 
     def __init__(self):
@@ -73,8 +72,7 @@ class FindPlugin(gedit.Plugin):
 
         Add 'Find in files' to the menu.
         """
-        self.windows[window]= GDPWindow(window)
-        self.finder = Finder(gedit, window)
+        self.windows[window]= GDPWindow(window, Finder(gedit, window))
         self.windows[window].activate(self)
 
     def deactivate(self, window):

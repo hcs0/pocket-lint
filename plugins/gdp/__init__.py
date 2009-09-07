@@ -14,17 +14,22 @@ import gobject
 import gtk
 
 
+# Initialise the mimetypes for document type inspection.
+mimetypes.init()
+
+
 class GDPWindow:
     """Decorate a `GeditWindow` with GDP state"""
 
-    def __init__(self, window):
+    def __init__(self, window, controller):
         self.window = window
+        self.controller = controller
 
     def activate(self, plugin):
         """Activate the plugin for the window."""
         self.action_group = gtk.ActionGroup(plugin.action_group_name)
         self.action_group.set_translation_domain('gedit')
-        self.action_group.add_actions(plugin.actions)
+        self.action_group.add_actions(plugin.actions(self.controller))
         manager = self.window.get_ui_manager()
         manager.insert_action_group(self.action_group, -1)
         self.ui_id = manager.add_ui_from_string(plugin.menu_xml)
@@ -44,7 +49,6 @@ class PluginMixin:
         """Initialize the common plugin services"""
         self.gedit = gedit
         self.utf8_encoding = gedit.encoding_get_from_charset('UTF-8')
-        mimetypes.init()
 
     def is_doc_open(self, uri):
         """Return True if the window already has a document opened for uri."""
