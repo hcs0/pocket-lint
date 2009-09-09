@@ -43,4 +43,5 @@ Contrib
 -------
 
 GDP includes the work of other projects when it simplifies dependencies.
-    * pep8.py
+    * pep8.py (Expat license)
+    * pyflakes (MIT license)
