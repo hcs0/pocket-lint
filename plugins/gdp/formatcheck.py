@@ -117,6 +117,7 @@ class UniversalChecker(BaseChecker):
             XMLChecker(self.file_path, self.text, self._reporter).check()
         else:
             AnyTextChecker(self.file_path, self.text, self._reporter).check()
+        self._reporter.file_lines_view.expand_all()
 
 
 class AnyTextChecker(BaseChecker):

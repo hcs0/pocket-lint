@@ -66,6 +66,7 @@ class PluginMixin:
             # This appears to be a file that gedit can open.
             jump_to = jump_to or 0
             self.window.create_tab_from_uri(uri, None, jump_to, False, False)
+            self.window.get_active_view().scroll_to_cursor()
 
     def activate_open_doc(self, uri, jump_to=None):
         """Activate (or open) a document and jump to the line number."""

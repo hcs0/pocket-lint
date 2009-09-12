@@ -208,7 +208,6 @@ class Formatter(PluginMixin):
             message = _("The regular expression pattern has an error in it.")
             self.replace_label.set_markup(
                 '%s\n<b>%s</b>' % (self.replace_label_text, message))
-            self.replace_dialog.run()
             return
         bounds, text = self._get_bounded_text()
         lines = [line_re.sub(replacement, line) for line in text.splitlines()]

@@ -214,6 +214,8 @@ class Finder(PluginMixin):
             treestore.append(
                 None,
                 ('No matches found', 'stock_dialog-info', 0, None, None))
+        if self.path_comboentry.get_active_text() == self.CURRENT_FILE:
+            self.file_lines_view.expand_all()
 
     def on_replace_in_files(self, widget=None):
         """Find, replace, and present the matches."""
