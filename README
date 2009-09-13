@@ -3,7 +3,24 @@ General Information
 
 This is version 2.26.0 of gedit-developer-plugins (GDP). GDP are a
 set of plugins for gedit that provide additional editing features
-for software development.
+for software development. GDP provides:
+
+    * Multi-file find and replace
+      Directories and file types can be specified. Regular expressions are
+      supported.
+    * Syntax completion
+      Python completion using the file's imports and definitions. Simple
+      word completion based on the words in the file.
+      Use <Shift><Control>Space to activate the snippet completer window.
+    * Formatting
+      Format paragraphs, lists, and imports. Reformat test using regular
+      expressions. Check the syntax and style of Python, XML, and plain
+      text. Check and reformat Python doctests.
+    * Project management via Bazaar DVCS
+      integrates bzr-gtk to show status, tags, annotations, visualize,
+      commit, merge, and push. Open files changes in the branch.
+
+See screenshots at http://curtis.hovey.name/gallery/Sinzui/gdp-2-26-1
 
 
 Installation
@@ -34,9 +51,21 @@ The version number is synced to the gedit version. Plugins may work
 with older versions of gedit. Run the following command from a
 terminal to run the test suite.
 
-    make check
+    make test
 
-If the test suite passes, the plugins will probably work.
+If the test suite passes, the plugins will probably work. In the past,
+API changes to GtkSourceView2 and gtk.Builder were underlying cause of
+incompatibilities
+
+
+Reporting bugs and contributing
+-------------------------------
+
+You can learn details about the GDP project, ask questions, and report bugs at
+
+    https://launchpad.net/gdp
+
+Include the gedit version from Menu > Help > about if possible.
 
 
 Contrib
