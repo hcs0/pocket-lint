@@ -28,7 +28,8 @@ AM_PATH_PYTHON
 # not always available. gtksourceview is a good indicator of the
 # Gedit version.
 PKG_CHECK_MODULES(GEDIT, [
-    pygtk-2.0 >= 0.18
+    gtk+-2.0 >= 2.16
+    pygtk-2.0 >= 2.14
     gtksourceview-2.0 >= 2.0.0
 ])
 
