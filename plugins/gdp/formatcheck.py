@@ -163,13 +163,18 @@ class XMLChecker(BaseChecker):
         if self.text == '':
             return
         try:
-            parser = etree.XMLParser()
+            parser = etree.XMLParser(resolve_entities=False)
             root = etree.XML(self.text, parser)
         except:
             # The log is more important than the traceback.
             pass
         for error in parser.error_log:
-            self.message(error.line, error.message, icon='errror')
+            if error.message.startswith('Entity'):
+                # XXX sinzui 2009-09-12 bug=267825, bug=410916: XMLParser
+                # resolve_entities is not honoured. lxml does not support
+                # loading the entities external to the document.
+                continue
+            self.message(error.line, error.message, icon='error')
 
 
 class PythonChecker(BaseChecker):
