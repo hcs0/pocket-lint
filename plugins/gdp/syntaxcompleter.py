@@ -180,7 +180,13 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
 
         import __builtin__
         global_syms = dir(__builtin__)
-        pyo = compile(self._get_parsable_text(), 'sc.py', 'exec')
+        try:
+            pyo = compile(self._get_parsable_text(), 'sc.py', 'exec')
+        except SyntaxError:
+            # This cannot be completed because of syntax errors.
+            # Return
+            is_authoritative = False
+            return is_authoritative, set()
         co_names = ('SIGNAL_RUN_LAST', 'TYPE_NONE', 'TYPE_PYOBJECT', 'object')
         local_syms = [name for name in pyo.co_names if name not in co_names]
 
