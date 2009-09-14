@@ -50,8 +50,7 @@ Building and packaging
 
 The code uses autotools. You can build the code from the console using:
 
-    autoconf
-    ./configure
+    ./autogen.sh
     make
 
 The `make distcheck` command must always work for changes to be accepted.

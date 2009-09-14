@@ -27,3 +27,7 @@ po/POTFILES
 missing
 *.gedit-plugin
 ChangeLog
+mkinstalldirs
+config.status.lineno
+install-sh
+missing
