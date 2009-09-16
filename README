@@ -43,6 +43,8 @@ To install the plugins in the same location as the standard
 gedit plugins, set the prefix path to the same as gedit (usually
 /usr).
 
+See HACKING for instructions to build the plugins from a branch.
+
 
 Working versions
 ----------------
