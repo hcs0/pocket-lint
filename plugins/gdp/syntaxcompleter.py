@@ -25,7 +25,16 @@ import gtk
 from gtk import gdk
 from gtksourceview2 import language_manager_get_default
 
-from snippets.SnippetComplete import SnippetComplete, CompleteModel
+try:
+    from snippets.SnippetComplete import SnippetComplete, CompleteModel
+except ImportError:
+    # The Snippet plugin is not enabled, so the module is not in the path.
+    message = _("The snippet plugin must be enabled first.")
+    dialog = gtk.MessageDialog(
+        type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE,
+        message_format=message)
+    dialog.run()
+    dialog.destroy()
 
 from gdp import PluginMixin
 
