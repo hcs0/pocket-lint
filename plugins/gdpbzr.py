@@ -11,10 +11,16 @@ __all__ = [
 
 from gettext import gettext as _
 
+import gobject
 import gedit
 
 from gdp import GDPWindow
 from gdp.bzr import BzrProject
+
+
+gobject.signal_new(
+    'bzr-branch-open', gedit.Window, gobject.SIGNAL_RUN_LAST,
+    gobject.TYPE_NONE, (gobject.TYPE_STRING, ))
 
 
 class BazaarProjectPlugin(gedit.Plugin):
@@ -164,6 +170,8 @@ class BazaarProjectPlugin(gedit.Plugin):
             self.toggle_tree_menus(gdp_window, False)
         else:
             self.toggle_tree_menus(gdp_window, True)
+            gdp_window.window.emit(
+                'bzr-branch-open', gdp_window.controller.working_tree.basedir)
 
     def toggle_tree_menus(self, gdp_window, sensitive):
         """Enable or disable the menu items that require a working tree."""

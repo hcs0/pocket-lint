@@ -133,6 +133,7 @@ def setup_file_lines_view(file_lines_view, plugin, column_title):
     column.pack_start(cell, False)
     column.set_cell_data_func(cell, set_file_line)
     file_lines_view.set_model(treestore)
+    file_lines_view.set_level_indentation(-18)
     file_lines_view.append_column(column)
     file_lines_view.set_search_column(0)
     file_lines_view.connect(

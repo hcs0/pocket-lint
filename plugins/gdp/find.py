@@ -93,6 +93,7 @@ class Finder(PluginMixin):
 
     def __init__(self, window):
         self.window = window
+        self.signal_ids = {}
         self.widgets = gtk.Builder()
         self.widgets.add_from_file(
             '%s/find.ui' % os.path.dirname(__file__))
@@ -101,6 +102,8 @@ class Finder(PluginMixin):
         panel = window.get_bottom_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU)
         panel.add_item(self.find_panel, 'Find in files', icon)
+        self.signal_ids['bzr-branch-open'] = self.window.connect(
+            'bzr-branch-open', self.on_file_path_added)
 
     def setup_widgets(self):
         """Setup the widgets with default data."""
@@ -178,6 +181,9 @@ class Finder(PluginMixin):
             document = self.active_document
             pattern = os.path.basename(document.get_uri_for_display())
         return pattern
+
+    def on_file_path_added(self, window, path):
+        self.update_comboentry(self.path_comboentry, path)
 
     def on_find_in_files(self, widget=None, substitution=None):
         """Find and present the matches."""
