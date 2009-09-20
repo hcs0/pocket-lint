@@ -18,7 +18,33 @@ from gdp.syntaxcompleter import SyntaxController
 class SyntaxCompleterPlugin(gedit.Plugin):
     """Automatically complete words from the list of words in the document."""
 
-    action_group_name = None
+    action_group_name = 'GDPSyntaxActions'
+    menu_path = '/MenuBar/ToolsMenu/ToolsOps_2/CompleteWord'
+    menu_xml = """
+        <ui>
+          <menubar name="MenuBar">
+            <menu name='ToolsMenu' action='Tools'>
+              <placeholder name="ToolsOps_2">
+                <separator />
+                <menuitem action="CompleteWord"/>
+                <separator />
+              </placeholder>
+            </menu>
+          </menubar>
+        </ui>
+        """
+
+    def actions(self, syntaxer):
+        """Return a list of action tuples.
+
+        (name, stock_id, label, accelerator, tooltip, callback)
+        """
+        return  [
+            ('CompleteWord', None, _("Complete _word"),
+                '<Control><Shift>space',
+                _("Complete the word at the cursor."),
+                syntaxer.show_syntax_view),
+            ]
 
     def __init__(self):
         """Initialize the plugin the whole Gedit application."""
@@ -49,7 +75,15 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         Set the current controler.
         """
         view = window.get_active_view()
-        if isinstance(view, gedit.View):
-            self.windows[window].controller.set_view(view)
-            self.windows[window].controller.correct_language(
-                window.get_active_document())
+        if not isinstance(view, gedit.View):
+            return
+        self.windows[window].controller.set_view(view)
+        self.windows[window].controller.correct_language(
+            window.get_active_document())
+        gdp_window = self.windows[window]
+        manager = gdp_window.window.get_ui_manager()
+        if view.get_editable():
+            sensitive = True
+        else:
+            sensitive = False
+        manager.get_action(self.menu_path).props.sensitive = sensitive

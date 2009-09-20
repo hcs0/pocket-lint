@@ -22,7 +22,6 @@ from xml.sax import saxutils
 
 import gobject
 import gtk
-from gtk import gdk
 from gtksourceview2 import language_manager_get_default
 
 try:
@@ -443,9 +442,6 @@ class SyntaxController(PluginMixin):
                 'destroy', self.on_view_destroy)
             self.signal_ids['notify::editable'] = view.connect(
                 'notify::editable', self.on_notify_editable)
-            if view.get_editable():
-                self.signal_ids['key-press-event'] = view.connect(
-                    'key_press_event', self.on_view_key_press)
 
     def _disconnectSignal(self, obj, signal):
         """Disconnect the signal from the provided object."""
@@ -453,8 +449,10 @@ class SyntaxController(PluginMixin):
             obj.disconnect(self.signal_ids[signal])
             del self.signal_ids[signal]
 
-    def show_syntax_view(self):
+    def show_syntax_view(self, widget=None):
         """Show the SyntaxView widget."""
+        if not self.view.get_editable():
+            return
         document = self.view.get_buffer()
         (prefix, ignored, end) = self.get_word_prefix(document)
         syntax_view = SyntaxView(document, prefix, False)
@@ -545,12 +543,6 @@ class SyntaxController(PluginMixin):
         the SyntaxView widget for syntax completion.
         """
         self.set_view(view, True)
-
-    def on_view_key_press(self, view, event):
-        """Show the SyntaxView widget when Control-Shift-Space is pressed."""
-        state = gdk.CONTROL_MASK | gdk.SHIFT_MASK
-        if event.state == state and event.keyval in (gtk.keysyms.space, ):
-            self.show_syntax_view()
 
     def on_view_destroy(self, view):
         """Disconnect the controller."""
