@@ -231,9 +231,9 @@ class DoctestReviewer:
             block = wrap(long_line, 72)
         return block
 
-    def is_comment(self, line):
-        """Return True if the line is a comment."""
-        comment_pattern = re.compile(r'\s*#')
+    def is_code_comment(self, line):
+        """Return True if the line is a code comment."""
+        comment_pattern = re.compile(r'^\s+#')
         return comment_pattern.match(line) is not None
 
     def check_length(self, lineno, line, kind, previous_kind):
@@ -245,12 +245,11 @@ class DoctestReviewer:
         * SOURCE: 70 characters (discounting indentation and interpreter).
         * WANT: 74 characters (discounting indentation).
         """
-
-        length = len(line)
-        if kind == DoctestReviewer.NARRATIVE and self.is_comment(line):
+        if kind == DoctestReviewer.NARRATIVE and self.is_code_comment(line):
             # comments follow WANT rules because they are in code.
             kind = DoctestReviewer.WANT
             line = line.lstrip()
+        length = len(line)
         if kind == DoctestReviewer.NARRATIVE and length > 78:
             self._print_message('%s exceeds 78 characters.' % kind, lineno)
         elif kind == DoctestReviewer.WANT and length > 74:

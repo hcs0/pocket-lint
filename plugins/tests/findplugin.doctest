@@ -28,8 +28,6 @@ creates the FindController, and binds it and the window to itself.
 It also adds the controller to the view.
 
     >>> from testing.gedithelpers import get_window
-    >>> import gtk
-    >>> import gedit
     >>> window, view, document = get_window('plugins/gdp/data/snark12.txt')
     >>> plugin.activate(window)
     >>> plugin.windows[window].window is window
