@@ -111,6 +111,7 @@ class Finder(PluginMixin):
         self.path_comboentry = self.widgets.get_object('path_comboentry')
         self.setup_comboentry(self.path_comboentry, os.getcwd())
         self.update_comboentry(self.path_comboentry, self.CURRENT_FILE)
+        self.path_comboentry.set_active(1)
         self.file_comboentry = self.widgets.get_object('file_comboentry')
         self.setup_comboentry(self.file_comboentry, self.ANY_FILE)
         self.substitution_comboentry = self.widgets.get_object(
