@@ -116,7 +116,6 @@ Leave this field blank to delete the matched text.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <signal name="clicked" handler="on_replace_quit"/>
-                <signal name="activate" handler="on_replace_quit"/>
                 <child>
                   <object class="GtkAlignment" id="alignment1">
                     <property name="visible">True</property>
@@ -167,7 +166,6 @@ Leave this field blank to delete the matched text.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <signal name="clicked" handler="on_replace"/>
-                <signal name="activate" handler="on_replace"/>
                 <child>
                   <object class="GtkAlignment" id="alignment2">
                     <property name="visible">True</property>
