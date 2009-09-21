@@ -102,8 +102,6 @@ class Finder(PluginMixin):
         panel = window.get_bottom_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU)
         panel.add_item(self.find_panel, 'Find in files', icon)
-        self.signal_ids['bzr-branch-open'] = self.window.connect(
-            'bzr-branch-open', self.on_file_path_added)
 
     def setup_widgets(self):
         """Setup the widgets with default data."""
@@ -112,9 +110,8 @@ class Finder(PluginMixin):
             'pattern_comboentry')
         self.setup_comboentry(self.pattern_comboentry)
         self.path_comboentry = self.widgets.get_object('path_comboentry')
-        self.setup_comboentry(self.path_comboentry, os.getcwd())
-        self.update_comboentry(self.path_comboentry, self.CURRENT_FILE)
-        self.path_comboentry.set_active(1)
+        self.setup_comboentry(self.path_comboentry, self.CURRENT_FILE)
+        self.update_comboentry(self.path_comboentry, os.getcwd())
         self.file_comboentry = self.widgets.get_object('file_comboentry')
         self.setup_comboentry(self.file_comboentry, self.ANY_FILE)
         self.substitution_comboentry = self.widgets.get_object(
@@ -134,12 +131,15 @@ class Finder(PluginMixin):
     def update_comboentry(self, comboentry, text):
         """Update the match text combobox."""
         is_unique = True
-        for row in iter(comboentry.get_model()):
+        index = 0
+        for index, row in enumerate(iter(comboentry.get_model())):
             if row[0] == text:
                 is_unique = False
+                comboentry.set_active(index)
                 break
         if is_unique:
             comboentry.append_text(text)
+            comboentry.set_active(index + 1)
 
     @property
     def ui_callbacks(self):

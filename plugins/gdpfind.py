@@ -63,7 +63,10 @@ class FindPlugin(gedit.Plugin):
 
         Add 'Find in files' to the menu.
         """
-        self.windows[window]= GDPWindow(window, Finder(window), self)
+        finder = Finder(window)
+        self.windows[window] = GDPWindow(window, finder, self)
+        self.windows[window].connect_signal(
+            window, 'bzr-branch-open', finder.on_file_path_added)
 
     def deactivate(self, window):
         """Deactivate the plugin in the current top-level window.
