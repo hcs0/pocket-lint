@@ -9,10 +9,16 @@ __all__ = [
     'SyntaxCompleterPlugin',
     ]
 
+import gobject
 import gedit
 
 from gdp import GDPWindow
 from gdp.syntaxcompleter import SyntaxController
+
+
+gobject.signal_new(
+    'syntax-error-python', gedit.Document, gobject.SIGNAL_RUN_LAST,
+    gobject.TYPE_NONE, ())
 
 
 class SyntaxCompleterPlugin(gedit.Plugin):

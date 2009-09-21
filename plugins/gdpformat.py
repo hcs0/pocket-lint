@@ -109,4 +109,10 @@ class FormatPlugin(gedit.Plugin):
 
         This plugin is always active.
         """
-        pass
+        gdp_window = self.windows[window]
+        gdp_window.disconnect_signal(
+            gdp_window.document, 'syntax-error-python')
+        gdp_window.document = gdp_window.controller.active_document
+        gdp_window.connect_signal(
+            gdp_window.document, 'syntax-error-python',
+            gdp_window.controller.check_style)

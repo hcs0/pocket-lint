@@ -27,6 +27,8 @@ class GDPWindow:
     def __init__(self, window, controller, plugin):
         self.window = window
         self.controller = controller
+        self.signal_ids = {}
+        self.document = None
         self.ui_id = None
         if plugin.action_group_name is None:
             return
@@ -45,6 +47,25 @@ class GDPWindow:
         manager.remove_ui(self.ui_id)
         manager.remove_action_group(self.action_group)
         manager.ensure_update()
+
+    def connect_signal(self, obj, signal, method):
+        """Connect the signal from the provided object to a method."""
+        if obj is None:
+            return
+        self.signal_ids[signal] = obj.connect(signal, method)
+
+    def disconnect_signal(self, obj, signal):
+        """Disconnect the signal from the provided object."""
+        if obj is None:
+            return
+        if signal in self.signal_ids:
+            obj.disconnect(self.signal_ids[signal])
+            del self.signal_ids[signal]
+
+    @property
+    def active_document(self):
+        """The active document in the window."""
+        self.window.get_active_document()
 
 
 class PluginMixin:

@@ -193,6 +193,7 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
         except SyntaxError:
             # This cannot be completed because of syntax errors.
             # Return
+            self._document.emit('syntax-error-python')
             is_authoritative = False
             return is_authoritative, set()
         co_names = ('SIGNAL_RUN_LAST', 'TYPE_NONE', 'TYPE_PYOBJECT', 'object')
