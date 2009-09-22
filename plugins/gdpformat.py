@@ -35,7 +35,6 @@ class FormatPlugin(gedit.Plugin):
                     <menuitem action="SortImports"/>
                     <menuitem action="SingleLine"/>
                     <menuitem action="REReplace"/>
-                    <menuitem action="ReformatDoctest"/>
                   </menu>
                   <separator />
               </placeholder>
@@ -44,6 +43,7 @@ class FormatPlugin(gedit.Plugin):
               <placeholder name="ToolsOps_2">
                 <separator />
                 <menuitem action="CheckProblems"/>
+                <menuitem action="ReformatDoctest"/>
                 <separator />
               </placeholder>
             </menu>
