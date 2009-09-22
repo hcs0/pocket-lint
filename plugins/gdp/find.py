@@ -130,16 +130,14 @@ class Finder(PluginMixin):
 
     def update_comboentry(self, comboentry, text):
         """Update the match text combobox."""
-        is_unique = True
-        index = 0
         for index, row in enumerate(iter(comboentry.get_model())):
             if row[0] == text:
-                is_unique = False
+                # The text is already in the list, it just need to be active.
                 comboentry.set_active(index)
-                break
-        if is_unique:
-            comboentry.append_text(text)
-            comboentry.set_active(index + 1)
+                return
+        comboentry.append_text(text)
+        # Call this again to set the text active.
+        self.update_comboentry(comboentry, text)
 
     @property
     def ui_callbacks(self):
