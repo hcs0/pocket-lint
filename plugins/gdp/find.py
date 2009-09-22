@@ -145,6 +145,7 @@ class Finder(PluginMixin):
         return {
             'on_find_in_files': self.on_find_in_files,
             'on_replace_in_files': self.on_replace_in_files,
+            'on_save_results': self.on_save_results,
             }
 
     def show(self, data):
@@ -227,6 +228,33 @@ class Finder(PluginMixin):
         substitution = self.substitution_comboentry.get_active_text() or ''
         self.update_comboentry(self.substitution_comboentry, substitution)
         self.on_find_in_files(substitution=substitution)
+
+    def on_save_results(self, widget=None):
+        """Save the search results to a file."""
+        dialog = gtk.FileChooserDialog(
+            title="Save find results", parent=self.window,
+            action=gtk.FILE_CHOOSER_ACTION_SAVE,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+				     gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
+        dialog.set_do_overwrite_confirmation(True)
+        dialog.set_current_name('_find.log')
+        if (dialog.run() == gtk.RESPONSE_ACCEPT):
+            file_name = dialog.get_filename()
+            log_text = self.get_results_as_log()
+            with open(file_name, 'w') as log_file:
+                log_file.write(log_text)
+        dialog.destroy()
+
+    def get_results_as_log(self):
+        """Return the results in the file_lines_view as a log."""
+        lines = []
+        treestore = self.file_lines_view.get_model()
+        for file_match in treestore:
+            lines.append(file_match[0])
+            for line_match in file_match.iterchildren():
+                line = '    %4s: %s' % (line_match[2], line_match[3])
+                lines.append(line)
+        return '\n'.join(lines)
 
 
 def get_option_parser():

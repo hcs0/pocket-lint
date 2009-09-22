@@ -173,11 +173,25 @@
                 <property name="visible">True</property>
                 <property name="spacing">6</property>
                 <child>
+                  <object class="GtkButton" id="save_results_button">
+                    <property name="label" translatable="yes">Save</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="yalign">0.46000000834465027</property>
+                    <signal name="clicked" handler="on_save_results"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkLabel" id="label2">
                     <property name="visible">True</property>
                   </object>
                   <packing>
-                    <property name="position">3</property>
+                    <property name="position">4</property>
                   </packing>
                 </child>
                 <child>
