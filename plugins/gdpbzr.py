@@ -141,9 +141,9 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('PushChanges', None, _("_Push changes"),
                 None, _("Push the changes in the working tree."),
                 bzr.push_changes),
-            ('InitBranch', None, _("_Initialize branch"),
+            ('InitBranch', None, _("_Initialise branch"),
                 None, _("Make a directory into a versioned branch."),
-                bzr.initialize_branch),
+                bzr.initialise_branch),
             ('BranchBranch', None, _("_Branch branch"),
                 None, _("Create a new branch that is a copy of an "
                          "existing branch."), bzr.branch_branch),

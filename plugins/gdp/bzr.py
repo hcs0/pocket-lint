@@ -161,6 +161,7 @@ class BzrProject(PluginMixin):
         try:
             self.working_tree.lock_write()
             dialog = CommitDialog(self.working_tree, self.window)
+            dialog.props.title = "Commit changes - gedit"
             response = dialog.run()
             if response != gtk.RESPONSE_NONE:
                 dialog.hide()
@@ -178,11 +179,13 @@ class BzrProject(PluginMixin):
         """Show the status of the working tree."""
         base_dir = self.working_tree.basedir
         window = StatusWindow(self.working_tree, base_dir, None)
+        window.props.title = "Branch status - gedit"
         window.show()
 
     def show_conflicts(self, data):
         """Show the merge, revert, or pull conflicts in the working tree."""
         dialog = ConflictsDialog(self.working_tree)
+        dialog.props.title = "Branch conflicts - gedit"
         response = dialog.run()
         dialog.hide()
         dialog.destroy()
@@ -190,6 +193,7 @@ class BzrProject(PluginMixin):
     def show_tags(self, data):
         """Show the tags in the brancg."""
         window = TagsWindow(self.working_tree.branch, self.window)
+        window.props.title = "Branch tags - gedit"
         window.show()
 
     def show_annotations(self, data):
@@ -204,7 +208,7 @@ class BzrProject(PluginMixin):
         if file_id is None:
             return
         window = GAnnotateWindow(parent=self.window)
-        window.set_title(file_path + " - Annotate")
+        window.props.title = "Annotate (" + file_path +") - gedit"
         GAnnotateConfig(window)
         window.show()
         branch = self.working_tree.branch
@@ -224,6 +228,7 @@ class BzrProject(PluginMixin):
         branch = self.working_tree.branch
         revisions = [branch.last_revision()]
         window = BranchWindow(branch, revisions, limit)
+        window.props.title = "Visualise branch - gedit"
         window.show()
 
     def merge_changes(self, data):
@@ -238,10 +243,11 @@ class BzrProject(PluginMixin):
                  _('Commit or revert the changes before merging.'))
         else:
             parent_branch_path = branch.get_parent()
-            merge = MergeDialog(
+            dialog = MergeDialog(
                 self.working_tree, self.relpath, parent_branch_path)
-            response = merge.run()
-            merge.destroy()
+            dialog.props.title = "Merge changes - gedit"
+            response = dialog.run()
+            dialog.destroy()
 
     def push_changes(self, data):
         """Push the changes in the working tree."""
@@ -252,9 +258,10 @@ class BzrProject(PluginMixin):
             dialog.hide()
             dialog.destroy()
 
-    def initialize_branch(self, data):
+    def initialise_branch(self, data):
         """Make a directory into a versioned branch."""
         dialog = InitDialog(os.path.abspath(os.path.curdir))
+        dialog.props.title = "Initialize branch - gedit"
         response = dialog.run()
         if response != gtk.RESPONSE_NONE:
             dialog.hide()
@@ -263,6 +270,7 @@ class BzrProject(PluginMixin):
     def branch_branch(self, data):
         """Create a new branch that is a copy of an existing branch."""
         dialog = BranchDialog('')
+        dialog.props.title = "Branch branch - gedit"
         response = dialog.run()
         if response != gtk.RESPONSE_NONE:
             dialog.hide()
@@ -271,6 +279,7 @@ class BzrProject(PluginMixin):
     def checkout_branch(self, data):
         """Create a new checkout of an existing branch."""
         dialog = CheckoutDialog('')
+        dialog.props.title = "Checkout branch - gedit"
         response = dialog.run()
         if response != gtk.RESPONSE_NONE:
             dialog.hide()
