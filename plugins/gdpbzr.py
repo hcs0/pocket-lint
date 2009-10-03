@@ -54,7 +54,8 @@ class BazaarProjectPlugin(gedit.Plugin):
                 <menuitem action="PushChanges"/>
                 <separator />
                 <menuitem action="InitBranch"/>
-                <menuitem action="CreateBranch"/>
+                <menuitem action="BranchBranch"/>
+                <menuitem action="CheckoutBranch"/>
               </placeholder>
             </menu>
           </menubar>
@@ -143,10 +144,12 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('InitBranch', None, _("_Initialize branch"),
                 None, _("Make a directory into a versioned branch."),
                 bzr.initialize_branch),
-            ('CreateBranch', None, _("Get _branch"),
+            ('BranchBranch', None, _("_Branch branch"),
                 None, _("Create a new branch that is a copy of an "
-                         "existing branch."), bzr.get_branch),
-
+                         "existing branch."), bzr.branch_branch),
+            ('CheckoutBranch', None, _("_Checkout branch"),
+                None, _("Create a new checkout of an existing branch."),
+                bzr.checkout_branch),
             ]
 
     def __init__(self):

@@ -19,6 +19,7 @@ try:
     from bzrlib.plugins.gtk.annotate.gannotate import GAnnotateWindow
     from bzrlib.plugins.gtk.branch import BranchDialog
     from bzrlib.plugins.gtk.commit import CommitDialog
+    from bzrlib.plugins.gtk.checkout import CheckoutDialog
     from bzrlib.plugins.gtk.conflicts import ConflictsDialog
     from bzrlib.plugins.gtk.dialog import error_dialog
     from bzrlib.plugins.gtk.initialize import InitDialog
@@ -259,9 +260,17 @@ class BzrProject(PluginMixin):
             dialog.hide()
             dialog.destroy()
 
-    def get_branch(self, data):
+    def branch_branch(self, data):
         """Create a new branch that is a copy of an existing branch."""
         dialog = BranchDialog('')
+        response = dialog.run()
+        if response != gtk.RESPONSE_NONE:
+            dialog.hide()
+            dialog.destroy()
+
+    def checkout_branch(self, data):
+        """Create a new checkout of an existing branch."""
+        dialog = CheckoutDialog('')
         response = dialog.run()
         if response != gtk.RESPONSE_NONE:
             dialog.hide()
