@@ -20,6 +20,7 @@ try:
     from bzrlib.plugins.gtk.commit import CommitDialog
     from bzrlib.plugins.gtk.conflicts import ConflictsDialog
     from bzrlib.plugins.gtk.dialog import error_dialog
+    from bzrlib.plugins.gtk.initialize import InitDialog
     from bzrlib.plugins.gtk.merge import MergeDialog
     from bzrlib.plugins.gtk.olive.info import InfoDialog
     from bzrlib.plugins.gtk.push import PushDialog
@@ -244,6 +245,14 @@ class BzrProject(PluginMixin):
         """Push the changes in the working tree."""
         branch = self.working_tree.branch
         dialog = PushDialog(branch.repository, branch.last_revision(), branch)
+        response = dialog.run()
+        if response != gtk.RESPONSE_NONE:
+            dialog.hide()
+            dialog.destroy()
+
+    def initialize_branch(self, data):
+        """Make a directory into a versioned branch."""
+        dialog = InitDialog(os.path.abspath(os.path.curdir))
         response = dialog.run()
         if response != gtk.RESPONSE_NONE:
             dialog.hide()

@@ -52,6 +52,8 @@ class BazaarProjectPlugin(gedit.Plugin):
                 <menuitem action="CommitChanges"/>
                 <menuitem action="MergeChanges"/>
                 <menuitem action="PushChanges"/>
+                <separator />
+                <menuitem action="InitBranch"/>
               </placeholder>
             </menu>
           </menubar>
@@ -137,6 +139,9 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('PushChanges', None, _("_Push changes"),
                 None, _("Push the changes in the working tree."),
                 bzr.push_changes),
+            ('InitBranch', None, _("_Initialize branch"),
+                None, _("Make a directory into a versioned branch."),
+                bzr.initialize_branch),
             ]
 
     def __init__(self):
