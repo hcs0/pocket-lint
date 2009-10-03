@@ -16,19 +16,13 @@ try:
     from bzrlib.plugin import load_plugins
     load_plugins()
     from bzrlib.plugins.gtk.annotate.config import GAnnotateConfig
-    from bzrlib.plugins.gtk.annotate.gannotate import GAnnotateWindow
-    from bzrlib.plugins.gtk.branch import BranchDialog
     from bzrlib.plugins.gtk.commit import CommitDialog
-    from bzrlib.plugins.gtk.checkout import CheckoutDialog
     from bzrlib.plugins.gtk.conflicts import ConflictsDialog
     from bzrlib.plugins.gtk.dialog import error_dialog
     from bzrlib.plugins.gtk.initialize import InitDialog
     from bzrlib.plugins.gtk.merge import MergeDialog
-    from bzrlib.plugins.gtk.olive.info import InfoDialog
     from bzrlib.plugins.gtk.push import PushDialog
     from bzrlib.plugins.gtk.status import StatusWindow
-    from bzrlib.plugins.gtk.tags import TagsWindow
-    from bzrlib.plugins.gtk.viz import BranchWindow
     HAS_BZR_GTK = True
 except ImportError:
     HAS_BZR_GTK = False
@@ -171,6 +165,9 @@ class BzrProject(PluginMixin):
 
     def show_info(self, data):
         """Show information about the working tree, branch or repository."""
+        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # connect on a cold system. This should not kill the module.
+        from bzrlib.plugins.gtk.olive.info import InfoDialog
         dialog = InfoDialog(self.working_tree.branch)
         dialog.display()
         dialog.window.run()
@@ -191,7 +188,10 @@ class BzrProject(PluginMixin):
         dialog.destroy()
 
     def show_tags(self, data):
-        """Show the tags in the brancg."""
+        """Show the tags in the branch."""
+        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # connect on a cold system. This should not kill the module.
+        from bzrlib.plugins.gtk.tags import TagsWindow
         window = TagsWindow(self.working_tree.branch, self.window)
         window.props.title = "Branch tags - gedit"
         window.show()
@@ -207,6 +207,9 @@ class BzrProject(PluginMixin):
         file_id = self.working_tree.path2id(file_path)
         if file_id is None:
             return
+        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # connect on a cold system. This should not kill the module.
+        from bzrlib.plugins.gtk.annotate.gannotate import GAnnotateWindow
         window = GAnnotateWindow(parent=self.window)
         window.props.title = "Annotate (" + file_path +") - gedit"
         GAnnotateConfig(window)
@@ -227,6 +230,9 @@ class BzrProject(PluginMixin):
         limit = None
         branch = self.working_tree.branch
         revisions = [branch.last_revision()]
+        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # connect on a cold system. This should not kill the module.
+        from bzrlib.plugins.gtk.viz import BranchWindow
         window = BranchWindow(branch, revisions, limit)
         window.props.title = "Visualise branch - gedit"
         window.show()
@@ -269,6 +275,9 @@ class BzrProject(PluginMixin):
 
     def branch_branch(self, data):
         """Create a new branch that is a copy of an existing branch."""
+        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # connect on a cold system. This should not kill the module.
+        from bzrlib.plugins.gtk.branch import BranchDialog
         dialog = BranchDialog('')
         dialog.props.title = "Branch branch - gedit"
         response = dialog.run()
@@ -278,6 +287,9 @@ class BzrProject(PluginMixin):
 
     def checkout_branch(self, data):
         """Create a new checkout of an existing branch."""
+        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # connect on a cold system. This should not kill the module.
+        from bzrlib.plugins.gtk.checkout import CheckoutDialog
         dialog = CheckoutDialog('')
         dialog.props.title = "Checkout branch - gedit"
         response = dialog.run()
