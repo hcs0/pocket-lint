@@ -17,6 +17,7 @@ try:
     load_plugins()
     from bzrlib.plugins.gtk.annotate.config import GAnnotateConfig
     from bzrlib.plugins.gtk.annotate.gannotate import GAnnotateWindow
+    from bzrlib.plugins.gtk.branch import BranchDialog
     from bzrlib.plugins.gtk.commit import CommitDialog
     from bzrlib.plugins.gtk.conflicts import ConflictsDialog
     from bzrlib.plugins.gtk.dialog import error_dialog
@@ -253,6 +254,14 @@ class BzrProject(PluginMixin):
     def initialize_branch(self, data):
         """Make a directory into a versioned branch."""
         dialog = InitDialog(os.path.abspath(os.path.curdir))
+        response = dialog.run()
+        if response != gtk.RESPONSE_NONE:
+            dialog.hide()
+            dialog.destroy()
+
+    def get_branch(self, data):
+        """Create a new branch that is a copy of an existing branch."""
+        dialog = BranchDialog('')
         response = dialog.run()
         if response != gtk.RESPONSE_NONE:
             dialog.hide()
