@@ -9,7 +9,6 @@ from StringIO import StringIO
 import gtk
 
 from bzrlib import workingtree
-from bzrlib.diff import show_diff_trees
 from bzrlib.errors import NotBranchError, NoWorkingTree
 from bzrlib.revisionspec import RevisionSpec
 
@@ -131,13 +130,16 @@ class BzrProject(PluginMixin):
         """Diff the working tree against an anoter tree."""
         if another_tree is None:
             return
-        try:
-            diff_file = open(self.diff_file_path, 'w')
-            show_diff_trees(another_tree, self.working_tree, diff_file)
-        finally:
-            diff_file.close()
-        uri = 'file://%s' % self.diff_file_path
-        self.activate_open_doc(uri)
+        from bzrlib.plugins.gtk.diff import DiffWindow
+        window = DiffWindow()
+        window.set_diff("Working Tree", self.working_tree, another_tree)
+        window.props.title = "Diff branch - gedit"
+        window.show()
+        with open(self.diff_file_path, 'w') as diff_file:
+            diff_buffer = window.diff.diff_view.buffer
+            start_iter = diff_buffer.get_start_iter()
+            end_iter = diff_buffer.get_end_iter()
+            diff_file.write(diff_buffer.get_text(start_iter, end_iter))
 
     def diff_uncommited_changes(self, data):
         """Create a diff of uncommitted changes."""
