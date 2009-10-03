@@ -57,6 +57,8 @@ class BazaarProjectPlugin(gedit.Plugin):
                 <menuitem action="InitBranch"/>
                 <menuitem action="BranchBranch"/>
                 <menuitem action="CheckoutBranch"/>
+                <separator />
+                <menuitem action="Preferences"/>
               </placeholder>
             </menu>
           </menubar>
@@ -157,6 +159,9 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('CheckoutBranch', None, _("_Checkout branch"),
                 None, _("Create a new checkout of an existing branch."),
                 bzr.checkout_branch),
+            ('Preferences', None, _("_Preferences"),
+                None, _("Set your global bazaar preferences."),
+                bzr.preferences),
             ]
 
     def __init__(self):

@@ -261,9 +261,8 @@ class BzrProject(PluginMixin):
         branch = self.working_tree.branch
         dialog = PushDialog(branch.repository, branch.last_revision(), branch)
         response = dialog.run()
-        if response != gtk.RESPONSE_NONE:
-            dialog.hide()
-            dialog.destroy()
+        dialog.hide()
+        dialog.destroy()
 
     def send_merge(self, data):
         """Mail or create a merge-directive for submitting changes."""
@@ -286,9 +285,8 @@ class BzrProject(PluginMixin):
         dialog = InitDialog(os.path.abspath(os.path.curdir))
         dialog.props.title = "Initialize branch - gedit"
         response = dialog.run()
-        if response != gtk.RESPONSE_NONE:
-            dialog.hide()
-            dialog.destroy()
+        dialog.hide()
+        dialog.destroy()
 
     def branch_branch(self, data):
         """Create a new branch that is a copy of an existing branch."""
@@ -298,9 +296,8 @@ class BzrProject(PluginMixin):
         dialog = BranchDialog('')
         dialog.props.title = "Branch branch - gedit"
         response = dialog.run()
-        if response != gtk.RESPONSE_NONE:
-            dialog.hide()
-            dialog.destroy()
+        dialog.hide()
+        dialog.destroy()
 
     def checkout_branch(self, data):
         """Create a new checkout of an existing branch."""
@@ -310,6 +307,14 @@ class BzrProject(PluginMixin):
         dialog = CheckoutDialog('')
         dialog.props.title = "Checkout branch - gedit"
         response = dialog.run()
-        if response != gtk.RESPONSE_NONE:
-            dialog.hide()
-            dialog.destroy()
+        dialog.hide()
+        dialog.destroy()
+
+    def preferences(self, data):
+        """Bazaar preferences."""
+        from bzrlib.plugins.gtk.preferences import PreferencesWindow
+        dialog = PreferencesWindow()
+        dialog.props.title = "Bazaar preferences - gedit"
+        response = dialog.run()
+        dialog.hide()
+        dialog.destroy()
