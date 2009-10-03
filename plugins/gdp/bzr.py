@@ -13,7 +13,6 @@ from bzrlib.errors import NotBranchError, NoWorkingTree
 from bzrlib.revisionspec import RevisionSpec
 
 try:
-    # pylint: disable-msg=E0611,F0401
     from bzrlib.plugin import load_plugins
     load_plugins()
     from bzrlib.plugins.gtk.annotate.config import GAnnotateConfig
