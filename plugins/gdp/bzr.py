@@ -4,6 +4,7 @@
 """Bazaar integration."""
 
 import os
+from StringIO import StringIO
 
 import gtk
 
@@ -263,6 +264,22 @@ class BzrProject(PluginMixin):
         if response != gtk.RESPONSE_NONE:
             dialog.hide()
             dialog.destroy()
+
+    def send_merge(self, data):
+        """Mail or create a merge-directive for submitting changes."""
+        from bzrlib.plugins.gtk.mergedirective import SendMergeDirectiveDialog
+        branch = self.working_tree.branch
+        dialog = SendMergeDirectiveDialog(branch)
+        dialog.props.title = "Send merge directive - gedit"
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            directive_file = StringIO()
+            directive_file.writelines(dialog.get_merge_directive().to_lines())
+            mail_client = branch.get_config().get_mail_client()
+            mail_client.compose_merge_request(
+                dialog.get_mail_to(), "[MERGE]", directive_file.getvalue())
+        dialog.hide()
+        dialog.destroy()
 
     def initialise_branch(self, data):
         """Make a directory into a versioned branch."""

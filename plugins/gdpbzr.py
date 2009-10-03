@@ -52,6 +52,7 @@ class BazaarProjectPlugin(gedit.Plugin):
                 <menuitem action="CommitChanges"/>
                 <menuitem action="MergeChanges"/>
                 <menuitem action="PushChanges"/>
+                <menuitem action="SendMerge"/>
                 <separator />
                 <menuitem action="InitBranch"/>
                 <menuitem action="BranchBranch"/>
@@ -75,6 +76,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         'CommitChanges',
         'MergeChanges',
         'PushChanges',
+        'SendMerge',
         'ShowAnnotations',
         'ShowConflicts',
         'ShowInfo',
@@ -141,6 +143,11 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('PushChanges', None, _("_Push changes"),
                 None, _("Push the changes in the working tree."),
                 bzr.push_changes),
+            ('SendMerge', None, _("_Send merge directive"),
+                None,
+                _("Mail or create a merge-directive for submitting changes."),
+                bzr.send_merge),
+
             ('InitBranch', None, _("_Initialise branch"),
                 None, _("Make a directory into a versioned branch."),
                 bzr.initialise_branch),
