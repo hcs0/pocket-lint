@@ -168,7 +168,7 @@ class BzrProject(PluginMixin):
 
     def show_info(self, data):
         """Show information about the working tree, branch or repository."""
-        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # XXX sinzui 2009-10-03 bug 107169: seahorse dbus often fails to
         # connect on a cold system. This should not kill the module.
         from bzrlib.plugins.gtk.olive.info import InfoDialog
         dialog = InfoDialog(self.working_tree.branch)
@@ -192,7 +192,7 @@ class BzrProject(PluginMixin):
 
     def show_tags(self, data):
         """Show the tags in the branch."""
-        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # XXX sinzui 2009-10-03 bug 107169: seahorse dbus often fails to
         # connect on a cold system. This should not kill the module.
         from bzrlib.plugins.gtk.tags import TagsWindow
         window = TagsWindow(self.working_tree.branch, self.window)
@@ -210,7 +210,7 @@ class BzrProject(PluginMixin):
         file_id = self.working_tree.path2id(file_path)
         if file_id is None:
             return
-        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # XXX sinzui 2009-10-03 bug 107169: seahorse dbus often fails to
         # connect on a cold system. This should not kill the module.
         from bzrlib.plugins.gtk.annotate.gannotate import GAnnotateWindow
         window = GAnnotateWindow(parent=self.window)
@@ -233,7 +233,7 @@ class BzrProject(PluginMixin):
         limit = None
         branch = self.working_tree.branch
         revisions = [branch.last_revision()]
-        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # XXX sinzui 2009-10-03 bug 107169: seahorse dbus often fails to
         # connect on a cold system. This should not kill the module.
         from bzrlib.plugins.gtk.viz import BranchWindow
         window = BranchWindow(branch, revisions, limit)
@@ -292,7 +292,7 @@ class BzrProject(PluginMixin):
 
     def branch_branch(self, data):
         """Create a new branch that is a copy of an existing branch."""
-        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # XXX sinzui 2009-10-03 bug 107169: seahorse dbus often fails to
         # connect on a cold system. This should not kill the module.
         from bzrlib.plugins.gtk.branch import BranchDialog
         dialog = BranchDialog('')
@@ -303,7 +303,7 @@ class BzrProject(PluginMixin):
 
     def checkout_branch(self, data):
         """Create a new checkout of an existing branch."""
-        # XXX sinzui 2009-10-03 bug nnnnnn: seahorse dbus often fails to
+        # XXX sinzui 2009-10-03 bug 107169: seahorse dbus often fails to
         # connect on a cold system. This should not kill the module.
         from bzrlib.plugins.gtk.checkout import CheckoutDialog
         dialog = CheckoutDialog('')
