@@ -9,6 +9,7 @@ from StringIO import StringIO
 import gtk
 
 from bzrlib import workingtree
+from bzrlib.branch import Branch
 from bzrlib.errors import NotBranchError, NoWorkingTree
 from bzrlib.revisionspec import RevisionSpec
 
@@ -189,6 +190,31 @@ class BzrProject(PluginMixin):
         response = dialog.run()
         dialog.hide()
         dialog.destroy()
+
+    def show_missing(self, data):
+        """Show unmerged/unpulled revisions between two branches."""
+        from bzrlib.plugins.gtk.missing import MissingWindow
+        parent_location = self.working_tree.branch.get_parent()
+        if parent_location is None:
+            message = _("Nothing to do; this branch does not have a parent.")
+            dialog = gtk.MessageDialog(
+                type=gtk.MESSAGE_INFO, buttons=gtk.BUTTONS_CLOSE,
+                message_format=message)
+            dialog.run()
+            dialog.destroy()
+            return
+        parent_branch = Branch.open_containing(parent_location)[0]
+        self.working_tree.branch.lock_read()
+        try:
+            parent_branch.lock_read()
+            try:
+                window = MissingWindow(
+                    self.working_tree.branch, parent_branch)
+                window.run()
+            finally:
+                parent_branch.unlock()
+        finally:
+            self.working_tree.branch.unlock()
 
     def show_tags(self, data):
         """Show the tags in the branch."""

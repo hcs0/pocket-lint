@@ -44,6 +44,7 @@ class BazaarProjectPlugin(gedit.Plugin):
                 <menuitem action="ShowInfo"/>
                 <menuitem action="ShowStatus"/>
                 <menuitem action="ShowConflicts"/>
+                <menuitem action="ShowMissing"/>
                 <separator />
                 <menuitem action="ShowTags"/>
                 <menuitem action="ShowAnnotations"/>
@@ -82,6 +83,7 @@ class BazaarProjectPlugin(gedit.Plugin):
         'ShowAnnotations',
         'ShowConflicts',
         'ShowInfo',
+        'ShowMissing',
         'ShowStatus',
         'ShowTags',
         'VisualiseBranch',
@@ -131,6 +133,10 @@ class BazaarProjectPlugin(gedit.Plugin):
             ('ShowConflicts', None, _("Show co_nflicts"),
                 None, _("Show the conflicts in the working tree."),
                 bzr.show_conflicts),
+            ('ShowMissing', None, _("Show _missing"),
+                None,
+                _("Show unmerged/unpulled revisions between two branches."),
+                bzr.show_missing),
             ('ShowTags', None, _("Show _tags"),
                 None, _("Show the tags in the branch."),
                 bzr.show_tags),
