@@ -43,6 +43,7 @@ class FormatPlugin(gedit.Plugin):
               <placeholder name="ToolsOps_2">
                 <separator />
                 <menuitem action="CheckProblems"/>
+                <menuitem action="CheckAllProblems"/>
                 <menuitem action="ReformatDoctest"/>
                 <separator />
               </placeholder>
@@ -85,6 +86,10 @@ class FormatPlugin(gedit.Plugin):
             ('CheckProblems', None, _("C_heck syntax and style"), 'F3',
                 _("Check syntax and style problems."),
                 formatter.check_style),
+            ('CheckAllProblems', None,
+                _("Check syntax and style of all files"), None,
+                _("Check syntax and style problems in all open documents."),
+                formatter.check_all_style),
             ]
 
     def __init__(self):

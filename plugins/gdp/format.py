@@ -44,7 +44,7 @@ class Formatter(PluginMixin):
         self.file_lines = other_widgets.get_object('file_lines_scrolledwindow')
         self.file_lines_view = other_widgets.get_object('file_lines_view')
         setup_file_lines_view(self.file_lines_view, self, 'Problems')
-        panel = window.get_bottom_panel()
+        panel = window.get_side_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)
         panel.add_item(self.file_lines, 'Check syntax and style', icon)
 
@@ -216,7 +216,7 @@ class Formatter(PluginMixin):
 
     def show(self, data):
         """Show the finder pane."""
-        panel = self.window.get_bottom_panel()
+        panel = self.window.get_side_panel()
         panel.activate_item(self.file_lines)
         panel.props.visible = True
 
@@ -228,24 +228,36 @@ class Formatter(PluginMixin):
         new_text = reviewer.format()
         self._put_bounded_text(bounds, new_text)
 
-    def check_style(self, data):
-        """Check the style and syntax of the active document."""
-        document = self.active_document
+    def _check_style(self, document):
+        """Check the style and syntax of a document."""
         file_path = document.get_uri_for_display()
         language = document.get_language()
         if language is not None:
             language_id = language.get_id()
         else:
             language_id = 'text'
-        self.file_lines_view.get_model().clear()
-        self.show(None)
+        start_iter = document.get_start_iter()
+        end_iter = document.get_end_iter()
+        text = document.get_text(start_iter, end_iter)
         reporter = Reporter(
             Reporter.FILE_LINES, treeview=self.file_lines_view)
         checker = UniversalChecker(
-            file_path, text=self.text, language=language_id,
-            reporter=reporter)
+            file_path, text=text, language=language_id, reporter=reporter)
         checker.check()
+
+    def check_style(self, data, documents=None):
+        """Check the style and syntax of the active document."""
+        self.file_lines_view.get_model().clear()
+        self.show(None)
+        if documents is None:
+            documents = [self.active_document]
+        for document in documents:
+            self._check_style(document)
         model = self.file_lines_view.get_model()
         if model.get_iter_first() is None:
             model.append(
                 None, ('No problems found', 'emblem-default', 0, None, None))
+
+    def check_all_style(self, data):
+        """Check the style and syntax of all open documents."""
+        self.check_style(None, documents=self.window.get_documents())
