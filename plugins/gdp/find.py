@@ -98,8 +98,8 @@ class Finder(PluginMixin):
         self.widgets.add_from_file(
             '%s/find.ui' % os.path.dirname(__file__))
         self.setup_widgets()
-        self.find_panel = self.widgets.get_object('find_panel')
-        panel = window.get_bottom_panel()
+        self.find_panel = self.widgets.get_object('find_side_panel')
+        panel = window.get_side_panel()
         icon = gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU)
         panel.add_item(self.find_panel, 'Find in files', icon)
 
@@ -150,7 +150,7 @@ class Finder(PluginMixin):
 
     def show(self, data):
         """Show the finder pane."""
-        panel = self.window.get_bottom_panel()
+        panel = self.window.get_side_panel()
         panel.activate_item(self.find_panel)
         panel.props.visible = True
 
@@ -192,7 +192,7 @@ class Finder(PluginMixin):
         treestore.clear()
         base_dir = os.path.abspath(self.path)
         self.file_lines_view.get_column(0).props.title = (
-            "Matches for [%s] in %s" % (pattern, base_dir))
+            'Matches for [%s]' % pattern)
         if not self.widgets.get_object('re_checkbox').get_active():
             pattern = re.escape(pattern)
         if not self.widgets.get_object('match_case_checkbox').get_active():
@@ -235,7 +235,7 @@ class Finder(PluginMixin):
             title="Save find results", parent=self.window,
             action=gtk.FILE_CHOOSER_ACTION_SAVE,
             buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-				     gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
+                     gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
         dialog.set_do_overwrite_confirmation(True)
         dialog.set_current_name('_find.log')
         if (dialog.run() == gtk.RESPONSE_ACCEPT):

@@ -13,6 +13,7 @@ __all__ = [
 import mimetypes
 import os
 
+import pango
 import gobject
 import gtk
 
@@ -139,6 +140,20 @@ def on_file_lines_row_activated(treeview, path, view_column, plugin):
     plugin.activate_open_doc(uri, jump_to=line_no)
 
 
+def on_file_lines_resize(treeview, allocation, column, cell):
+    """Set the width of the column to update text wrapping."""
+    new_width = allocation.width - 60
+    if cell.props.wrap_width == new_width:
+        return
+    cell.props.wrap_width = new_width
+    store = treeview.get_model()
+    iter = store.get_iter_first()
+    while iter and store.iter_is_valid(iter):
+        store.row_changed(store.get_path(iter), iter)
+        iter = store.iter_next(iter)
+        treeview.set_size_request(0, -1)
+
+
 def setup_file_lines_view(file_lines_view, plugin, column_title):
     """Setup a TreeView to displau files and their lines."""
     treestore = gtk.TreeStore(
@@ -148,9 +163,12 @@ def setup_file_lines_view(file_lines_view, plugin, column_title):
     column = gtk.TreeViewColumn(column_title)
     cell = gtk.CellRendererPixbuf()
     cell.set_property('stock-size', gtk.ICON_SIZE_MENU)
+    cell.props.yalign = 0
     column.pack_start(cell, False)
     column.add_attribute(cell, 'icon-name', 1)
     cell = gtk.CellRendererText()
+    cell.props.wrap_mode = pango.WRAP_WORD
+    cell.props.wrap_width = 330
     column.pack_start(cell, False)
     column.set_cell_data_func(cell, set_file_line)
     file_lines_view.set_model(treestore)
@@ -159,3 +177,5 @@ def setup_file_lines_view(file_lines_view, plugin, column_title):
     file_lines_view.set_search_column(0)
     file_lines_view.connect(
         'row-activated', on_file_lines_row_activated, plugin)
+    file_lines_view.connect_after(
+        'size-allocate', on_file_lines_resize, column, cell)

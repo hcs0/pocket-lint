@@ -2,75 +2,92 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy toplevel-contextual -->
-  <object class="GtkVBox" id="find_panel">
+  <object class="GtkHBox" id="find_side_panel">
     <property name="visible">True</property>
-    <property name="orientation">vertical</property>
     <child>
-      <object class="GtkVBox" id="find_vbox">
+      <object class="GtkVBox" id="major_controls">
         <property name="visible">True</property>
-        <property name="border_width">6</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">3</property>
+        <property name="spacing">2</property>
         <child>
-          <object class="GtkHBox" id="find_form">
+          <object class="GtkTable" id="find_controls">
             <property name="visible">True</property>
-            <property name="spacing">6</property>
+            <property name="n_rows">2</property>
+            <property name="n_columns">2</property>
+            <property name="column_spacing">6</property>
+            <property name="row_spacing">6</property>
             <child>
               <object class="GtkLabel" id="path_label">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Find in:</property>
+                <property name="xalign">0</property>
+                <property name="ypad">5</property>
+                <property name="label" translatable="yes">Look in:     </property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
+                <property name="x_options"></property>
+                <property name="y_options">GTK_FILL</property>
               </packing>
             </child>
             <child>
               <object class="GtkComboBoxEntry" id="path_comboentry">
                 <property name="visible">True</property>
+                <property name="tooltip_text" translatable="yes">The directory to start searching in.</property>
                 <property name="has_frame">False</property>
               </object>
               <packing>
-                <property name="position">1</property>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
               </packing>
             </child>
             <child>
               <object class="GtkLabel" id="match_label">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Files that contain:</property>
+                <property name="label" translatable="yes">Match text:</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">2</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_options"></property>
               </packing>
             </child>
             <child>
-              <object class="GtkComboBoxEntry" id="pattern_comboentry">
+              <object class="GtkHBox" id="hbox1">
                 <property name="visible">True</property>
-                <property name="has_frame">False</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkComboBoxEntry" id="pattern_comboentry">
+                    <property name="visible">True</property>
+                    <property name="tooltip_text" translatable="yes">The plain text or Python regular expression to find in files.</property>
+                    <property name="has_frame">False</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="find_in_files_button">
+                    <property name="label" translatable="yes">Find</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="on_find_in_files"/>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </object>
               <packing>
-                <property name="position">3</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="find_in_files_button">
-                <property name="label" translatable="yes">Find</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_find_in_files"/>
-                <signal name="activate" handler="on_find_in_files"/>
-              </object>
-              <packing>
-                <property name="position">4</property>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
               </packing>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="padding">6</property>
             <property name="position">0</property>
           </packing>
         </child>
@@ -79,29 +96,9 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkHBox" id="hbox1">
+              <object class="GtkVBox" id="vbox1">
                 <property name="visible">True</property>
-                <property name="spacing">6</property>
-                <child>
-                  <object class="GtkLabel" id="file_name_label">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">File name pattern:</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkComboBoxEntry" id="file_comboentry">
-                    <property name="visible">True</property>
-                    <property name="has_frame">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
+                <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkCheckButton" id="re_checkbox">
                     <property name="label" translatable="yes">Regular expression</property>
@@ -114,7 +111,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">2</property>
+                    <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
@@ -129,13 +126,42 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">3</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHBox" id="hbox4">
+                    <property name="visible">True</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkLabel" id="file_name_label">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">File name pattern:</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxEntry" id="file_comboentry">
+                        <property name="visible">True</property>
+                        <property name="has_frame">False</property>
+                      </object>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
               </object>
             </child>
             <child type="label">
-              <object class="GtkLabel" id="options_expander">
+              <object class="GtkLabel" id="optons_label">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Options</property>
               </object>
@@ -169,88 +195,102 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkHBox" id="actions_hbox">
+              <object class="GtkVBox" id="vbox2">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <property name="spacing">6</property>
                 <child>
-                  <object class="GtkButton" id="save_results_button">
-                    <property name="label" translatable="yes">Save</property>
+                  <object class="GtkHBox" id="hbox5">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="yalign">0.46000000834465027</property>
-                    <signal name="clicked" handler="on_save_results"/>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkLabel" id="label2">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Replace match:</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxEntry" id="substitution_comboentry">
+                        <property name="visible">True</property>
+                        <property name="tooltip_text" translatable="yes">The text to replace each found match with.
+The replacement may use backslash escapes to access groups in match expression</property>
+                        <property name="has_frame">False</property>
+                      </object>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="replace_in_files_button">
+                        <property name="label" translatable="yes">Replace</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip_text" translatable="yes">Replace the matched text.</property>
+                        <signal name="clicked" handler="on_replace_in_files"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="pack_type">end</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="position">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label2">
-                    <property name="visible">True</property>
-                  </object>
-                  <packing>
-                    <property name="position">4</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label1">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">Replace matches:</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="pack_type">end</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkComboBoxEntry" id="substitution_comboentry">
-                    <property name="visible">True</property>
-                    <property name="has_frame">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="pack_type">end</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="replace_in_files_button">
-                    <property name="label" translatable="yes">Replace</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <signal name="clicked" handler="on_replace_in_files"/>
-                    <signal name="activate" handler="on_replace_in_files"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="pack_type">end</property>
                     <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHBox" id="hbox6">
+                    <property name="visible">True</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkButton" id="save_results_button">
+                        <property name="label" translatable="yes">Save matches</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip_text" translatable="yes">Save the found matches to a file.</property>
+                        <property name="yalign">0.46000000834465027</property>
+                        <signal name="clicked" handler="on_save_results"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
               </object>
             </child>
             <child type="label">
-              <object class="GtkLabel" id="action">
+              <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Additional actions</property>
+                <property name="label" translatable="yes">Actions</property>
               </object>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="pack_type">end</property>
+            <property name="padding">6</property>
             <property name="position">3</property>
           </packing>
         </child>
       </object>
       <packing>
+        <property name="padding">6</property>
         <property name="position">0</property>
       </packing>
     </child>
