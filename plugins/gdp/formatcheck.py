@@ -12,8 +12,13 @@ __all__ = [
 
 
 import compiler
+import htmlentitydefs
 import os
-from lxml import etree
+import re
+
+from StringIO import StringIO
+from xml.etree import ElementTree
+from xml.parsers.expat import ErrorString, ExpatError
 
 from gdp.formatdoctest import DoctestReviewer
 
@@ -158,23 +163,34 @@ class AnyTextChecker(BaseChecker):
 class XMLChecker(BaseChecker):
     """Check XML documents."""
 
+    xml_decl_pattern = re.compile(r'<\?xml .*?\?>')
+    xhtml_doctype = """
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        """
+
     def check(self):
         """Check the syntax of the python code."""
         if self.text == '':
             return
+        parser = ElementTree.XMLParser()
+        parser.entity.update(htmlentitydefs.entitydefs)
+        offset = 0
+        text = self.text
+        if text.find('<!DOCTYPE') == -1:
+            # Expat requires a doctype to honour parser.entity.
+            offset = 3
+            match = self.xml_decl_pattern.search(text)
+            if match is None:
+                text = self.xhtml_doctype + text
+            else:
+                start, end = match.span(0)
+                text = text[:start] + self.xhtml_doctype + text[end:]
         try:
-            parser = etree.XMLParser(resolve_entities=False)
-            root = etree.XML(self.text, parser)
-        except:
-            # The log is more important than the traceback.
-            pass
-        for error in parser.error_log:
-            if error.message.startswith('Entity'):
-                # XXX sinzui 2009-09-12 bug=267825, bug=410916: XMLParser
-                # resolve_entities is not honoured. lxml does not support
-                # loading the entities external to the document.
-                continue
-            self.message(error.line, error.message, icon='error')
+            root = ElementTree.parse(StringIO(text), parser)
+        except ExpatError, error:
+            self.message(
+                error.lineno - offset, ErrorString(error.code), icon='error')
 
 
 class PythonChecker(BaseChecker):
