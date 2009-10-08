@@ -112,16 +112,24 @@ class PluginMixin:
         return document.get_text(start_iter, end_iter)
 
 
-def set_file_line(column, cell, model, piter):
+def set_file_line(column, cell, model, piter, cell_type):
     """Set the value as file or line information."""
     file_path = model.get_value(piter, 0)
     icon = model.get_value(piter, 1)
     line_no = model.get_value(piter, 2)
     text = model.get_value(piter, 3)
     if text is None:
-        cell.props.text = file_path
+        if cell_type == 'text':
+            cell.props.text = file_path
+        else:
+            # cell_type == 'line_no'
+            cell.props.text = ''
     else:
-        cell.props.text = '%4s:  %s' % (line_no, text)
+        if cell_type == 'text':
+            cell.props.text = text
+        else:
+            # cell_type == 'line_no'
+            cell.props.text = '%4s' % line_no
 
 
 def on_file_lines_row_activated(treeview, path, view_column, plugin):
@@ -161,16 +169,23 @@ def setup_file_lines_view(file_lines_view, plugin, column_title):
         gobject.TYPE_STRING, gobject.TYPE_STRING)
     treestore.append(None, ('', None, 0, None, None))
     column = gtk.TreeViewColumn(column_title)
+    # icon.
     cell = gtk.CellRendererPixbuf()
     cell.set_property('stock-size', gtk.ICON_SIZE_MENU)
     cell.props.yalign = 0
     column.pack_start(cell, False)
     column.add_attribute(cell, 'icon-name', 1)
+    # line number.
+    cell = gtk.CellRendererText()
+    cell.props.family = 'Monospace'
+    column.pack_start(cell, False)
+    column.set_cell_data_func(cell, set_file_line, 'line_no')
+    # line text.
     cell = gtk.CellRendererText()
     cell.props.wrap_mode = pango.WRAP_WORD
-    cell.props.wrap_width = 330
+    cell.props.wrap_width = 310
     column.pack_start(cell, False)
-    column.set_cell_data_func(cell, set_file_line)
+    column.set_cell_data_func(cell, set_file_line, 'text')
     file_lines_view.set_model(treestore)
     file_lines_view.set_level_indentation(-18)
     file_lines_view.append_column(column)
