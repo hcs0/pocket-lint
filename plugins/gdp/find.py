@@ -163,6 +163,7 @@ class Finder(PluginMixin):
     def path(self):
         """The base directory to traverse set by the user."""
         path_ = self.path_comboentry.get_active_text()
+        self.update_comboentry(self.path_comboentry, path_)
         if path_ in (self.WORKING_DIRECTORY, '', None):
             path_ = '.'
         elif path_ == self.CURRENT_FILE:
@@ -174,6 +175,7 @@ class Finder(PluginMixin):
     def file_pattern(self):
         """The pattern to match the file name with."""
         pattern = self.file_comboentry.get_active_text()
+        self.update_comboentry(self.file_comboentry, pattern)
         if pattern in (self.ANY_FILE, '', None):
             pattern = '.'
         if self.path_comboentry.get_active_text() == self.CURRENT_FILE:
@@ -181,22 +183,27 @@ class Finder(PluginMixin):
             pattern = os.path.basename(document.get_uri_for_display())
         return pattern
 
+    @property
+    def match_pattern(self):
+        pattern = self.pattern_comboentry.get_active_text()
+        self.update_comboentry(self.pattern_comboentry, pattern)
+        return pattern
+
     def on_file_path_added(self, window, path):
         self.update_comboentry(self.path_comboentry, path)
 
     def on_find_in_files(self, widget=None, substitution=None):
         """Find and present the matches."""
-        pattern = self.pattern_comboentry.get_active_text()
-        self.update_comboentry(self.pattern_comboentry, pattern)
         treestore = self.file_lines_view.get_model()
         treestore.clear()
-        base_dir = os.path.abspath(self.path)
+        pattern = self.match_pattern
         self.file_lines_view.get_column(0).props.title = (
             'Matches for [%s]' % pattern)
         if not self.widgets.get_object('re_checkbox').get_active():
             pattern = re.escape(pattern)
         if not self.widgets.get_object('match_case_checkbox').get_active():
             pattern = '(?i)%s' % pattern
+        base_dir = os.path.abspath(self.path)
         for summary in find_matches(
             self.path, self.file_pattern, pattern, substitution=substitution):
             file_path = summary['file_path']
