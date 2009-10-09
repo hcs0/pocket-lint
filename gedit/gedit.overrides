@@ -271,6 +271,21 @@ define Window.get_bottom_panel
                self.icon = icon
         return FakePanel()
 %%
+define Window.get_side_panel
+    def get_side_panel(self):
+        """A fake bottom panel."""
+        class FakePanel:
+            def __init__(self):
+               self.widget = None
+               self.label = None
+               self.icon = None
+
+            def add_item(self, widget, label, icon):
+               self.widget = widget
+               self.label = label
+               self.icon = icon
+        return FakePanel()
+%%
 define Window.get_group
     def get_group(self):
         """A fake initialization of gedit.Window.get_group."""
