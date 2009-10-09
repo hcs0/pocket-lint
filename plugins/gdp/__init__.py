@@ -129,7 +129,7 @@ def set_file_line(column, cell, model, piter, cell_type):
             cell.props.text = text
         else:
             # cell_type == 'line_no'
-            cell.props.text = '%4s' % line_no
+            cell.props.text = line_no
 
 
 def on_file_lines_row_activated(treeview, path, view_column, plugin):
@@ -177,6 +177,9 @@ def setup_file_lines_view(file_lines_view, plugin, column_title):
     column.add_attribute(cell, 'icon-name', 1)
     # line number.
     cell = gtk.CellRendererText()
+    cell.props.yalign = 0
+    cell.props.xalign = 1
+    cell.props.alignment = pango.ALIGN_RIGHT
     cell.props.family = 'Monospace'
     column.pack_start(cell, False)
     column.set_cell_data_func(cell, set_file_line, 'line_no')
