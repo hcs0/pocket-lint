@@ -1,3 +1,4 @@
 # List of source files containing translatable strings that should be skipped.
 # Please keep this file sorted alphabetically.
 contrib/pyflakes/scripts/pyflakes.py
+gedit/__init__.py
