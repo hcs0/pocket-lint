@@ -10,6 +10,7 @@ modulename __init__
 %%
 import __builtin__
 from gettext import gettext
+from gettext import gettext as _
 
 import gobject
 from gobject import *
@@ -165,11 +166,24 @@ define Tab.get_document
 %%
 define Window.__init__
     def __init__(self):
-        """A fake initialization of gedit.Tab."""
+        """A fake initialization of gedit.Window."""
         super(Window, self).__init__()
         self.add(gtk.Notebook())
         self.connect("destroy", gtk.main_quit)
         self.resize(300, 250)
+        self.action_group = gtk.ActionGroup('GeditMenu')
+        self.action_group.add_actions([
+            ('Tools', None, _('_Tools'), None, None, None)])
+        self.ui_manager = gtk.UIManager()
+        self.ui_manager.insert_action_group(self.action_group, -1)
+        menu_xml = """
+            <ui>
+              <menubar name="MenuBar">
+                <menu name='ToolsMenu' action='Tools' />
+              </menubar>
+            </ui>
+            """
+        self.ui_id = self.ui_manager.add_ui_from_string(menu_xml)
 %%
 define Window.create_tab
     def create_tab(self, jump_to):
@@ -297,10 +311,7 @@ define Window.get_group
 define Window.get_ui_manager
     def get_ui_manager(self):
         """A fake initialization of gedit.Window.get_ui_manager."""
-        key = '%s.get_ui_manager' % self.__class__.__name__
-        if key not in dummy:
-            dummy[key] = gtk.UIManager()
-        return dummy[key]
+        return self.ui_manager
 %%
 define Window.tabs_
     @property
@@ -404,3 +415,8 @@ MIME_TYPES = dummy_mime_types()
 gobject.signal_new(
     'tab-added', Window, gobject.SIGNAL_RUN_LAST,
     gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
+
+
+gobject.signal_new(
+    'bzr-branch-open', Window, gobject.SIGNAL_RUN_LAST,
+    gobject.TYPE_NONE, (gobject.TYPE_STRING, ))

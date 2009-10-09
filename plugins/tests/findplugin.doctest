@@ -41,8 +41,6 @@ the UI.
     >>> plugin.windows[window].action_group.get_action(
     ...     'FindFiles').get_property('label')
     'Find in files...'
-    >>> plugin.windows[window].ui_id
-    2
 
 
 update_ui()

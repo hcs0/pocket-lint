@@ -9,6 +9,8 @@ __all__ = [
     'SyntaxCompleterPlugin',
     ]
 
+from gettext import gettext as _
+
 import gobject
 import gedit
 

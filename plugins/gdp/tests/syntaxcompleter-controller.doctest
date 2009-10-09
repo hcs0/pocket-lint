@@ -55,14 +55,10 @@ key-press-event is connected.
 
     >>> controller.view.get_editable()
     True
-    >>> 'key-press-event' in controller.signal_ids
-    True
     >>> controller.view.set_editable(False)
     >>> controller.set_view(new_view, is_reset=True)
     >>> new_view is controller.view
     True
-    >>> 'key-press-event' in controller.signal_ids
-    False
 
 Passing None will disconnect the signals and the view.
 
@@ -115,17 +111,17 @@ fit the it to the bottom right of the screen.
     >>> cursor_pos = controller.view.buffer_to_window_coords(
     ...     gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
     >>> cursor_pos
-    (2, 22...)
+    (2, 2...)
 
     >>> # The cursor + the window position it to close to the left margin.
     >>> dummy['DummyWindow.get_origin'] = (0, 0)
     >>> controller._calculate_syntax_view_position(syntax_view, end)
-    (15, 22...)
+    (15, 2...)
 
     >>> # The cursor + the window fit on the screen.
     >>> dummy['DummyWindow.get_origin'] = (200, 200)
     >>> controller._calculate_syntax_view_position(syntax_view, end)
-    (202, 42...)
+    (202, 4...)
 
     >>> # Position the window to the bottom-left so that there is not
     >>> # enough room to display the SyntaxView within the 15px margin.
@@ -327,9 +323,6 @@ of the sginals.
     >>> controller.testeeConnect(
     ...     controller, syntax_view, 'syntax-view', 'syntax-activated',
     ...     controller.on_syntaxview_row_activated)
-    >>> controller.testeeConnect(
-    ...     controller, controller.view, 'view', 'key-press-event',
-    ...     controller.on_view_key_press)
 
 
 on_syntaxview_row_activated()
@@ -375,73 +368,6 @@ characters before the cursor are replaced.
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the esteemed Project Gutenberg Etext of The Hunting of the Sn...'
-
-
-on_notify_editable()
-~~~~~~~~~~~~~~~~~~~~
-
-This method is called for the notify::editable signal from the gedit
-View. It is ultimately responsible for enabling and disabling the
-SyntaxView widget for syntax completion. The SyntaxView is is enabled
-when the key-press-event is listed in the SyntaxController.signal_ids.
-
-    >>> 'key-press-event' in controller.signal_ids
-    True
-    >>> view.set_editable(False)
-    >>> 'key-press-event' in controller.signal_ids
-    False
-    >>> view.set_editable(True)
-    >>> 'key-press-event' in controller.signal_ids
-    True
-
-
-on_view_key_press()
-~~~~~~~~~~~~~~~~~~~
-
-SyntaxController uses the on_view_key_press to watch for the
-Control-Shift-Space key combination. When the combination is True,
-it calls the show_syntax_view() method.
-
-    # Reset the state of the view and syntax_view
-    >>> def dummyShowSyntaxView():
-    ...     controller.syntax_view = True
-    >>> real_show_syntax_view = controller.show_syntax_view
-    >>> controller.show_syntax_view = dummyShowSyntaxView
-    >>> controller.syntax_view = False
-    >>> controller.syntax_view
-    False
-
-    >>> from gtk import gdk
-    >>> event = gdk.Event(gtk.gdk.KEY_PRESS)
-    >>> event.window = controller.view.window
-    >>> event.state =  gdk.CONTROL_MASK | gdk.SHIFT_MASK
-    >>> event.keyval = gtk.keysyms.space
-    >>> signal_tester.emitter('key-press-event', controller.view, event)
-    >>> controller.syntax_view
-    True
-
-    >>> controller.syntax_view = False
-
-Bad combinations include the state is the wrong bit mask, or the wrong
-key was pressed.
-
-    >>> event = gdk.Event(gtk.gdk.KEY_PRESS)
-    >>> event.window = controller.view.window
-    >>> event.state =  gdk.CONTROL_MASK | gdk.SHIFT_MASK | gdk.MOD1_MASK
-    >>> event.keyval = gtk.keysyms.space
-    >>> signal_tester.emitter('key-press-event', controller.view, event)
-    >>> controller.syntax_view
-    False
-
-    >>> event = gdk.Event(gtk.gdk.KEY_PRESS)
-    >>> event.window = controller.view.window
-    >>> event.state =  gdk.CONTROL_MASK | gdk.SHIFT_MASK
-    >>> event.keyval = gtk.keysyms.Tab
-    >>> signal_tester.emitter('key-press-event', controller.view, event)
-    >>> controller.syntax_view
-    False
-
-    >>> controller.show_syntax_view = real_show_syntax_view
 
 
 on_view_destroy() and deactivate()
