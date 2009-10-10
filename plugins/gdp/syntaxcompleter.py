@@ -16,9 +16,7 @@ __all__ = [
     ]
 
 
-import os
 import re
-import sys
 from keyword import kwlist
 from xml.sax import saxutils
 
