@@ -29,12 +29,12 @@ DISTCHECK_CONFIGURE_FLAGS = \
 check: test
 
 test:
-	(cd $(srcdir) && utils/gen-gedit.py && ./test.py)
+	(cd $(srcdir) && ./test.py)
 
 dist-hook:
+	(cd $(srcdir) && utils/gen-gedit.py)
 	mkdir $(distdir)/gedit
-	cp -p $(srcdir)/gedit/*.defs $(distdir)/gedit
-	cp -p $(srcdir)/gedit/*.overrides $(distdir)/gedit
+	cp -p $(srcdir)/gedit/* $(distdir)/gedit
 	mkdir $(distdir)/utils
 	cp -p $(srcdir)/utils/* $(distdir)/utils
 

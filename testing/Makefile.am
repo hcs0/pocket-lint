@@ -14,10 +14,3 @@ dist-hook:
 	mkdir $(distdir)/codegen
 	cp -p $(srcdir)/codegen/* $(distdir)/codegen
 	rm -f $(distdir)/codegen/*.pyc
-
-gen_gedit = (cd $(top_srcdir) \
-	&& rm -f gedit/*.py gedit/*.pyc \
-	&& $(PYTHON) utils/gen-gedit.py)
-
-all:
-	$(gen_gedit)

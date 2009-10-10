@@ -16,7 +16,9 @@ __all__ = [
     ]
 
 
+import os
 import re
+import sys
 from keyword import kwlist
 from xml.sax import saxutils
 
@@ -27,13 +29,19 @@ from gtksourceview2 import language_manager_get_default
 try:
     from snippets.SnippetComplete import SnippetComplete, CompleteModel
 except ImportError:
-    # The Snippet plugin is not enabled, so the module is not in the path.
-    message = _("The snippet plugin must be enabled first.")
-    dialog = gtk.MessageDialog(
-        type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE,
-        message_format=message)
-    dialog.run()
-    dialog.destroy()
+    try:
+        plugin_path = os.path.join('/usr/lib/gedit-2/plugins')
+        sys.path.append(plugin_path)
+        from snippets.SnippetComplete import SnippetComplete, CompleteModel
+    except ImportError:
+        # The Snippet plugin is not enabled, so the module is not in the path.
+        message = _("The snippet plugin must be enabled first.\n"
+                     "%s" % sys.path)
+        dialog = gtk.MessageDialog(
+            type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE,
+            message_format=message)
+        dialog.run()
+        dialog.destroy()
 
 from gdp import PluginMixin
 
