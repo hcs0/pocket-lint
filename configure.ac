@@ -8,7 +8,7 @@ m4_define(gdp_micro_version, 4)
 m4_define(gdp_version, gdp_major_version.gdp_minor_version.gdp_micro_version)
 
 AC_INIT(gedit-developer-plugins, gdp_version, sinzui.is@verizon.net)
-AM_INIT_AUTOMAKE([1.8 -Wno-portability])
+AM_INIT_AUTOMAKE([1.11 -Wno-portability])
 
 AM_MAINTAINER_MODE
 

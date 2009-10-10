@@ -29,7 +29,7 @@ DISTCHECK_CONFIGURE_FLAGS = \
 check: test
 
 test:
-	(cd $(srcdir) && ./test.py)
+	(cd $(srcdir) && utils/gen-gedit.py && ./test.py)
 
 dist-hook:
 	mkdir $(distdir)/gedit
