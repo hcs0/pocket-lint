@@ -1,7 +1,7 @@
 General Information
 ===================
 
-This is version 2.26.0 of gedit-developer-plugins (GDP). GDP are a
+This is version 2.28.0 of gedit-developer-plugins (GDP). GDP are a
 set of plugins for gedit that provide additional editing features
 for software development. GDP provides:
 
@@ -20,7 +20,7 @@ for software development. GDP provides:
       integrates bzr-gtk to show status, tags, annotations, visualize,
       commit, merge, and push. Open files changes in the branch.
 
-See screenshots at http://curtis.hovey.name/gallery/Sinzui/gdp-2-26-1
+See screenshots at http://curtis.hovey.name/gallery/Sinzui/gdp-2-28-0
 
 
 Installation from tarball

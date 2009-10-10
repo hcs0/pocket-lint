@@ -87,8 +87,8 @@ To install the plugins in the same location as the standard
 gedit plugins, set the prefix path to the same as gedit (usually
 /usr).
 
-`configure' Invocation
-======================
+configure' Invocation
+=====================
 
 `configure' recognizes the following options to control how it operates.
 

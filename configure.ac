@@ -3,8 +3,8 @@
 AC_PREREQ(2.61)
 
 m4_define(gdp_major_version, 2)
-m4_define(gdp_minor_version, 26)
-m4_define(gdp_micro_version, 4)
+m4_define(gdp_minor_version, 28)
+m4_define(gdp_micro_version, 0)
 m4_define(gdp_version, gdp_major_version.gdp_minor_version.gdp_micro_version)
 
 AC_INIT(gedit-developer-plugins, gdp_version, sinzui.is@verizon.net)
@@ -46,36 +46,31 @@ IT_PROG_INTLTOOL([0.36.0])
 
 # Checks for library functions.
 
+
+libdir=${prefix}/lib
+sharedir=${prefix}/share
+
 # Set the location to install the plugins. The personal location (.gnome2)
-# is different form public locations.
+# is different from public locations.
 AC_DEFUN([GEDIT_PLUGIN], [
     if test $with_home = 'yes'; then
-        gedit_plugin_dir=`echo "${HOME}/.gnome2/gedit/plugins"`
+        gedit_plugin_dir="${HOME}/.gnome2/gedit/plugins"
         prefix=`echo "${HOME}/.local"`
     else
-        gedit_plugin_dir='$(libdir)/gedit-2/plugins'
+        gedit_plugin_dir="${libdir}/gedit-2/plugins"
     fi
     AC_SUBST(GEDIT_PLUGIN_DIR, [$gedit_plugin_dir])
 ])
 GEDIT_PLUGIN
 
-# The location of Gedit's personal external tools.
-AC_DEFUN([GEDIT_TOOLS], [
-    gedit_tools_dir=`echo "${HOME}/.gnome2/gedit/tools"`
-    AC_SUBST(GEDIT_TOOLS_DIR, [$gedit_tools_dir])
-])
-GEDIT_TOOLS
-
-# The location of Gedit's personal snippets.
-AC_DEFUN([GEDIT_SNIPPETS], [
-    gedit_snippets_dir=`echo "${HOME}/.gnome2/gedit/snippets"`
-    AC_SUBST(GEDIT_SNIPPETS_DIR, [$gedit_snippets_dir])
-])
-GEDIT_SNIPPETS
-
 # The location of GTKSourceViews lang files.
 AC_DEFUN([GTKSOURCEVIEW_LANGS], [
-    gtksourceview_langs_dir=`echo "${HOME}/.local/share/gtksourceview-2.0/language-specs"`
+    langsdir="gtksourceview-2.0/language-specs"
+    if test $with_home = 'yes'; then
+        gtksourceview_langs_dir="${HOME}/.local/share/${langsdir}"
+    else
+        gtksourceview_langs_dir="${sharedir}/${langsdir}"
+    fi
     AC_SUBST(GTKSOURCEVIEW_LANGS_DIR, [$gtksourceview_langs_dir])
 ])
 GTKSOURCEVIEW_LANGS
@@ -97,7 +92,5 @@ echo "
 Configuration:
     prefix: ${prefix}
     gedit plugin dir: $GEDIT_PLUGIN_DIR
-    gedit tools dir: $GEDIT_TOOLS_DIR
-    gedit snippets dir: $GEDIT_SNIPPETS_DIR
     GTKSourceView langs dir: $GTKSOURCEVIEW_LANGS_DIR
 "
