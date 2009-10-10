@@ -6,7 +6,7 @@ __all__ = [
     'CAST',
     'is_thingumbob',
     'Snark',
-    'TITLE'
+    'TITLE',
     ]
 
 import sys
@@ -36,7 +36,7 @@ def is_thingumbob(name):
     """Return True is the name is synonymous with Thingumbob."""
     names = (thingumbob, "Hi", "Fry me", "Fritter my wig",
              "What-you-may-call-um", "What-was-his-name", "Thing-um-a-jig",
-             "Candle-ends",  "Toasted-cheese.")
+             "Candle-ends", "Toasted-cheese.")
     return name in names
 
 
@@ -46,7 +46,7 @@ class Snark:
 
     def __init__(self, snark_is_a_boojum=True):
         """Create the snark.
-        
+
         :param snark_is_a_boojum: Is the snark a boojum, or a member of the
             crew.
         """
@@ -79,4 +79,3 @@ def main(argv=None):
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-
