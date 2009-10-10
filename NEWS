@@ -1,10 +1,33 @@
 gdp-2.28.0: UI and stability improvements
 =========================================
 
-XXX sinzui 2009-10-10: Write this from the milestone.
+This release improves the user experience of the four plugins:
+
+    * The Multi-file find and replace panel and style and syntax panel were
+      repositioned to the side. The side panels are more likely to be open and
+      it is easier to read line numbers in the panel and see the line numbers
+      in the documented at the same time.
+    * Syntax completion is now available from the Tools menu. If the syntax
+      completer detects a syntax error, it will signal the Format plugin
+      to show the Syntax and style panel.
+    * Search results can be saved to file. The panel saves your previous
+      entries so that they can be repeated.
+    * The Bazaar plugin supports all the bzr-gtk GUI functions, notably you
+      can create new branches and perform checkouts.
+    * Multiple files can be checked for syntax and style issues.
+
+There are some implementation/build issues that were resolved:
+
+    * The XML checker uses the standard python library, no additional
+      installations are needed.
+    * Snippets and external tools were removed -- they were not useful for
+      general distribution and they could overwrite person snippets and
+      tools :(
+
+For developers there is an autogen.sh to build the project from source.
 
 See screenshots at http://curtis.hovey.name/gallery/Sinzui/gdp-2-28-0
-Get the tarball at https://launchpad.net/gdp/trunk/0.2
+Get the tarball at https://launchpad.net/gdp
 
 
 gdp-2.26.1: The first release
