@@ -18,6 +18,9 @@ from unittest import _WritelnDecorator
 from testing import Dummy, SignalTester, literal, proof
 
 
+PLUGIN_PATH = os.path.join('/usr/lib/gedit-2/plugins')
+
+
 class Env(object):
     """The test environment properties."""
 
@@ -168,12 +171,14 @@ def setUp(doctest):
     import __builtin__
     from gettext import gettext
     __builtin__.__dict__['_'] = gettext
+    sys.path.append(PLUGIN_PATH)
 
 
 def tearDown(doctest):
     """Remove the gedit's gettext from builtins."""
     import __builtin__
     del __builtin__.__dict__['_']
+    sys.path.remove(PLUGIN_PATH)
 
 
 def main(params=None):
