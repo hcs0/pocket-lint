@@ -48,6 +48,7 @@ class GDPWindow:
         manager.remove_ui(self.ui_id)
         manager.remove_action_group(self.action_group)
         manager.ensure_update()
+        self.controller.deactivate()
 
     def connect_signal(self, obj, signal, method):
         """Connect the signal from the provided object to a method."""
@@ -71,6 +72,10 @@ class GDPWindow:
 
 class PluginMixin:
     """Provide common features to plugins"""
+
+    def deactivate(self):
+        """Clean up resources before deactivation."""
+        raise NotImplementedError
 
     def is_doc_open(self, uri):
         """Return True if the window already has a document opened for uri."""

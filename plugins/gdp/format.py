@@ -48,6 +48,11 @@ class Formatter(PluginMixin):
         icon = gtk.image_new_from_stock(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)
         panel.add_item(self.file_lines, 'Check syntax and style', icon)
 
+    def deactivate(self):
+        """Clean up resources before deactivation."""
+        panel = self.window.get_side_panel()
+        panel.remove_item(self.file_lines)
+
     @property
     def ui_callbacks(self):
         """The dict of callbacks for the ui widgets."""

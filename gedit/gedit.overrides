@@ -283,6 +283,12 @@ define Window.get_bottom_panel
                self.widget = widget
                self.label = label
                self.icon = icon
+
+            def remove_item(self, widget):
+               self.widget = None
+               self.label = None
+               self.icon = None
+
         return FakePanel()
 %%
 define Window.get_side_panel
@@ -298,6 +304,12 @@ define Window.get_side_panel
                self.widget = widget
                self.label = label
                self.icon = icon
+
+            def remove_item(self, widget):
+               self.widget = None
+               self.label = None
+               self.icon = None
+
         return FakePanel()
 %%
 define Window.get_group

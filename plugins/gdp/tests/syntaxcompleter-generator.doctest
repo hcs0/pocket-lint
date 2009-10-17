@@ -201,7 +201,7 @@ with code (if True:) to ensure the module will compile.
     >>> success = cursor_iter.backward_lines(2)
     >>> document.place_cursor(cursor_iter)
     >>> parsable_lines = python_generator._get_parsable_text().splitlines()
-    >>> print '\n'.join(parsable_lines[78:81])
+    >>> print '\n'.join(parsable_lines[77:80])
         found = False
         if True:
             found = True
@@ -213,7 +213,7 @@ line, it is replaced with 'pass'.
     >>> success = cursor_iter.forward_lines(1)
     >>> document.place_cursor(cursor_iter)
     >>> parsable_lines = python_generator._get_parsable_text().splitlines()
-    >>> print '\n'.join(parsable_lines[78:81])
+    >>> print '\n'.join(parsable_lines[77:80])
         found = False
         while not found:
             pass

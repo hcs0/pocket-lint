@@ -120,6 +120,11 @@ class Finder(PluginMixin):
         self.file_lines_view = self.widgets.get_object('file_lines_view')
         setup_file_lines_view(self.file_lines_view, self, 'Matches')
 
+    def deactivate(self):
+        """Clean up resources before deactivation."""
+        panel = self.window.get_side_panel()
+        panel.remove_item(self.find_panel)
+
     def setup_comboentry(self, comboentry, default=None):
         liststore = gtk.ListStore(gobject.TYPE_STRING)
         liststore.set_sort_column_id(0, gtk.SORT_ASCENDING)

@@ -43,6 +43,10 @@ class BzrProject(PluginMixin):
         self.window = window
         self.working_tree = working_tree or self.set_working_tree()
 
+    def deactivate(self):
+        """Clean up resources before deactivation."""
+        self.working_tree = None
+
     @property
     def has_bzr_gtk(self):
         """Is bzr-gtk available?"""

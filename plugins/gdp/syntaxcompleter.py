@@ -420,6 +420,10 @@ class SyntaxController(PluginMixin):
         self.view = None
         self.set_view(window.get_active_view())
 
+    def deactivate(self):
+        """Clean up resources before deactivation."""
+        self.set_view(None)
+
     def set_view(self, view, is_reset=False):
         """Set the view to be controlled.
 
@@ -516,10 +520,6 @@ class SyntaxController(PluginMixin):
             document.delete(
                 start, document.get_iter_at_mark(document.get_insert()))
         document.insert_at_cursor(word)
-
-    def deactivate(self):
-        """Deactivate the controller; detach the view."""
-        self.set_view(None)
 
     def correct_language(self, document):
         """Correct the language for ambuguous mime-types."""

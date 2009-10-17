@@ -73,7 +73,6 @@ class SyntaxCompleterPlugin(gedit.Plugin):
 
         Remove the SyntaxControler from every view.
         """
-        self.windows[window].controller.deactivate()
         self.windows[window].deactivate()
         del self.windows[window]
 
