@@ -8,7 +8,8 @@ m4_define(gdp_micro_version, 0)
 m4_define(gdp_version, gdp_major_version.gdp_minor_version.gdp_micro_version)
 
 AC_INIT(gedit-developer-plugins, gdp_version, sinzui.is@verizon.net)
-AM_INIT_AUTOMAKE([1.11 -Wno-portability])
+AM_INIT_AUTOMAKE([1.9 -Wno-portability])
+IT_PROG_INTLTOOL([0.36.0])
 
 AM_MAINTAINER_MODE
 
@@ -38,7 +39,6 @@ GETTEXT_PACKAGE=gedit-developer-plugins
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], "$GETTEXT_PACKAGE", [Gettext package])
 AM_GLIB_GNU_GETTEXT
-IT_PROG_INTLTOOL([0.36.0])
 
 # Checks for header files.
 
