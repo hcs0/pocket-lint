@@ -80,3 +80,56 @@ XMLChecker reports unknown html entities.
     >>> checker.check()
     4: undefined entity &fnord;
 
+
+PythonChecker
+-------------
+
+PythonChecker uses pyflakes to check syntax. It will report errors like
+a missing ':' in a function declaration.
+
+    >>> from tempfile import NamedTemporaryFile
+    >>> from gdp.formatcheck import PythonChecker
+
+    >>> text = dedent("""
+    ...     def test_function()
+    ...         x = undeclared_var
+    ...     """)
+    >>> temp_file = NamedTemporaryFile(prefix='test', suffix='.py')
+    >>> checker = PythonChecker(temp_file.name, text)
+    >>> checker.check()
+    2: Could not compile offset 20: def test_function()
+
+    >>> temp_file.close()
+
+PythonChecker will report warning like unused imports and undefined names.
+
+    >>> text = dedent("""
+    ...     import os
+    ...     def test_function():
+    ...         x = undefined_var
+    ...     """)
+    >>> temp_file = NamedTemporaryFile(prefix='test', suffix='.py')
+    >>> checker = PythonChecker(temp_file.name, text)
+    >>> checker.check()
+    4: undefined name 'undefined_var'
+    2: 'os' imported but unused
+
+    >>> temp_file.close()
+
+PythonChecker uses pep8 to check style.
+
+    >>> text = dedent("""
+    ...     CONSTANT = 'constant'
+    ...     def testFunction():
+    ...         x =  'extra space'
+    ...         y = 'trailing whitespace'  
+    ...     """)
+    >>> temp_file = NamedTemporaryFile(prefix='test', suffix='.py')
+    >>> temp_file.file.write(text)
+    >>> temp_file.file.flush()
+    >>> checker = PythonChecker(temp_file.name, text)
+    >>> checker.check()
+    3: E302 expected 2 blank lines, found 0
+    4: E222 multiple spaces after operator
+    5: W291 trailing whitespace
+    >>> temp_file.close()
