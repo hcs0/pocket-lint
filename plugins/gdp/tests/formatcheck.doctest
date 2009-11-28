@@ -132,4 +132,5 @@ PythonChecker uses pep8 to check style.
     3: E302 expected 2 blank lines, found 0
     4: E222 multiple spaces after operator
     5: W291 trailing whitespace
+
     >>> temp_file.close()
