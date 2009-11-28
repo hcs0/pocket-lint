@@ -218,3 +218,24 @@ line, it is replaced with 'pass'.
         while not found:
             pass
 
+
+MarkupGenerator
+---------------
+
+The MarkupGenerator creates a vocabulary of elements from the tags used in
+the document.
+
+    >>> from gdp.syntaxcompleter import MarkupGenerator
+
+    >>> snark_html = 'plugins/gdp/data/snark.html'
+    >>> document.load(snark_html, None, 0, False)
+    >>> document.place_cursor(document.get_start_iter())
+    >>> markup_generator = MarkupGenerator(document)
+    >>> markup_generator
+    <gdp.syntaxcompleter.MarkupGenerator object at ...>
+
+    >>> markup_generator.file_path
+    'plugins/gdp/data/snark.html'
+
+    >>> print markup_generator.text
+    <html> <head> <title>The Hunting of The Snark</title> ...

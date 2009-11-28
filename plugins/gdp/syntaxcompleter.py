@@ -8,6 +8,7 @@ __metaclass__ = type
 
 __all__ = [
     'BaseSyntaxGenerator',
+    'MarkupGenerator',
     'SyntaxModel',
     'SyntaxView',
     'SyntaxController',
@@ -165,6 +166,22 @@ class TextGenerator(BaseSyntaxGenerator):
         word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
         # Find the unique words that do not have pseudo m-dashed in them.
+        words = set(word for word in words if '--' not in word)
+        return is_authoritative, words
+
+
+class MarkupGenerator(BaseSyntaxGenerator):
+    """Generate a list of elements and attributes for a document."""
+
+    def get_words(self, prefix=None):
+        """See `BaseSyntaxGenerator.get_words`."""
+        prefix = self.ensure_prefix(prefix)
+        # is_authorative is True when the cursor is inside a tag.
+        is_authoritative = False
+        pattern = r'<(%s[\w-]*)' % re.escape(prefix)
+        word_re = re.compile(pattern, re.I)
+        words = word_re.findall(self.text)
+        # Find the unique elements.
         words = set(word for word in words if '--' not in word)
         return is_authoritative, words
 
