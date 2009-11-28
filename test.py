@@ -11,8 +11,10 @@ test suite.
 """
 
 # Add additional Python lib paths as needed.
-paths = ['/usr/lib/gedit-2/plugins/',
-         './plugins/']
+paths = [
+    './plugins/',
+    '/usr/lib/gedit-2/plugins/',
+     ]
 
 # Gedit has gettext compiled into builtins.
 import __builtin__

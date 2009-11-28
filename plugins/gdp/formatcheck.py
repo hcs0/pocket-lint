@@ -34,7 +34,8 @@ class Reporter:
     def __init__(self, report_type, treeview=None):
         self.report_type = report_type
         self.file_lines_view = treeview
-        self.treestore = self.file_lines_view.get_model()
+        if self.file_lines_view is not None:
+            self.treestore = self.file_lines_view.get_model()
         self.piter = None
 
     def __call__(self, line_no, message, icon=None,
@@ -52,7 +53,7 @@ class Reporter:
     def _message_console(self, line_no, message, icon=None,
                          base_dir=None, file_name=None):
         """Print the messages to the console."""
-        print '%4s: %s' % line_no, message
+        print '%4s: %s' % (line_no, message)
 
     def _message_file_lines(self, line_no, message, icon=None,
                             base_dir=None, file_name=None):
@@ -81,7 +82,7 @@ class BaseChecker:
     def set_reporter(self, reporter=None):
         """Set the reporter for messages."""
         if reporter is None:
-            Reporter(Reporter.CONSOLE)
+            reporter = Reporter(Reporter.CONSOLE)
         self._reporter = reporter
 
     def message(self, line_no, message, icon=None,
@@ -125,7 +126,28 @@ class UniversalChecker(BaseChecker):
         self._reporter.file_lines_view.expand_all()
 
 
-class AnyTextChecker(BaseChecker):
+class AnyTextMixin:
+    """Common checks for many checkers."""
+
+    def check_conflicts(self, line_no, line):
+        """Check that there are no merge conflict markers."""
+        if line.startswith('<<<<<<<'):
+            self.message(line_no, 'File has conflicts.', icon='errror')
+
+    def check_length(self, line_no, line):
+        """Check the length of the line."""
+        if len(line) > 78:
+            self.message(
+                line_no, 'Line exceeds 78 characters.', icon='info')
+
+    def check_trailing_whitespace(self, line_no, line):
+        """Check for the presence of trailing whitespace in the line."""
+        if line.endswith(' '):
+            self.message(
+                line_no, 'Line has trailing whitespace.', icon='info')
+
+
+class AnyTextChecker(BaseChecker, AnyTextMixin):
     """Verify the text of the document."""
 
     def __init__(self, file_path, text, reporter=None):
@@ -142,25 +164,8 @@ class AnyTextChecker(BaseChecker):
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
 
-    def check_conflicts(self, line_no, line):
-        """Check that there are no merge conflict markers."""
-        if line.startswith('<<<<<<<'):
-            self.message(line_no, 'File has conficts.', icon='errror')
 
-    def check_length(self, line_no, line):
-        """Check the length of the line."""
-        if len(line) > 78:
-            self.message(
-                line_no, 'Line exceeds 78 characters.', icon='info')
-
-    def check_trailing_whitespace(self, line_no, line):
-        """Check for the presence of trailing whitespace in the line."""
-        if line.endswith(' '):
-            self.message(
-                line_no, 'Line has trailing whitespace.', icon='info')
-
-
-class XMLChecker(BaseChecker):
+class XMLChecker(BaseChecker, AnyTextMixin):
     """Check XML documents."""
 
     xml_decl_pattern = re.compile(r'<\?xml .*?\?>')
@@ -191,6 +196,9 @@ class XMLChecker(BaseChecker):
         except ExpatError, error:
             self.message(
                 error.lineno - offset, ErrorString(error.code), icon='error')
+        for line_no, line in enumerate(self.text.splitlines()):
+            self.check_trailing_whitespace(line_no, line)
+            self.check_conflicts(line_no, line)
 
 
 class PythonChecker(BaseChecker):
