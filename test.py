@@ -10,6 +10,9 @@ Edit this file to setup the test environment. Do not alter
 test suite.
 """
 
+import os
+
+
 # Add additional Python lib paths as needed.
 paths = [
     './plugins/',
@@ -29,6 +32,9 @@ verbosity = 2
 
 
 if __name__ == '__main__':
+    gengedit = 'gen-gedit.py'
+    gengedit_path = 'utils/%s' % gengedit
+    os.spawnl(os.P_WAIT, gengedit_path, gengedit)
     params = vars()
     keys = params.keys()
     [params.pop(k) for k in keys if k.startswith('__')]
