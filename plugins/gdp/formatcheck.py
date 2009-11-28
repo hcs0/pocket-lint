@@ -194,8 +194,13 @@ class XMLChecker(BaseChecker, AnyTextMixin):
         try:
             root = ElementTree.parse(StringIO(text), parser)
         except ExpatError, error:
-            self.message(
-                error.lineno - offset, ErrorString(error.code), icon='error')
+            if hasattr(error, 'code'):
+                error_message = ErrorString(error.code)
+                error_lineno = error.lineno - offset
+            else:
+                error_message, location = str(error).rsplit(':')
+                error_lineno = int(location.split(',')[0].split()[1])- offset
+            self.message(error_lineno, error_message, icon='error')
         for line_no, line in enumerate(self.text.splitlines()):
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)

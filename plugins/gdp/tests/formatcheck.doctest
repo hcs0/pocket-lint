@@ -3,6 +3,7 @@ Format checkers
 
 Format checks report errors or problems in syntax and style of files.
 
+
 AnyTextChecker
 --------------
 
@@ -23,3 +24,59 @@ the AnyTextMixin to check any text file.
     2: Line has trailing whitespace.
     3: File has conflicts.
     4: Line exceeds 78 characters.
+
+
+XMLChecker
+----------
+
+The XMLChecker uses the AnyTextMixin to check for conflicts and trailing
+whitespace.
+
+    >>> from gdp.formatcheck import XMLChecker
+
+    >>> text = dedent("""
+    ...     <fine>well formed,</fine>
+    ...     <!-- This line is fine.
+    ...     This line has trailing whitespace.  
+    ...     <<<<<<< this line has a merge conflict.
+    ...     This line exceeds 78 characters which is fine: %s -->
+    ...     """ % '0123456789abcdefghijklmnopqrstuvwxyz')
+    >>> checker = XMLChecker('/path/to/file.xml', text)
+    >>> checker.check()
+    3: Line has trailing whitespace.
+    4: File has conflicts.
+
+XMLChecker reports ill-formed markup.
+
+    >>> text = dedent("""
+    ...     <outer>
+    ...       outer text
+    ...       <inner> not closed
+    ...     </outer>
+    ...     """)
+    >>> checker = XMLChecker('/path/to/file.xml', text)
+    >>> checker.check()
+    5: mismatched tag
+
+XMLChecker reports unknown html entities.
+
+    >>> text = dedent("""
+    ...     <outer>
+    ...       outer text
+    ...       &nbsp;
+    ...     </outer>
+    ...     """)
+    >>> checker = XMLChecker('/path/to/file.xml', text)
+    >>> checker.check()
+    <BLANKLINE>
+
+    >>> text = dedent("""
+    ...     <outer>
+    ...       outer text
+    ...       &fnord;
+    ...     </outer>
+    ...     """)
+    >>> checker = XMLChecker('/path/to/file.xml', text)
+    >>> checker.check()
+    4: undefined entity &fnord;
+
