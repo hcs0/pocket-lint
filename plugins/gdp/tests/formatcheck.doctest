@@ -1,0 +1,25 @@
+Format checkers
+===============
+
+Format checks report errors or problems in syntax and style of files.
+
+AnyTextChecker
+--------------
+
+The AnyTextChecker class is a generic class that uses the rules from
+the AnyTextMixin to check any text file.
+
+    >>> from textwrap import dedent
+    >>> from gdp.formatcheck import AnyTextChecker
+
+    >>> text = dedent("""
+    ...     This line is fine.
+    ...     This line has trailing whitespace.  
+    ...     <<<<<<< this line has a merge conflict.
+    ...     This line exceeds 78 characters making it difficult to read: %s
+    ...     """ % '0123456789abcdefghijklmnopqrstuvwxyz')
+    >>> checker = AnyTextChecker('/path/to/file.txt', text)
+    >>> checker.check()
+    2: Line has trailing whitespace.
+    3: File has conflicts.
+    4: Line exceeds 78 characters.
