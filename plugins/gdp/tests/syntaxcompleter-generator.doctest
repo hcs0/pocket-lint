@@ -309,10 +309,11 @@ When the cursor is in the name of a close tag, only the names of the open
 tags listed.
 
     >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
-    >>> success = cursor_iter.forward_chars(32)
+    >>> success = cursor_iter.forward_chars(34)
     >>> document.place_cursor(cursor_iter)
+    >>> document.insert_at_cursor("<style>body {color: #333;}</")
     >>> print markup_generator.string_before_cursor
-    /title
+    /
 
     >>> is_authoritative, words = markup_generator.get_words()
     >>> is_authoritative
@@ -322,4 +323,4 @@ tags listed.
     INSIDE_CLOSE
 
     >>> sorted(words)
-    ['head', 'html']
+    ['style']

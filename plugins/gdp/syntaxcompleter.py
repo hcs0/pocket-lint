@@ -214,9 +214,18 @@ class MarkupGenerator(BaseSyntaxGenerator):
             words = self._get_close_tags(prefix)
         return is_authoritative, words
 
+    def get_cardinality(self, prefix):
+        if prefix:
+            # Match words that are just the prefix too.
+            return r'*'
+        else:
+            return r'+'
+
     def _get_open_tags(self, prefix):
         """Return all the tag names."""
-        pattern = r'<(%s[\w_.:-]*)' % re.escape(prefix)
+        cardinality = self.get_cardinality(prefix)
+        prefix = re.escape(prefix)
+        pattern = r'<(%s[\w_.:-]%s)' % (prefix, cardinality)
         word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
         return set(words)
@@ -239,29 +248,31 @@ class MarkupGenerator(BaseSyntaxGenerator):
 
     def _get_close_tags(self, prefix):
         """Return the tags that are still open before the cursor."""
+        cardinality = self.get_cardinality(prefix)
+        prefix = re.escape(prefix)
         # Get the text before the cursor.
         start_iter = self._document.get_start_iter()
         end_iter = self._document.get_iter_at_mark(
             self._document.get_insert())
         text = self._document.get_text(start_iter, end_iter)
         # Get all the open tags.
-        open_pattern = r'<(%s[\w_.:-]*)' % re.escape(prefix)
+        open_pattern = r'<(%s[\w_.:-]%s)' % (prefix, cardinality)
         open_re = re.compile(open_pattern, re.I)
         open_tags = open_re.findall(text)
         # Get all the empty tags.
-        empty_pattern = r'<(%s[\w_.:-]*).*/>' % re.escape(prefix)
+        empty_pattern = r'<(%s[\w_.:-]%s).*/>' % (prefix, cardinality)
         empty_re = re.compile(empty_pattern, re.I)
         empty_tags = empty_re.findall(text)
         # Get all the close tags.
-        close_pattern = r'</(%s[\w_.:-]*)' % re.escape(prefix)
+        close_pattern = r'</(%s[\w_.:-]%s)' % (prefix, cardinality)
         close_re = re.compile(close_pattern, re.I)
-        close_tags = close_re.findall(text)
+        close_tags = close_re.findall(self.text)
         # Return only the tags that are still open.
         for tag in empty_tags:
             open_tags.remove(tag)
         for tag in close_tags:
-            open_tags.remove(tag)
-        open_tags.remove('')
+            if tag in open_tags:
+                open_tags.remove(tag)
         return set(open_tags)
 
 
