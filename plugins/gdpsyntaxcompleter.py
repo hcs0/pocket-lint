@@ -49,7 +49,7 @@ class SyntaxCompleterPlugin(gedit.Plugin):
         """
         return  [
             ('CompleteWord', None, _("Complete _word"),
-                '<Control><Shift>space',
+                '<Alt>slash',
                 _("Complete the word at the cursor."),
                 syntaxer.show_syntax_view),
             ]
