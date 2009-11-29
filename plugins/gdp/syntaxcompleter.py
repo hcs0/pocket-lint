@@ -8,10 +8,11 @@ __metaclass__ = type
 
 __all__ = [
     'BaseSyntaxGenerator',
+    'MarkupGenerator',
+    'PythonSyntaxGenerator',
     'SyntaxModel',
     'SyntaxView',
     'SyntaxController',
-    'PythonSyntaxGenerator',
     'TextGenerator',
     ]
 
@@ -98,7 +99,7 @@ class BaseSyntaxGenerator:
     word_char = re.compile(r'[\w_]', re.I)
 
     @property
-    def get_string_before_cursor(self):
+    def string_before_cursor(self):
         """Return the string that matches `word_char` before the cursor."""
         text, start_iter, end_iter = get_word(self._document, self.word_char)
         if text is None:
@@ -169,6 +170,112 @@ class TextGenerator(BaseSyntaxGenerator):
         return is_authoritative, words
 
 
+class MarkupGenerator(BaseSyntaxGenerator):
+    """Generate a list of elements and attributes for a document."""
+
+    word_char = re.compile(r'[^<>]')
+    common_attrs = []
+
+    INSIDE_ATTRIBUTES = 'INSIDE_ATTRIBUTES'
+    INSIDE_CLOSE = 'INSIDE_CLOSE'
+    INSIDE_OPEN = 'INSIDE_OPEN'
+    OUTSIDE = 'OUTSIDE'
+
+    def get_cursor_context(self):
+        """Return the context of the cursor in relation to the last tag."""
+        text, start_iter, end_iter = get_word(self._document, self.word_char)
+        if not start_iter.backward_char():
+            # The start was at the begining of the doc; no tags were found.
+            return self.OUTSIDE
+        char = start_iter.get_char()
+        if char == '>':
+            return self.OUTSIDE
+        elif text and text.startswith('/'):
+            return self.INSIDE_CLOSE
+        elif text and ' ' in text:
+            return self.INSIDE_ATTRIBUTES
+        else:
+            return self.INSIDE_OPEN
+
+    def get_words(self, prefix=None):
+        """See `BaseSyntaxGenerator.get_words`."""
+        prefix = self.ensure_prefix(prefix)
+        context = self.get_cursor_context()
+        if context == self.OUTSIDE:
+            # is_authoritative is false and there are no words because the
+            # cursor is not in a tag to complete.
+            return False, set()
+        is_authoritative = True
+        if context == self.INSIDE_OPEN:
+            words = self._get_open_tags(prefix)
+        elif context == self.INSIDE_ATTRIBUTES:
+            words = self._get_attributes(prefix)
+        else:
+            words = self._get_close_tags(prefix)
+        return is_authoritative, words
+
+    def get_cardinality(self, prefix):
+        if prefix:
+            # Match words that are just the prefix too.
+            return r'*'
+        else:
+            return r'+'
+
+    def _get_open_tags(self, prefix):
+        """Return all the tag names."""
+        cardinality = self.get_cardinality(prefix)
+        prefix = re.escape(prefix)
+        pattern = r'<(%s[\w_.:-]%s)' % (prefix, cardinality)
+        word_re = re.compile(pattern, re.I)
+        words = word_re.findall(self.text)
+        return set(words)
+
+    def _get_attributes(self, prefix):
+        pattern = r'<[\w_.:-]+ ([\w_.:-]*)=[^>]+>'
+        attrs_re = re.compile(pattern, re.I)
+        attr_clusters = attrs_re.findall(self.text)
+        attrs = set(self.common_attrs)
+        for attr_cluster in attr_clusters:
+            attr_pairs = attr_cluster.split()
+            for pair in attr_pairs:
+                attr = pair.split('=')
+                attrs.add(attr[0])
+        if prefix:
+            for attr in list(attrs):
+                if not attr.startswith(prefix):
+                    attrs.remove(attr)
+        return attrs
+
+    def _get_close_tags(self, prefix):
+        """Return the tags that are still open before the cursor."""
+        cardinality = self.get_cardinality(prefix)
+        prefix = re.escape(prefix)
+        # Get the text before the cursor.
+        start_iter = self._document.get_start_iter()
+        end_iter = self._document.get_iter_at_mark(
+            self._document.get_insert())
+        text = self._document.get_text(start_iter, end_iter)
+        # Get all the open tags.
+        open_pattern = r'<(%s[\w_.:-]%s)' % (prefix, cardinality)
+        open_re = re.compile(open_pattern, re.I)
+        open_tags = open_re.findall(text)
+        # Get all the empty tags.
+        empty_pattern = r'<(%s[\w_.:-]%s).*/>' % (prefix, cardinality)
+        empty_re = re.compile(empty_pattern, re.I)
+        empty_tags = empty_re.findall(text)
+        # Get all the close tags.
+        close_pattern = r'</(%s[\w_.:-]%s)' % (prefix, cardinality)
+        close_re = re.compile(close_pattern, re.I)
+        close_tags = close_re.findall(self.text)
+        # Return only the tags that are still open.
+        for tag in empty_tags:
+            open_tags.remove(tag)
+        for tag in close_tags:
+            if tag in open_tags:
+                open_tags.remove(tag)
+        return set(open_tags)
+
+
 class PythonSyntaxGenerator(BaseSyntaxGenerator):
     """Generate a list of Python symbols that match a given prefix."""
 
@@ -199,7 +306,7 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
         co_names = ('SIGNAL_RUN_LAST', 'TYPE_NONE', 'TYPE_PYOBJECT', 'object')
         local_syms = [name for name in pyo.co_names if name not in co_names]
 
-        namespaces = self.get_string_before_cursor.split('.')
+        namespaces = self.string_before_cursor.split('.')
         if len(namespaces) == 1:
             # The identifier is scoped to this module (the document).
             symbols = set()
@@ -289,29 +396,40 @@ class SyntaxModel(CompleteModel):
         self.display_snippet = self.display_word
         self.do_filter = self.filter_words
 
+    def get_generator(self, document, prefix):
+        """Return the specialized generator for document's language."""
+        language_id = None
+        if hasattr(document, 'get_language'):
+            # How can we not get a document or language?
+            language = document.get_language()
+            if language is not None:
+                language_id = language.get_id()
+        if language_id == 'python':
+            return PythonSyntaxGenerator(document, prefix=prefix)
+        if language_id in ('xml', 'xslt', 'html', 'pt', 'mallard', 'docbook'):
+            return MarkupGenerator(document, prefix=prefix)
+        else:
+            # The text generator is never returned because create_list will
+            # use it in non-authoritative cases.
+            return None
+
     def create_list(self, document, prefix):
         """Return a list of sorted and unique words for the provides source.
 
         :param document: A `gedit.Document`. The source document
         :param prefix: `A str`. The beginning of the word.
         """
-        if hasattr(document, 'get_language'):
-            language = document.get_language()
-        else:
-            # How can we not get a document?
-            language = None
-
-        words = set()
+        all_words = set()
         is_authoritative = False
-        if language and language.get_id() == 'python':
-            is_authoritative, symbols = PythonSyntaxGenerator(
-                document, prefix=prefix).get_words()
-            words |= symbols
+        generator = self.get_generator(document, prefix)
+        if generator:
+            is_authoritative, words = generator.get_words()
+            all_words |= words
         if not is_authoritative:
             is_authoritative, simple_words = TextGenerator(
                 document, prefix=prefix).get_words()
-            words |= simple_words
-        return sorted(words, key=str.lower)
+            all_words |= simple_words
+        return sorted(all_words, key=str.lower)
 
     def display_word(self, word):
         """Return the word escaped for Pango display."""
