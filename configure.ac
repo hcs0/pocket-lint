@@ -3,8 +3,8 @@
 AC_PREREQ(2.61)
 
 m4_define(gdp_major_version, 0)
-m4_define(gdp_minor_version, 2)
-m4_define(gdp_micro_version, 1)
+m4_define(gdp_minor_version, 3)
+m4_define(gdp_micro_version, 0)
 m4_define(gdp_version, gdp_major_version.gdp_minor_version.gdp_micro_version)
 
 AC_INIT(gedit-developer-plugins, gdp_version, sinzui.is@verizon.net)
