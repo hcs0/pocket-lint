@@ -190,9 +190,9 @@ class MarkupGenerator(BaseSyntaxGenerator):
         char = start_iter.get_char()
         if char == '>':
             return self.OUTSIDE
-        elif text.startswith('/'):
+        elif text and text.startswith('/'):
             return self.INSIDE_CLOSE
-        elif ' ' in text:
+        elif text and ' ' in text:
             return self.INSIDE_ATTRIBUTES
         else:
             return self.INSIDE_OPEN
