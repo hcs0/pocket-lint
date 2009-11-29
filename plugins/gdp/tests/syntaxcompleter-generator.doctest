@@ -67,7 +67,7 @@ punctuation and line ends.
     >>> text_generator.text
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
 
-The get_words() method returns a 2-tuple of is_athorative and a set of
+The get_words() method returns a 2-tuple of is_authoritative and a set of
 all words in the generator.
 
     >>> is_authoritative, words = text_generator.get_words()
@@ -78,7 +78,7 @@ all words in the generator.
     >>> sorted(words, key=str.lower)
     ['000', '000x100', '03', '08', '1', '10', '1992', '2', '20', ...]
 
-is_athorative is always False because the TextGenerator works with all
+is_authoritative is always False because the TextGenerator works with all
 documents instead of a specific GtkSourceView Language.
 
     >>> is_authoritative
@@ -239,3 +239,87 @@ the document.
 
     >>> print markup_generator.text
     <html> <head> <title>The Hunting of The Snark</title> ...
+
+The get_words() method returns a 2-tuple of is_authoritative and a set
+of all words in the generator. When the cursor is not in a tag, there are no
+matches and the results are not authoritative. The cursor is outside a tag
+at the start of the document.
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> document.place_cursor(cursor_iter)
+    >>> is_authoritative, words = markup_generator.get_words()
+    >>> is_authoritative
+    False
+
+    >>> print markup_generator.get_cursor_context()
+    OUTSIDE
+
+    >>> sorted(words)
+    []
+
+The cursor is outside a tag when it is is between tags.
+
+    >>> success = cursor_iter.forward_lines(2)
+    >>> document.place_cursor(cursor_iter)
+    >>> is_authoritative, words = markup_generator.get_words()
+    >>> print markup_generator.get_cursor_context()
+    OUTSIDE
+
+When the cursor in the name of an open tag, all matching open or empty
+tags are listed.
+
+    >>> success = cursor_iter.forward_chars(10)
+    >>> document.place_cursor(cursor_iter)
+    >>> print markup_generator.string_before_cursor
+    title
+
+    >>> is_authoritative, words = markup_generator.get_words('title')
+    >>> is_authoritative
+    True
+
+    >>> print markup_generator.get_cursor_context()
+    INSIDE_OPEN
+
+    >>> sorted(words)
+    ['title']
+
+When the cursor is in the attribute portion of an open or empty tag, all
+known attributes are listed.
+
+    >>> document.insert_at_cursor(" l")
+    >>> print markup_generator.string_before_cursor
+    title l
+
+    >>> is_authoritative, words = markup_generator.get_words()
+    >>> is_authoritative
+    True
+
+    >>> print markup_generator.get_cursor_context()
+    INSIDE_ATTRIBUTES
+
+    >>> sorted(words)
+    ['class']
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> delete_iter = cursor_iter.copy()
+    >>> success = delete_iter.backward_chars(2)
+    >>> document.delete(delete_iter, cursor_iter)
+
+When the cursor is in the name of a close tag, only the names of the open
+tags listed.
+
+    >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
+    >>> success = cursor_iter.forward_chars(32)
+    >>> document.place_cursor(cursor_iter)
+    >>> print markup_generator.string_before_cursor
+    /title
+
+    >>> is_authoritative, words = markup_generator.get_words()
+    >>> is_authoritative
+    True
+
+    >>> print markup_generator.get_cursor_context()
+    INSIDE_CLOSE
+
+    >>> sorted(words)
+    ['head', 'html']

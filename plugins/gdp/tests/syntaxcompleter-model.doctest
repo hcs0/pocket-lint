@@ -49,6 +49,34 @@ CompleteModel.on_iter_next() can enter an infinite loop.
     1987
 
 
+get_generator()
+~~~~~~~~~~~~~~~
+
+The create_list() method uses the get_generator() method to get the generator
+for the language of the document.
+
+The TextGenerator is used for text documents and unsupported languages, but
+the get_generator() method does not return it because create_list() will
+instantiate it when the results are not authoritative.
+
+    >>> print model.get_generator(document, '')
+    None
+
+The PythonSyntaxGenerator is returned for python files.
+
+    >>> python_document = gedit.Document()
+    >>> python_document.load('plugins/gdp/data/snark.py', None, 0, False)
+    >>> model.get_generator(python_document, '')
+    <gdp.syntaxcompleter.PythonSyntaxGenerator ...>
+
+The MarkupGenerator is returned for XML-based markup documents.
+
+    >>> markup_document = gedit.Document()
+    >>> markup_document.load('plugins/gdp/data/snark.html', None, 0, False)
+    >>> model.get_generator(markup_document, '')
+    <gdp.syntaxcompleter.MarkupGenerator ...>
+
+
 filter_words()
 ~~~~~~~~~~~~~
 
