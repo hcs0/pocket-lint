@@ -323,4 +323,4 @@ tags listed.
     INSIDE_CLOSE
 
     >>> sorted(words)
-    ['style']
+    ['head', 'html', 'style']

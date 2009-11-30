@@ -260,19 +260,18 @@ class MarkupGenerator(BaseSyntaxGenerator):
         open_re = re.compile(open_pattern, re.I)
         open_tags = open_re.findall(text)
         # Get all the empty tags.
-        empty_pattern = r'<(%s[\w_.:-]%s).*/>' % (prefix, cardinality)
+        empty_pattern = r'<(%s[\w_.:-]%s)[^>]*/>' % (prefix, cardinality)
         empty_re = re.compile(empty_pattern, re.I)
         empty_tags = empty_re.findall(text)
         # Get all the close tags.
         close_pattern = r'</(%s[\w_.:-]%s)' % (prefix, cardinality)
         close_re = re.compile(close_pattern, re.I)
-        close_tags = close_re.findall(self.text)
+        close_tags = close_re.findall(text)
         # Return only the tags that are still open.
         for tag in empty_tags:
             open_tags.remove(tag)
         for tag in close_tags:
-            if tag in open_tags:
-                open_tags.remove(tag)
+            open_tags.remove(tag)
         return set(open_tags)
 
 

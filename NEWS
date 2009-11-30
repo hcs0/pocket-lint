@@ -1,3 +1,31 @@
+gdp-2.28.0 (0.3.1): Markup completion
+===================================
+
+This release adds XML-based markup completion.
+
+    * Detection is based on the language/highlighting of the document.
+      The supported languages are: XML, XSLT, HTML, Malard, Docbook, and
+      Zope page templates.
+    * When opening a tag, the completer suggests other open or empty tags
+      that are already in the document.
+    * When closing a tag, the complete suggests the tags that are still open
+      before the cursor. This is helpful, though not perfect. The root element
+      for example, will always be listed since it is closed at the end of the
+      document.
+    * When the adding an attribute, the completer suggests the attributes that
+      were used in other tags.
+    * You still need to know the markup's grammatical rules since elements
+      and attributes are suggested from context rather than schema.
+    * The implementation could be extended to suggest elements and attributes
+      for specific grammars.
+
+Important changes.
+
+    * The completion key accelerator has changed from <Control><Shift>Space to
+      <Control>Slash (Ctrl+/) to avoid conflicts with HTML snippet commands.
+
+
+
 gdp-2.28.0 (0.2): UI and stability improvements
 ===============================================
 
