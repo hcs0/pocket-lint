@@ -269,9 +269,11 @@ class MarkupGenerator(BaseSyntaxGenerator):
         close_tags = close_re.findall(text)
         # Return only the tags that are still open.
         for tag in empty_tags:
-            open_tags.remove(tag)
+            if tag in open_tags:
+                open_tags.remove(tag)
         for tag in close_tags:
-            open_tags.remove(tag)
+            if tag in open_tags:
+                open_tags.remove(tag)
         return set(open_tags)
 
 
