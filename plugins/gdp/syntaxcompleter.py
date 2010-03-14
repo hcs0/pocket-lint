@@ -25,16 +25,16 @@ import gobject
 import gtk
 from gtksourceview2 import language_manager_get_default
 
-try:
-    from snippets.SnippetComplete import SnippetComplete, CompleteModel
-except ImportError:
-    # The Snippet plugin is not enabled, so the module is not in the path.
-    message = _("The snippet plugin must be enabled first.")
-    dialog = gtk.MessageDialog(
-        type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE,
-        message_format=message)
-    dialog.run()
-    dialog.destroy()
+#try:
+#    from snippets.SnippetComplete import SnippetComplete, CompleteModel
+#except ImportError:
+#    # The Snippet plugin is not enabled, so the module is not in the path.
+#    message = _("The snippet plugin must be enabled first.")
+#    dialog = gtk.MessageDialog(
+#        type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE,
+#        message_format=message)
+#    dialog.run()
+#    dialog.destroy()
 
 from gdp import PluginMixin
 
@@ -44,6 +44,14 @@ doctest_language = lang_manager.get_language('doctest')
 
 doctest_pattern = re.compile(
     r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
+
+
+class SnippetComplete:
+    pass
+
+
+class CompleteModel:
+    pass
 
 
 def get_word(document, word_pattern):

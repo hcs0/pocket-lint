@@ -16,6 +16,12 @@ import os
 import pango
 import gobject
 import gtk
+import gedit
+
+
+gobject.signal_new(
+    'syntax-error-python', gedit.Document, gobject.SIGNAL_RUN_LAST,
+    gobject.TYPE_NONE, ())
 
 
 # Initialise the mimetypes for document type inspection.
