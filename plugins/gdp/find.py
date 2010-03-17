@@ -71,10 +71,10 @@ def find_files(root_dir, skip_dir_pattern='^[.]', file_pattern='.*'):
             file_path = os.path.join(path, file_)
             if os.path.islink(file_path):
                 continue
-            mime_type, encoding = mimetypes.guess_type(file_)
+            mime_type, encoding_ = mimetypes.guess_type(file_)
             if is_editable(mime_type):
                 if file_re.match(file_path) is not None:
-                    yield file_path
+                    yield file_path, mime_type
 
 
 def extract_match(file_path, match_re, substitution=None):
