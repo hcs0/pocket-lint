@@ -37,6 +37,29 @@ def find_matches(root_dir, file_pattern, match_pattern, substitution=None):
             yield summary
 
 
+def is_editable(mime_type):
+    """ Only search mime-types that gedit can open.
+
+    A fuzzy match of text/ or +xml is good, but some files types are unknown
+    or described as application data.
+    """
+    editable_types = (
+        'application/javascript',
+        'application/sgml',
+        'application/xml',
+        'application/x-httpd-eruby',
+        'application/x-httpd-php',
+        'application/x-latex',
+        'application/x-ruby',
+        'application/x-sh',
+        )
+    return (
+        mime_type is None
+        or 'text/' in mime_type
+        or mime_type.endswith('+xml')
+        or mime_type in editable_types)
+
+
 def find_files(root_dir, skip_dir_pattern='^[.]', file_pattern='.*'):
     """Iterate the matching files below a directory."""
     skip_dir_re = re.compile(r'^.*%s' % skip_dir_pattern)
@@ -48,10 +71,10 @@ def find_files(root_dir, skip_dir_pattern='^[.]', file_pattern='.*'):
             file_path = os.path.join(path, file_)
             if os.path.islink(file_path):
                 continue
-            mime_type, encoding_ = mimetypes.guess_type(file_)
-            if mime_type is None or 'text/' in mime_type:
+            mime_type, encoding = mimetypes.guess_type(file_)
+            if is_editable(mime_type):
                 if file_re.match(file_path) is not None:
-                    yield file_path, mime_type
+                    yield file_path
 
 
 def extract_match(file_path, match_re, substitution=None):
