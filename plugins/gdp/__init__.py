@@ -6,6 +6,7 @@
 __metaclass__ = type
 
 __all__ = [
+    'GDPWindow'
     'PluginMixin',
     ]
 
@@ -83,6 +84,29 @@ class PluginMixin:
         """Clean up resources before deactivation."""
         raise NotImplementedError
 
+    @staticmethod
+    def is_editable(mime_type):
+        """ Only search mime-types that gedit can open.
+
+        A fuzzy match of text/ or +xml is good, but some files types are
+        unknown or described as application data.
+        """
+        editable_types = (
+            'application/javascript',
+            'application/sgml',
+            'application/xml',
+            'application/x-httpd-eruby',
+            'application/x-httpd-php',
+            'application/x-latex',
+            'application/x-ruby',
+            'application/x-sh',
+            )
+        return (
+            mime_type is None
+            or 'text/' in mime_type
+            or mime_type.endswith('+xml')
+            or mime_type in editable_types)
+
     def is_doc_open(self, uri):
         """Return True if the window already has a document opened for uri."""
         for doc in self.window.get_documents():
@@ -95,8 +119,7 @@ class PluginMixin:
         if self.is_doc_open(uri):
             return
         mime_type, charset_ = mimetypes.guess_type(uri)
-        if mime_type is None or 'text/' in mime_type:
-            # This appears to be a file that gedit can open.
+        if self.is_editable(mime_type):
             jump_to = jump_to or 0
             self.window.create_tab_from_uri(uri, None, jump_to, False, False)
             self.window.get_active_view().scroll_to_cursor()
