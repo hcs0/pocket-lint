@@ -33,6 +33,144 @@ doctest_pattern = re.compile(
     r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
 
 
+class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
+    """A common CompletionProposal for dymamically generated info.
+
+    XXX sinzui 2010-03-14: do_changed, do_equal, do_get_icon, do_get_label,
+    do_hash may need implementation.
+    """
+
+    def __init__(self, word, info=None):
+        gobject.GObject.__init__(self)
+        self._word = word
+        self._info = info or ''
+
+    def do_get_text(self):
+        return self._word
+
+    def do_get_markup(self):
+        return saxutils.escape(self._word)
+
+    def do_get_info(self):
+        return self._info
+
+
+class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
+    """A common CompletionProvider for dynamically generated info."""
+
+    def __init__(self, name, language_id, handler, document):
+        gobject.GObject.__init__(self)
+        self.name = name
+        self.proposals = []
+        self.language_id = language_id
+        self.handler = handler
+        self.document = document
+        self.info_widget = None
+        self.mark = None
+        theme = gtk.icon_theme_get_default()
+        w, h = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
+        self.icon = theme.load_icon(gtk.STOCK_JUSTIFY_LEFT, w, 0)
+
+    def __del__(self):
+        if self.mark:
+            self.mark.get_buffer().delete_mark(self.mark)
+
+    def set_proposals(self, proposals):
+        self.proposals = proposals
+
+    def mark_position(self, it):
+        if not self.mark:
+            self.mark = it.get_buffer().create_mark(None, it, True)
+        else:
+            self.mark.get_buffer().move_mark(self.mark, it)
+
+    def get_word(self, context):
+        it = context.get_iter()
+        if it.starts_word() or it.starts_line() or not it.ends_word():
+            return None
+        start = it.copy()
+        if start.backward_word_start():
+            self.mark_position(start)
+            return start.get_text(it)
+        else:
+            return None
+
+    def do_get_start_iter(self, context, proposal):
+        if not self.mark or self.mark.get_deleted():
+            return None
+        return self.mark.get_buffer().get_iter_at_mark(self.mark)
+
+    def do_match(self, context):
+        return True
+
+    def get_generator(self, document, prefix):
+        """Return the specialized generator for document's language."""
+        language_id = None
+        if hasattr(document, 'get_language'):
+            # How can we not get a document or language?
+            language = document.get_language()
+            if language is not None:
+                language_id = language.get_id()
+        if language_id == 'python':
+            return PythonSyntaxGenerator(document, prefix=prefix)
+        if language_id in ('xml', 'xslt', 'html', 'pt', 'mallard', 'docbook'):
+            return MarkupGenerator(document, prefix=prefix)
+        else:
+            # The text generator is never returned because create_list will
+            # use it in non-authoritative cases.
+            return None
+
+    def get_proposals(self, prefix):
+        all_words = []
+        is_authoritative = False
+        generator = self.get_generator(self.document, prefix)
+        if generator:
+            is_authoritative, words = generator.get_words()
+            all_words += words
+        if not is_authoritative:
+            is_authoritative, simple_words = TextGenerator(
+                self.document, prefix=prefix).get_words()
+            all_words += simple_words
+        return all_words
+
+    def do_populate(self, context):
+        proposals = self.get_proposals(self.get_word(context))
+        context.add_proposals(self, proposals, True)
+
+    def do_get_name(self):
+        return self.name
+
+    def do_activate_proposal(self, proposal, piter):
+        return self.handler(proposal, piter)
+
+    def do_get_info_widget(self, proposal):
+        if self.info_widget is None:
+            self.info_view = gsv.View(gsv.Buffer())
+            self.info_widget = gtk.ScrolledWindow()
+            self.info_widget.add(self.info_view)
+        return self.info_widget
+
+    def do_update_info(self, proposal, info):
+        buffer_ = self.info_view.get_buffer()
+        buffer_.set_text(proposal.get_info())
+        start_iter = buffer_.get_start_iter()
+        buffer_.move_mark(buffer_.get_insert(), start_iter)
+        buffer_.move_mark(buffer_.get_selection_bound(), start_iter)
+        self.info_view.scroll_to_iter(start_iter, False)
+        info.set_sizing(-1, -1, False, False)
+        info.process_resize()
+
+    def do_get_icon(self):
+        return self.icon
+
+    def do_get_activation(self):
+        return gsv.COMPLETION_ACTIVATION_USER_REQUESTED
+
+
+gobject.type_register(DynamicProposal)
+gobject.type_register(DynamicProvider)
+
+
 def get_word(document, word_pattern):
     """Return a 3-tuple of the word fragment before the cursor.
 
@@ -375,145 +513,6 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             if callable(identifier):
                 info = identifier.__doc__
         return DynamicProposal(name, info=info)
-
-
-class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
-    """A common CompletionProposal for dymamically generated info.
-
-    XXX sinzui 2010-03-14: do_changed, do_equal, do_get_icon, do_get_label,
-    do_hash may need implementation.
-    """
-
-    def __init__(self, word, info=None):
-        gobject.GObject.__init__(self)
-        self._word = word
-        self._info = info or ''
-
-    def do_get_text(self):
-        return self._word
-
-    def do_get_markup(self):
-        return saxutils.escape(self._word)
-
-    def do_get_info(self):
-        return self._info
-
-
-class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
-    """A common CompletionProvider for dynamically generated info."""
-
-    def __init__(self, name, language_id, handler, document):
-        gobject.GObject.__init__(self)
-        self.name = name
-        self.proposals = []
-        self.language_id = language_id
-        self.handler = handler
-        self.document = document
-        self.info_widget = None
-        self.mark = None
-        theme = gtk.icon_theme_get_default()
-        w, h = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
-        self.icon = theme.load_icon(gtk.STOCK_JUSTIFY_LEFT, w, 0)
-
-    def __del__(self):
-        if self.mark:
-            self.mark.get_buffer().delete_mark(self.mark)
-
-    def set_proposals(self, proposals):
-        self.proposals = proposals
-
-    def mark_position(self, it):
-        if not self.mark:
-            self.mark = it.get_buffer().create_mark(None, it, True)
-        else:
-            self.mark.get_buffer().move_mark(self.mark, it)
-
-    def get_word(self, context):
-        it = context.get_iter()
-        if it.starts_word() or it.starts_line() or not it.ends_word():
-            return None
-        start = it.copy()
-        if start.backward_word_start():
-            self.mark_position(start)
-            return start.get_text(it)
-        else:
-            return None
-
-    def do_get_start_iter(self, context, proposal):
-        if not self.mark or self.mark.get_deleted():
-            return None
-        return self.mark.get_buffer().get_iter_at_mark(self.mark)
-
-    def do_match(self, context):
-        return True
-
-    def get_generator(self, document, prefix):
-        """Return the specialized generator for document's language."""
-        language_id = None
-        if hasattr(document, 'get_language'):
-            # How can we not get a document or language?
-            language = document.get_language()
-            if language is not None:
-                language_id = language.get_id()
-        if language_id == 'python':
-            return PythonSyntaxGenerator(document, prefix=prefix)
-        if language_id in ('xml', 'xslt', 'html', 'pt', 'mallard', 'docbook'):
-            return MarkupGenerator(document, prefix=prefix)
-        else:
-            # The text generator is never returned because create_list will
-            # use it in non-authoritative cases.
-            return None
-
-    def get_proposals(self, prefix):
-        all_words = []
-        is_authoritative = False
-        generator = self.get_generator(self.document, prefix)
-        if generator:
-            is_authoritative, words = generator.get_words()
-            all_words += words
-        if not is_authoritative:
-            is_authoritative, simple_words = TextGenerator(
-                self.document, prefix=prefix).get_words()
-            all_words += simple_words
-        return all_words
-
-    def do_populate(self, context):
-        proposals = self.get_proposals(self.get_word(context))
-        context.add_proposals(self, proposals, True)
-
-    def do_get_name(self):
-        return self.name
-
-    def do_activate_proposal(self, proposal, piter):
-        return self.handler(proposal, piter)
-
-    def do_get_info_widget(self, proposal):
-        if not self.info_widget:
-            view = gtk.TextView(gtk.TextBuffer())
-            sw = gtk.ScrolledWindow()
-            sw.add(view)
-            self.info_view = view
-            self.info_widget = sw
-        return self.info_widget
-
-    def do_update_info(self, proposal, info):
-        buf = self.info_view.get_buffer()
-        buf.set_text(proposal.get_info())
-        buf.move_mark(buf.get_insert(), buf.get_start_iter())
-        buf.move_mark(buf.get_selection_bound(), buf.get_start_iter())
-        self.info_view.scroll_to_iter(buf.get_start_iter(), False)
-        info.set_sizing(-1, -1, False, False)
-        info.process_resize()
-
-    def do_get_icon(self):
-        return self.icon
-
-    def do_get_activation(self):
-        return gsv.COMPLETION_ACTIVATION_USER_REQUESTED
-
-
-gobject.type_register(DynamicProposal)
-gobject.type_register(DynamicProvider)
 
 
 class SyntaxController(PluginMixin):
