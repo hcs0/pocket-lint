@@ -268,6 +268,14 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
     """Generate a list of Python symbols that match a given prefix."""
 
     word_char = re.compile(r'[\w_.]', re.I)
+    _kwlist = None
+
+    @property
+    def kwlist(self):
+        if self._kwlist is None:
+            self._kwlist = [
+                self._get_dynamic_proposal(None, word) for word in kwlist]
+        return self._kwlist
 
     def get_words(self, prefix=None):
         """See `BaseSyntaxGenerator.get_words`.
@@ -282,7 +290,9 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             is_authoritative = True
 
         import __builtin__
-        global_syms = dir(__builtin__)
+        global_syms = [
+            self._get_dynamic_proposal(__builtin__, name)
+            for name in dir(__builtin__)]
         try:
             pyo = compile(self._get_parsable_text(), 'sc.py', 'exec')
         except SyntaxError:
@@ -290,19 +300,18 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             # Return
             self._document.emit('syntax-error-python')
             is_authoritative = False
-            return is_authoritative, set()
+            return is_authoritative, []
         co_names = ('SIGNAL_RUN_LAST', 'TYPE_NONE', 'TYPE_PYOBJECT', 'object')
-        local_syms = [name for name in pyo.co_names if name not in co_names]
+        local_syms = [
+            self._get_dynamic_proposal(None, name)
+            for name in pyo.co_names if name not in co_names]
 
         namespaces = self.string_before_cursor.split('.')
         if len(namespaces) == 1:
             # The identifier is scoped to this module (the document).
-            symbols = set()
-            symbols.update(local_syms)
-            symbols.update(global_syms)
-            symbols.update(kwlist)
-            symbols = set(key for key in symbols
-                          if key.startswith(prefix))
+            symbols = local_syms + global_syms + self.kwlist
+            symbols = [proposal for proposal in symbols
+                       if proposal.get_text().startswith(prefix)]
             return is_authoritative, symbols
 
         # Remove the prefix to create the module's full name.
@@ -317,15 +326,14 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             try:
                 module_ = __import__(module_name, globals(), locald, [])
             except ImportError:
-                return is_authoritative, set()
+                return is_authoritative, []
 
         for symbol in namespaces[1:]:
             module_ = getattr(module_, symbol)
         is_authoritative = True
-        symbols = set(symbol for symbol in dir(module_)
-                      if symbol.startswith(prefix))
-        return is_authoritative, [
-            DynamicProposal(symbol) for symbol in symbols]
+        symbols = [self._get_dynamic_proposal(module_, name)
+                   for name in dir(module_) if name.startswith(prefix)]
+        return is_authoritative, symbols
 
     def _get_parsable_text(self):
         """Return the parsable text of the module.
@@ -360,6 +368,14 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
         # No match means the indentation is an empty string.
         return ''
 
+    def _get_dynamic_proposal(self, module, name):
+        info = None
+        if module is not None:
+            identifier = module.__dict__[name]
+            if callable(identifier):
+                info = identifier.__doc__
+        return DynamicProposal(name, info=info)
+
 
 class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
     """A common CompletionProposal for dymamically generated info.
@@ -371,7 +387,7 @@ class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
     def __init__(self, word, info=None):
         gobject.GObject.__init__(self)
         self._word = word
-        self._info = info
+        self._info = info or ''
 
     def do_get_text(self):
         return self._word
