@@ -107,7 +107,8 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
         """Return the specialized generator for document's language."""
         if self.language_id == 'python':
             return PythonSyntaxGenerator(document, prefix=prefix)
-        if self.language_id in ('xml', 'xslt', 'html', 'pt', 'mallard', 'docbook'):
+        if self.language_id in (
+            'xml', 'xslt', 'html', 'pt', 'mallard', 'docbook'):
             return MarkupGenerator(document, prefix=prefix)
         else:
             # The text generator is never returned because get_proposals will
@@ -137,6 +138,12 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
     def do_activate_proposal(self, proposal, piter):
         return self.handler(proposal, piter)
 
+    def do_get_icon(self):
+        return self.icon
+
+    def do_get_activation(self):
+        return gsv.COMPLETION_ACTIVATION_USER_REQUESTED
+
     def do_get_info_widget(self, proposal):
         if self.info_widget is None:
             self.info_view = gsv.View(gsv.Buffer())
@@ -151,14 +158,9 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
         buffer_.move_mark(buffer_.get_insert(), start_iter)
         buffer_.move_mark(buffer_.get_selection_bound(), start_iter)
         self.info_view.scroll_to_iter(start_iter, False)
+        self.info_view.show()
         info.set_sizing(-1, -1, False, False)
         info.process_resize()
-
-    def do_get_icon(self):
-        return self.icon
-
-    def do_get_activation(self):
-        return gsv.COMPLETION_ACTIVATION_USER_REQUESTED
 
 
 gobject.type_register(DynamicProposal)
