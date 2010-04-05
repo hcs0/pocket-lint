@@ -153,7 +153,7 @@ class TextGenerator(BaseSyntaxGenerator):
         word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
         # Find the unique words that do not have pseudo m-dashed in them.
-        words = set(word for word in words if '--' not in word)
+        words = [DynamicProposal(word) for word in words if '--' not in word]
         return is_authoritative, words
 
 
@@ -215,7 +215,7 @@ class MarkupGenerator(BaseSyntaxGenerator):
         pattern = r'<(%s[\w_.:-]%s)' % (prefix, cardinality)
         word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
-        return set(words)
+        return [DynamicProposal(word) for word in words]
 
     def _get_attributes(self, prefix):
         pattern = r'<[\w_.:-]+ ([\w_.:-]*)=[^>]+>'
@@ -231,7 +231,7 @@ class MarkupGenerator(BaseSyntaxGenerator):
             for attr in list(attrs):
                 if not attr.startswith(prefix):
                     attrs.remove(attr)
-        return attrs
+        return [DynamicProposal(attr) for attr in attrs]
 
     def _get_close_tags(self, prefix):
         """Return the tags that are still open before the cursor."""
@@ -261,7 +261,7 @@ class MarkupGenerator(BaseSyntaxGenerator):
         for tag in close_tags:
             if tag in open_tags:
                 open_tags.remove(tag)
-        return set(open_tags)
+        return [DynamicProposal(tag) for tag in open_tags]
 
 
 class PythonSyntaxGenerator(BaseSyntaxGenerator):
@@ -324,7 +324,8 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
         is_authoritative = True
         symbols = set(symbol for symbol in dir(module_)
                       if symbol.startswith(prefix))
-        return is_authoritative, symbols
+        return is_authoritative, [
+            DynamicProposal(symbol) for symbol in symbols]
 
     def _get_parsable_text(self):
         """Return the parsable text of the module.
@@ -367,9 +368,10 @@ class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
     do_hash may need implementation.
     """
 
-    def __init__(self, word):
+    def __init__(self, word, info=None):
         gobject.GObject.__init__(self)
         self._word = word
+        self._info = info
 
     def do_get_text(self):
         return self._word
@@ -378,7 +380,7 @@ class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
         return saxutils.escape(self._word)
 
     def do_get_info(self):
-        return None
+        return self._info
 
 
 class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
@@ -387,7 +389,6 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
     def __init__(self, name, language_id, handler, document):
         gobject.GObject.__init__(self)
         self.name = name
-        self.info_widget = None
         self.proposals = []
         self.language_id = language_id
         self.handler = handler
@@ -448,17 +449,17 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
             return None
 
     def get_proposals(self, prefix):
-        all_words = set()
+        all_words = []
         is_authoritative = False
         generator = self.get_generator(self.document, prefix)
         if generator:
             is_authoritative, words = generator.get_words()
-            all_words |= words
+            all_words += words
         if not is_authoritative:
             is_authoritative, simple_words = TextGenerator(
                 self.document, prefix=prefix).get_words()
-            all_words |= simple_words
-        return map(lambda word: DynamicProposal(word), all_words)
+            all_words += simple_words
+        return all_words
 
     def do_populate(self, context):
         proposals = self.get_proposals(self.get_word(context))
@@ -472,10 +473,7 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
 
     def do_get_info_widget(self, proposal):
         if not self.info_widget:
-            import gedit
-            view = gedit.View(gedit.Document())
-            lang = lang_manager.get_language('snippets')
-            view.get_buffer().set_language(lang)
+            view = gtk.TextView(gtk.TextBuffer())
             sw = gtk.ScrolledWindow()
             sw.add(view)
             self.info_view = view
