@@ -384,13 +384,14 @@ class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
 class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
     """A common CompletionProvider for dynamically generated info."""
 
-    def __init__(self, name, language_id, handler):
+    def __init__(self, name, language_id, handler, document):
         gobject.GObject.__init__(self)
         self.name = name
         self.info_widget = None
         self.proposals = []
         self.language_id = language_id
         self.handler = handler
+        self.document = document
         self.info_widget = None
         self.mark = None
         theme = gtk.icon_theme_get_default()
@@ -449,16 +450,13 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
     def get_proposals(self, prefix):
         all_words = set()
         is_authoritative = False
-        import gedit
-        app = gedit.app_get_default()
-        document = app.get_active_window().get_active_document()
-        generator = self.get_generator(document, prefix)
+        generator = self.get_generator(self.document, prefix)
         if generator:
             is_authoritative, words = generator.get_words()
             all_words |= words
         if not is_authoritative:
             is_authoritative, simple_words = TextGenerator(
-                document, prefix=prefix).get_words()
+                self.document, prefix=prefix).get_words()
             all_words |= simple_words
         return map(lambda word: DynamicProposal(word), all_words)
 
@@ -511,6 +509,7 @@ class SyntaxController(PluginMixin):
         """Initialize the controller for the gedit.View."""
         self.signal_ids = {}
         self.view = None
+        self.window = window
         self.set_view(window.get_active_view())
 
     def deactivate(self):
@@ -559,7 +558,8 @@ class SyntaxController(PluginMixin):
             if language is not None:
                 language_id = language.get_id()
         self.provider = DynamicProvider(
-            _('GDP'), language_id, self.on_proposal_activated)
+            _('GDP'), language_id, self.on_proposal_activated,
+            self.view.get_buffer())
         self.completion.show(
             [self.provider], self.completion.create_context())
 
