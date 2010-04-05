@@ -105,18 +105,12 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
 
     def get_generator(self, document, prefix):
         """Return the specialized generator for document's language."""
-        language_id = None
-        if hasattr(document, 'get_language'):
-            # How can we not get a document or language?
-            language = document.get_language()
-            if language is not None:
-                language_id = language.get_id()
-        if language_id == 'python':
+        if self.language_id == 'python':
             return PythonSyntaxGenerator(document, prefix=prefix)
-        if language_id in ('xml', 'xslt', 'html', 'pt', 'mallard', 'docbook'):
+        if self.language_id in ('xml', 'xslt', 'html', 'pt', 'mallard', 'docbook'):
             return MarkupGenerator(document, prefix=prefix)
         else:
-            # The text generator is never returned because create_list will
+            # The text generator is never returned because get_proposals will
             # use it in non-authoritative cases.
             return None
 
@@ -565,14 +559,15 @@ class SyntaxController(PluginMixin):
             return
         self.completion = self.view.get_completion()
         language_id = None
-        if hasattr(self.view, 'get_language'):
+        document = self.view.get_buffer()
+        if hasattr(document, 'get_language'):
             # How can we not get a document or language?
-            language = self.view.get_language()
+            language = document.get_language()
             if language is not None:
                 language_id = language.get_id()
+        title = _('GDP Syntax Completer')
         self.provider = DynamicProvider(
-            _('GDP'), language_id, self.on_proposal_activated,
-            self.view.get_buffer())
+            title, language_id, self.on_proposal_activated, document)
         self.completion.show(
             [self.provider], self.completion.create_context())
 
