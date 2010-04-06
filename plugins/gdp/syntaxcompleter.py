@@ -79,10 +79,6 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
         w, h = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
         self.icon = theme.load_icon(gtk.STOCK_JUSTIFY_LEFT, w, 0)
 
-    def __del__(self):
-        if self.mark:
-            self.mark.get_buffer().delete_mark(self.mark)
-
     def set_proposals(self, proposals):
         self.proposals = proposals
 
