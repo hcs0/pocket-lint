@@ -45,6 +45,14 @@ class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
         self._word = word
         self._info = info or ''
 
+    def __repr__(self):
+        return '<DynamicProposal word="%s" at 0x%x>' % (self._word, id(self))
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        return other._word == self._word and other._info == self._info
+
     def do_get_text(self):
         return self._word
 
@@ -287,6 +295,7 @@ class TextGenerator(BaseSyntaxGenerator):
         word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
         # Find the unique words that do not have pseudo m-dashed in them.
+        words = set(words)
         words = [DynamicProposal(word) for word in words if '--' not in word]
         return is_authoritative, words
 
