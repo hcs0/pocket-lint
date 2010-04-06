@@ -13,7 +13,7 @@ for software development. GDP provides:
       word completion based on the words in the file. XML-based markup
       completion will suggest open tag, close tags, and attributes based on
       the cursor's position.
-      Use <Control>Slash (Ctrl+/) to activate the snippet completer window.
+      Use <Control>Slash (Ctrl+/) to activate the completer window.
     * Formatting
       Format paragraphs, lists, and imports. Reformat test using regular
       expressions. Check the syntax and style of Python, XML, and plain
@@ -23,6 +23,17 @@ for software development. GDP provides:
       commit, merge, and push. Open files changes in the branch.
 
 See screenshots at http://curtis.hovey.name/gallery/Sinzui/gdp-2-28-0
+
+
+Installation from deb
+---------------------
+
+Debian packages are available at:
+
+    https://launchpad.net/~sinzui/+archive/ppa
+
+Adding this archive to your sources will get you the latest updated
+as they are released.
 
 
 Installation from tarball
