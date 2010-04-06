@@ -14,8 +14,8 @@ __all__ = [
     'TextGenerator',
     ]
 
-
 import re
+from gettext import gettext as _
 from keyword import kwlist
 from xml.sax import saxutils
 
