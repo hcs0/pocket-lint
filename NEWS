@@ -1,3 +1,19 @@
+gdp-0.4.1 (2.30.0): Update to GTKSourceView Completions
+=======================================================
+
+This release replaces the snippet-based completer with a GTKSourceView-based
+CompletionProvider.
+
+    * The python completer has rudimentary documentation in the info window
+      that you can see using the Details button. This feature will be
+      improved in future releases.
+    * Find searches application and xml files like javascript. Find was
+      skipping some file types that gedit can edit that do not have the
+      text/* mime-type.
+    * A bug that caused an exception when the syntax completer closed a
+      tag is now fixed.
+
+
 gdp-0.3.1 (2.28.0): Markup completion
 =====================================
 

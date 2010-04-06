@@ -82,66 +82,10 @@ it to the SyntaxView.
 
     >>> # The widget can only be observed to work when gtk.main()
     >>> # is run.
-    >>> syntax_view = controller.show_syntax_view()
+    >>> controller.show_syntax_view()
+    >>> syntax_view = controller.completion
     >>> syntax_view
-    <SyntaxView object at ... (GtkWindow at ...)>
-
-
-_calculate_syntax_view_position()
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The _calculate_syntax_view_position() method will return the x and y
-coordinate to align the SyntaxView widget with the cursor. When there
-is not enough space to display the widget it returns a coordinate to
-fit the it to the bottom right of the screen.
-
-    >>> # Window managers treat window postions as suggestions.
-    >>> # This test could be unreliable is window.move(x, y) was used.
-    >>> # A dummy window, with a dummy get_origin, is needed to fake the
-    >>> # position of the gedit window on the screen. We would prefer to call.
-    >>> class DummyWindow(object):
-    ...     @classmethod
-    ...     def get_origin(self):
-    ...         return dummy['DummyWindow.get_origin']
-    >>> dummy = Dummy()
-    >>> dummy['View.get_window'] = DummyWindow
-
-    >>> end = document.get_iter_at_mark(document.get_insert())
-    >>> rect = controller.view.get_iter_location(end)
-    >>> cursor_pos = controller.view.buffer_to_window_coords(
-    ...     gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
-    >>> cursor_pos
-    (2, 2...)
-
-    >>> # The cursor + the window position it to close to the left margin.
-    >>> dummy['DummyWindow.get_origin'] = (0, 0)
-    >>> controller._calculate_syntax_view_position(syntax_view, end)
-    (15, 2...)
-
-    >>> # The cursor + the window fit on the screen.
-    >>> dummy['DummyWindow.get_origin'] = (200, 200)
-    >>> controller._calculate_syntax_view_position(syntax_view, end)
-    (202, 4...)
-
-    >>> # Position the window to the bottom-left so that there is not
-    >>> # enough room to display the SyntaxView within the 15px margin.
-    >>> width, height = window.get_size()
-    >>> dummy['DummyWindow.get_origin'] = (-(width + 2), -(height + 225))
-    >>> controller._calculate_syntax_view_position(syntax_view, end)
-    (15, 15)
-
-#    >>> # Position the window to the bottom-right so that there is not
-#    >>> # enough room to display the SyntaxView. The height position
-#    >>> # will less than the 225px that is preferred.
-#    >>> window_pos = controller._calculate_syntax_view_position(
-#    ...     gtk.gdk.screen_width() - width, gtk.gdk.screen_height() - height)
-#    >>> dummy['DummyWindow.get_origin'] = (window_pos)
-#    >>> view_pos = controller._calculate_syntax_view_position(syntax_view, end)
-#    >>> proof(view_pos[1] < window_pos[1] + cursor_pos[1])
-#    True
-
-    >>> del dummy['DummyWindow.get_origin']
-    >>> del dummy['View.get_window']
+    <gtksourceview2.Completion object at ...>
 
 
 get_word_prefix()
@@ -318,15 +262,15 @@ and the SyntaxView.
 Signal test requires some help to isolate the emission and reception
 of the sginals.
 
-    >>> signal_tester = SignalTester()
-    >>> signal_tester.attachReceptionHarness(controller)
-    >>> controller.testeeConnect(
-    ...     controller, syntax_view, 'syntax-view', 'syntax-activated',
-    ...     controller.on_syntaxview_row_activated)
+#    >>> signal_tester = SignalTester()
+#    >>> signal_tester.attachReceptionHarness(controller)
+#    >>> controller.testeeConnect(
+#    ...     controller, syntax_view, 'syntax-view', 'syntax-activated',
+#    ...     controller.on_proposal_activated)
 
 
-on_syntaxview_row_activated()
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+on_proposal_activated()
+~~~~~~~~~~~~~~~~~~~~~~~
 
 SyntaxView sends a syntax-activated signal to return the user's chosen
 word. The method calls insert_word. Unlike the afore mentioned method,
@@ -337,14 +281,9 @@ when the word is None or an empty string, there is no error
     True
     >>> document.place_cursor(cursor_iter)
 
-When the word is None or an empty string, the Document is no changed.
+When the word is None, the Document is no changed.
 
-    >>> signal_tester.emitter('syntax-activated', syntax_view, None)
-    >>> document.get_text(document.get_start_iter(),
-    ...     document.get_iter_at_mark(sentence_mark))
-    'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'
-
-    >>> signal_tester.emitter('syntax-activated', syntax_view, '')
+    >>> controller.on_proposal_activated(None, None)
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the esteem Project Gutenberg Etext of The Hunting of the Snark.'
@@ -354,7 +293,11 @@ the document. According the rules of insert_word(), when a space or
 symbol preceeds the cursor the word is inserted. Otherwise, the
 characters before the cursor are replaced.
 
-    >>> signal_tester.emitter('syntax-activated', syntax_view, 'ed')
+    >>> from gdp.syntaxcompleter import DynamicProposal
+
+    >>> proposal = DynamicProposal('ed')
+    >>> controller.on_proposal_activated(proposal, None)
+    True
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the edesteem Project Gutenberg Etext of The Hunting of the Sn...'
@@ -364,7 +307,9 @@ characters before the cursor are replaced.
     True
     >>> document.place_cursor(cursor_iter)
 
-    >>> signal_tester.emitter('syntax-activated', syntax_view, 'esteemed')
+    >>> proposal._word = 'esteemed'
+    >>> controller.on_proposal_activated(proposal, None)
+    True
     >>> document.get_text(document.get_start_iter(),
     ...     document.get_iter_at_mark(sentence_mark))
     'This is the esteemed Project Gutenberg Etext of The Hunting of the Sn...'
@@ -381,24 +326,3 @@ view. The method is called by on_view_destroy() for the destroy signal.
     >>> view.destroy()
     >>> literal(controller.view)
     None
-
-
-Teardown the GSignal test harness
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The signal testing harness can be removed now that sginal testing
-is complete. Note that the view was disconnected when the
-on_view_destroy() method was tested.
-
-    >>> controller.testeeDisconnect(
-    ...     controller, syntax_view, 'syntax-view', 'syntax-activated')
-    >>> signal_tester.detachReceptionHarness(controller)
-
-
-Tear down
----------
-
-gtksouceview2.View is not destroying itself. Call this manually.
-
-    >>> view.destroy()
-    >>> new_view.destroy()

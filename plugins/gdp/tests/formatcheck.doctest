@@ -112,6 +112,7 @@ PythonChecker will report warning like unused imports and undefined names.
     >>> checker = PythonChecker(temp_file.name, text)
     >>> checker.check()
     4: undefined name 'undefined_var'
+    4: local variable 'x' is assigned to but never used
     2: 'os' imported but unused
 
     >>> temp_file.close()
@@ -129,6 +130,8 @@ PythonChecker uses pep8 to check style.
     >>> temp_file.file.flush()
     >>> checker = PythonChecker(temp_file.name, text)
     >>> checker.check()
+    5: local variable 'y' is assigned to but never used
+    4: local variable 'x' is assigned to but never used
     3: E302 expected 2 blank lines, found 0
     4: E222 multiple spaces after operator
     5: W291 trailing whitespace

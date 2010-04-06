@@ -67,15 +67,15 @@ punctuation and line ends.
     >>> text_generator.text
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
 
-The get_words() method returns a 2-tuple of is_authoritative and a set of
+The get_words() method returns a 2-tuple of is_authoritative and a list of
 all words in the generator.
 
-    >>> is_authoritative, words = text_generator.get_words()
-    >>> len(words)
+    >>> is_authoritative, proposals = text_generator.get_words()
+    >>> len(proposals)
     1987
-    >>> type(words)
-    <type 'set'>
-    >>> sorted(words, key=str.lower)
+    >>> type(proposals)
+    <type 'list'>
+    >>> sorted([proposal._word for proposal in proposals], key=str.lower)
     ['000', '000x100', '03', '08', '1', '10', '1992', '2', '20', ...]
 
 is_authoritative is always False because the TextGenerator works with all
@@ -88,38 +88,34 @@ When the generator is created with a prefix, the generator will only
 contain words that start with the prefix. Matching is case-insensitive.
 
     >>> text_generator = TextGenerator(document, prefix='Ba')
-    >>> is_authoritative, words = text_generator.get_words()
-    >>> len(words)
+    >>> is_authoritative, proposals = text_generator.get_words()
+    >>> len(proposals)
     16
-    >>> sorted(words, key=str.lower)
+    >>> sorted([proposal._word for proposal in proposals], key=str.lower)
     ['backwards', 'bade', 'bags', 'bake', 'Baker', 'BAKER', ...]
 
     >>> text_generator = TextGenerator(document, prefix='Snar')
-    >>> is_authoritative, words = text_generator.get_words()
-    >>> len(words)
+    >>> is_authoritative, proposals = text_generator.get_words()
+    >>> len(proposals)
     5
-    >>> sorted(words, key=str.lower)
+    >>> sorted([proposal._word for proposal in proposals], key=str.lower)
     ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='snar')
-    >>> is_authoritative, lowercase_words = text_generator.get_words()
-    >>> lowercase_words == words
+    >>> is_authoritative, lowercase_proposals = text_generator.get_words()
+    >>> lowercase_proposals == proposals
     True
-    >>> sorted(lowercase_words, key=str.lower)
-    ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
     >>> text_generator = TextGenerator(document, prefix='SNAR')
-    >>> is_authoritative, uppercase_words = text_generator.get_words()
-    >>> lowercase_words == uppercase_words == words
+    >>> is_authoritative, uppercase_proposals = text_generator.get_words()
+    >>> lowercase_proposals == uppercase_proposals == proposals
     True
-    >>> sorted(lowercase_words, key=str.lower)
-    ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
 
 Hyphenated words are included in the list of words.
 
     >>> text_generator = TextGenerator(document, prefix='What-')
-    >>> is_authoritative, words = text_generator.get_words()
-    >>> sorted(words)
+    >>> is_authoritative, proposals = text_generator.get_words()
+    >>> sorted([proposal._word for proposal in proposals])
     ['What-was-his-name', 'What-you-may-call-um']
 
 Underscores are considered word characters. Words that start with, or
@@ -133,8 +129,8 @@ contain underscores are included in the list of words.
     H... syntax_generator syntax_completer __call__(self) __dict__ file_ ...
 
     >>> text_generator = TextGenerator(hacker_doc, prefix='_')
-    >>> is_authoritative, words = text_generator.get_words()
-    >>> sorted(words)
+    >>> is_authoritative, proposals = text_generator.get_words()
+    >>> sorted([proposal._word for proposal in proposals])
     ['_', '__call__', '__dict__', '__init__', '_dict', '_private']
 
 
@@ -163,8 +159,8 @@ and the Python keywords.
 The get_words() method returns a 2-tuple of is_authoritative and a set
 of all words in the generator.
 
-    >>> is_authoritative, words = python_generator.get_words('A')
-    >>> sorted(words)
+    >>> is_authoritative, proposals = python_generator.get_words('A')
+    >>> sorted([proposal._word for proposal in proposals])
     ['ArithmeticError', 'AssertionError', 'AttributeError']
 
 The is_authoritative return value may be True or false. It is False when
@@ -175,8 +171,8 @@ the set of words from more than one namespace and there is a prefix.
 
 Python keywords are among the symbols that can be matched.
 
-    >>> is_authoritative, words = python_generator.get_words('wh')
-    >>> sorted(words)
+    >>> is_authoritative, proposals = python_generator.get_words('wh')
+    >>> sorted([proposal._word for proposal in proposals])
     ['while']
 
 The generator uses the compiled module to get the symbols it contains.
@@ -247,21 +243,21 @@ at the start of the document.
 
     >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
     >>> document.place_cursor(cursor_iter)
-    >>> is_authoritative, words = markup_generator.get_words()
+    >>> is_authoritative, proposals = markup_generator.get_words()
     >>> is_authoritative
     False
 
     >>> print markup_generator.get_cursor_context()
     OUTSIDE
 
-    >>> sorted(words)
+    >>> sorted([proposal._word for proposal in proposals])
     []
 
 The cursor is outside a tag when it is is between tags.
 
     >>> success = cursor_iter.forward_lines(2)
     >>> document.place_cursor(cursor_iter)
-    >>> is_authoritative, words = markup_generator.get_words()
+    >>> is_authoritative, proposals = markup_generator.get_words()
     >>> print markup_generator.get_cursor_context()
     OUTSIDE
 
@@ -273,14 +269,14 @@ tags are listed.
     >>> print markup_generator.string_before_cursor
     title
 
-    >>> is_authoritative, words = markup_generator.get_words('title')
+    >>> is_authoritative, proposals = markup_generator.get_words('title')
     >>> is_authoritative
     True
 
     >>> print markup_generator.get_cursor_context()
     INSIDE_OPEN
 
-    >>> sorted(words)
+    >>> sorted([proposal._word for proposal in proposals])
     ['title']
 
 When the cursor is in the attribute portion of an open or empty tag, all
@@ -290,14 +286,14 @@ known attributes are listed.
     >>> print markup_generator.string_before_cursor
     title l
 
-    >>> is_authoritative, words = markup_generator.get_words()
+    >>> is_authoritative, proposals = markup_generator.get_words()
     >>> is_authoritative
     True
 
     >>> print markup_generator.get_cursor_context()
     INSIDE_ATTRIBUTES
 
-    >>> sorted(words)
+    >>> sorted([proposal._word for proposal in proposals])
     ['class']
 
     >>> cursor_iter = document.get_iter_at_mark(document.get_insert())
@@ -315,12 +311,12 @@ tags listed.
     >>> print markup_generator.string_before_cursor
     /
 
-    >>> is_authoritative, words = markup_generator.get_words()
+    >>> is_authoritative, proposals = markup_generator.get_words()
     >>> is_authoritative
     True
 
     >>> print markup_generator.get_cursor_context()
     INSIDE_CLOSE
 
-    >>> sorted(words)
+    >>> sorted([proposal._word for proposal in proposals])
     ['head', 'html', 'style']

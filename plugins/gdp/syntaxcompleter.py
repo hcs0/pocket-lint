@@ -10,40 +10,165 @@ __all__ = [
     'BaseSyntaxGenerator',
     'MarkupGenerator',
     'PythonSyntaxGenerator',
-    'SyntaxModel',
-    'SyntaxView',
     'SyntaxController',
     'TextGenerator',
     ]
 
-
 import re
+from gettext import gettext as _
 from keyword import kwlist
 from xml.sax import saxutils
 
 import gobject
 import gtk
-from gtksourceview2 import language_manager_get_default
-
-try:
-    from snippets.SnippetComplete import SnippetComplete, CompleteModel
-except ImportError:
-    # The Snippet plugin is not enabled, so the module is not in the path.
-    message = _("The snippet plugin must be enabled first.")
-    dialog = gtk.MessageDialog(
-        type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE,
-        message_format=message)
-    dialog.run()
-    dialog.destroy()
+import gtksourceview2 as gsv
 
 from gdp import PluginMixin
 
 
-lang_manager = language_manager_get_default()
+lang_manager = gsv.language_manager_get_default()
 doctest_language = lang_manager.get_language('doctest')
 
 doctest_pattern = re.compile(
     r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
+
+
+class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
+    """A common CompletionProposal for dymamically generated info.
+
+    XXX sinzui 2010-03-14: do_changed, do_equal, do_get_icon, do_get_label,
+    do_hash may need implementation.
+    """
+
+    def __init__(self, word, info=None):
+        gobject.GObject.__init__(self)
+        self._word = word
+        self._info = info or ''
+
+    def __repr__(self):
+        return '<DynamicProposal word="%s" at 0x%x>' % (self._word, id(self))
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        return other._word == self._word and other._info == self._info
+
+    def do_get_text(self):
+        return self._word
+
+    def do_get_markup(self):
+        return saxutils.escape(self._word)
+
+    def do_get_info(self):
+        return self._info
+
+
+class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
+    """A common CompletionProvider for dynamically generated info."""
+
+    def __init__(self, name, language_id, handler, document):
+        gobject.GObject.__init__(self)
+        self.name = name
+        self.proposals = []
+        self.language_id = language_id
+        self.handler = handler
+        self.document = document
+        self.info_widget = None
+        self.mark = None
+        theme = gtk.icon_theme_get_default()
+        w, h = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
+        self.icon = theme.load_icon(gtk.STOCK_JUSTIFY_LEFT, w, 0)
+
+    def set_proposals(self, proposals):
+        self.proposals = proposals
+
+    def mark_position(self, it):
+        if not self.mark:
+            self.mark = it.get_buffer().create_mark(None, it, True)
+        else:
+            self.mark.get_buffer().move_mark(self.mark, it)
+
+    def get_word(self, context):
+        it = context.get_iter()
+        if it.starts_word() or it.starts_line() or not it.ends_word():
+            return None
+        start = it.copy()
+        if start.backward_word_start():
+            self.mark_position(start)
+            return start.get_text(it)
+        else:
+            return None
+
+    def do_get_start_iter(self, context, proposal):
+        if not self.mark or self.mark.get_deleted():
+            return None
+        return self.mark.get_buffer().get_iter_at_mark(self.mark)
+
+    def do_match(self, context):
+        return True
+
+    def get_generator(self, document, prefix):
+        """Return the specialized generator for document's language."""
+        if self.language_id == 'python':
+            return PythonSyntaxGenerator(document, prefix=prefix)
+        if self.language_id in (
+            'xml', 'xslt', 'html', 'pt', 'mallard', 'docbook'):
+            return MarkupGenerator(document, prefix=prefix)
+        else:
+            # The text generator is never returned because get_proposals will
+            # use it in non-authoritative cases.
+            return None
+
+    def get_proposals(self, prefix):
+        all_words = []
+        is_authoritative = False
+        generator = self.get_generator(self.document, prefix)
+        if generator:
+            is_authoritative, words = generator.get_words()
+            all_words += words
+        if not is_authoritative:
+            is_authoritative, simple_words = TextGenerator(
+                self.document, prefix=prefix).get_words()
+            all_words += simple_words
+        return all_words
+
+    def do_populate(self, context):
+        proposals = self.get_proposals(self.get_word(context))
+        context.add_proposals(self, proposals, True)
+
+    def do_get_name(self):
+        return self.name
+
+    def do_activate_proposal(self, proposal, piter):
+        return self.handler(proposal, piter)
+
+    def do_get_icon(self):
+        return self.icon
+
+    def do_get_activation(self):
+        return gsv.COMPLETION_ACTIVATION_USER_REQUESTED
+
+    def do_get_info_widget(self, proposal):
+        if self.info_widget is None:
+            self.info_view = gsv.View(gsv.Buffer())
+            self.info_widget = gtk.ScrolledWindow()
+            self.info_widget.add(self.info_view)
+        return self.info_widget
+
+    def do_update_info(self, proposal, info):
+        buffer_ = self.info_view.get_buffer()
+        buffer_.set_text(proposal.get_info())
+        start_iter = buffer_.get_start_iter()
+        buffer_.move_mark(buffer_.get_insert(), start_iter)
+        buffer_.move_mark(buffer_.get_selection_bound(), start_iter)
+        self.info_view.scroll_to_iter(start_iter, False)
+        self.info_view.show()
+        info.set_sizing(-1, -1, False, False)
+        info.process_resize()
+
+
+gobject.type_register(DynamicProposal)
+gobject.type_register(DynamicProvider)
 
 
 def get_word(document, word_pattern):
@@ -166,7 +291,8 @@ class TextGenerator(BaseSyntaxGenerator):
         word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
         # Find the unique words that do not have pseudo m-dashed in them.
-        words = set(word for word in words if '--' not in word)
+        words = set(words)
+        words = [DynamicProposal(word) for word in words if '--' not in word]
         return is_authoritative, words
 
 
@@ -228,7 +354,7 @@ class MarkupGenerator(BaseSyntaxGenerator):
         pattern = r'<(%s[\w_.:-]%s)' % (prefix, cardinality)
         word_re = re.compile(pattern, re.I)
         words = word_re.findall(self.text)
-        return set(words)
+        return [DynamicProposal(word) for word in words]
 
     def _get_attributes(self, prefix):
         pattern = r'<[\w_.:-]+ ([\w_.:-]*)=[^>]+>'
@@ -244,7 +370,7 @@ class MarkupGenerator(BaseSyntaxGenerator):
             for attr in list(attrs):
                 if not attr.startswith(prefix):
                     attrs.remove(attr)
-        return attrs
+        return [DynamicProposal(attr) for attr in attrs]
 
     def _get_close_tags(self, prefix):
         """Return the tags that are still open before the cursor."""
@@ -274,13 +400,21 @@ class MarkupGenerator(BaseSyntaxGenerator):
         for tag in close_tags:
             if tag in open_tags:
                 open_tags.remove(tag)
-        return set(open_tags)
+        return [DynamicProposal(tag) for tag in open_tags]
 
 
 class PythonSyntaxGenerator(BaseSyntaxGenerator):
     """Generate a list of Python symbols that match a given prefix."""
 
     word_char = re.compile(r'[\w_.]', re.I)
+    _kwlist = None
+
+    @property
+    def kwlist(self):
+        if self._kwlist is None:
+            self._kwlist = [
+                self._get_dynamic_proposal(None, word) for word in kwlist]
+        return self._kwlist
 
     def get_words(self, prefix=None):
         """See `BaseSyntaxGenerator.get_words`.
@@ -295,7 +429,9 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             is_authoritative = True
 
         import __builtin__
-        global_syms = dir(__builtin__)
+        global_syms = [
+            self._get_dynamic_proposal(__builtin__, name)
+            for name in dir(__builtin__)]
         try:
             pyo = compile(self._get_parsable_text(), 'sc.py', 'exec')
         except SyntaxError:
@@ -303,19 +439,18 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             # Return
             self._document.emit('syntax-error-python')
             is_authoritative = False
-            return is_authoritative, set()
+            return is_authoritative, []
         co_names = ('SIGNAL_RUN_LAST', 'TYPE_NONE', 'TYPE_PYOBJECT', 'object')
-        local_syms = [name for name in pyo.co_names if name not in co_names]
+        local_syms = [
+            self._get_dynamic_proposal(None, name)
+            for name in pyo.co_names if name not in co_names]
 
         namespaces = self.string_before_cursor.split('.')
         if len(namespaces) == 1:
             # The identifier is scoped to this module (the document).
-            symbols = set()
-            symbols.update(local_syms)
-            symbols.update(global_syms)
-            symbols.update(kwlist)
-            symbols = set(key for key in symbols
-                          if key.startswith(prefix))
+            symbols = local_syms + global_syms + self.kwlist
+            symbols = [proposal for proposal in symbols
+                       if proposal.get_text().startswith(prefix)]
             return is_authoritative, symbols
 
         # Remove the prefix to create the module's full name.
@@ -330,13 +465,13 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
             try:
                 module_ = __import__(module_name, globals(), locald, [])
             except ImportError:
-                return is_authoritative, set()
+                return is_authoritative, []
 
         for symbol in namespaces[1:]:
             module_ = getattr(module_, symbol)
         is_authoritative = True
-        symbols = set(symbol for symbol in dir(module_)
-                      if symbol.startswith(prefix))
+        symbols = [self._get_dynamic_proposal(module_, name)
+                   for name in dir(module_) if name.startswith(prefix)]
         return is_authoritative, symbols
 
     def _get_parsable_text(self):
@@ -372,162 +507,13 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
         # No match means the indentation is an empty string.
         return ''
 
-
-class SyntaxModel(CompleteModel):
-    """A model for managing multiple syntaxes.
-
-    This model determine the words that can be inserted at the cursor.
-    The model understands the free text in the document and the Python syntax.
-    """
-    column_types = (str, str)
-
-    def __init__(self, document, prefix=None, description_only=False):
-        """Create, sort, and display the model.
-
-        :param document: A `gedit.Document`.
-        :param prefix: A `str`. The optional prefix that words begin with.
-        :param description_only: Not used.
-        """
-        gtk.GenericTreeModel.__init__(self)
-        # Words is a unique list, or else CompleteModel.on_iter_next() enters
-        # an infinite loop.
-        self.words = self.create_list(document, prefix)
-        self.visible_words = self.words
-        # Map this classes methods to the parent class
-        self.display_snippet = self.display_word
-        self.do_filter = self.filter_words
-
-    def get_generator(self, document, prefix):
-        """Return the specialized generator for document's language."""
-        language_id = None
-        if hasattr(document, 'get_language'):
-            # How can we not get a document or language?
-            language = document.get_language()
-            if language is not None:
-                language_id = language.get_id()
-        if language_id == 'python':
-            return PythonSyntaxGenerator(document, prefix=prefix)
-        if language_id in ('xml', 'xslt', 'html', 'pt', 'mallard', 'docbook'):
-            return MarkupGenerator(document, prefix=prefix)
-        else:
-            # The text generator is never returned because create_list will
-            # use it in non-authoritative cases.
-            return None
-
-    def create_list(self, document, prefix):
-        """Return a list of sorted and unique words for the provides source.
-
-        :param document: A `gedit.Document`. The source document
-        :param prefix: `A str`. The beginning of the word.
-        """
-        all_words = set()
-        is_authoritative = False
-        generator = self.get_generator(document, prefix)
-        if generator:
-            is_authoritative, words = generator.get_words()
-            all_words |= words
-        if not is_authoritative:
-            is_authoritative, simple_words = TextGenerator(
-                document, prefix=prefix).get_words()
-            all_words |= simple_words
-        return sorted(all_words, key=str.lower)
-
-    def display_word(self, word):
-        """Return the word escaped for Pango display."""
-        return saxutils.escape(word)
-
-    def filter_words(self, prefix):
-        """Show only the words that start with the prefix."""
-        new_words = []
-        prefix = prefix.lower()
-        for word in self.words:
-            if word.lower().startswith(prefix):
-                new_words.append(word)
-
-        old_words = self.visible_words
-        old_len = len(old_words)
-
-        self.visible_words = new_words
-        new_len = len(new_words)
-
-        for index in range(0, min(new_len, old_len)):
-            path = (index, )
-            self.row_changed(path, self.get_iter(path))
-
-        if old_len > new_len:
-            for index in range(old_len - 1, new_len - 1, -1):
-                self.row_deleted((index, ))
-        elif new_len > old_len:
-            for index in range(old_len, new_len):
-                path = (index, )
-                self.row_inserted(path, self.get_iter(path))
-
-    def get_word(self, path):
-        """Return the word at the provided path."""
-        try:
-            return self.visible_nodes[path[0]]
-        except IndexError:
-            return None
-
-    def on_get_n_columns(self):
-        """Return the number of columns.
-
-        This method is broken in the parent class.
-        """
-        # XXX sinzui 2008-06-08 gnome-bug=537248:
-        # This method can be removed when this bug is fixed in GNOME.
-        return len(self.column_types)
-
-    @property
-    def nodes(self):
-        """Maps words to the parent class."""
-        return self.words
-
-    @property
-    def visible_nodes(self):
-        """Maps visible_words to the parent class."""
-        return self.visible_words
-
-
-class SyntaxView(SnippetComplete):
-    """A widget for selecting the word to insert at the cursor.
-
-    This widget extends the Gedit Snippet module to complete the word
-    using the vocabulary of the document.
-    """
-
-    def __init__(self, document, prefix=None, description_only=False):
-        """Initialize the syntax view widget.
-
-        :param document: A `gedit.Document`.
-        :param prefix: A `str` that each word begins with.
-        :param description_only: Not used.
-        """
-        self.snippet_activated = self.syntax_activated
-
-        # Replace the snippets.SnippetComplete.CompleteModel
-        # with the SyntaxModel.
-        from snippets import SnippetComplete
-        self.old_model = SnippetComplete.CompleteModel
-        SnippetComplete.CompleteModel = SyntaxModel
-        super(SyntaxView, self).__init__(
-            nodes=document, prefix=prefix, description_only=description_only)
-
-    def syntax_activated(self, word):
-        """Signal that the word (snippet) was selected."""
-        self.emit('syntax-activated', word)
-        self.destroy()
-
-    def destroy(self):
-        """Restore the parent's model."""
-        from snippets import SnippetComplete
-        SnippetComplete.CompleteModel = self.old_model
-        super(SyntaxView, self).destroy()
-
-
-gobject.signal_new(
-    'syntax-activated', SyntaxView, gobject.SIGNAL_RUN_LAST,
-    gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT, ))
+    def _get_dynamic_proposal(self, module, name):
+        info = None
+        if module is not None:
+            identifier = module.__dict__[name]
+            if callable(identifier):
+                info = identifier.__doc__
+        return DynamicProposal(name, info=info)
 
 
 class SyntaxController(PluginMixin):
@@ -537,6 +523,7 @@ class SyntaxController(PluginMixin):
         """Initialize the controller for the gedit.View."""
         self.signal_ids = {}
         self.view = None
+        self.window = window
         self.set_view(window.get_active_view())
 
     def deactivate(self):
@@ -577,46 +564,19 @@ class SyntaxController(PluginMixin):
         """Show the SyntaxView widget."""
         if not self.view.get_editable():
             return
+        self.completion = self.view.get_completion()
+        language_id = None
         document = self.view.get_buffer()
-        (prefix, ignored, end) = self.get_word_prefix(document)
-        syntax_view = SyntaxView(document, prefix, False)
-        syntax_view.connect(
-            'syntax-activated', self.on_syntaxview_row_activated)
-        syntax_view.move(
-            *self._calculate_syntax_view_position(syntax_view, end))
-        if syntax_view.run():
-            return syntax_view
-        else:
-            return None
-
-    def _calculate_syntax_view_position(self, syntax_view, end):
-        """Return the (x, y) coordinate to position the syntax_view
-
-        The x and y coordinate will align the SyntaxView with the cursor
-        when there is space to display it. Otherwise, it returns a
-        coordinate to fit the SyntaxView to the bottom right of the
-        screen.
-        """
-
-        def sane_x_or_y(ordinate, screen_length, view_length):
-            """Return a x or y ordinate that is visible on the screen."""
-            MARGIN = 15
-            if ordinate + view_length > screen_length:
-                return view_length - MARGIN
-            elif ordinate < MARGIN:
-                return MARGIN
-            else:
-                return ordinate
-
-        rect = self.view.get_iter_location(end)
-        (x, y) = self.view.buffer_to_window_coords(
-            gtk.TEXT_WINDOW_TEXT, rect.x + rect.width, rect.y)
-        (xor, yor) = self.view.get_window(gtk.TEXT_WINDOW_TEXT).get_origin()
-        screen = self.view.get_screen()
-        syntax_view_width, syntax_view_height = syntax_view.get_size()
-        x = sane_x_or_y(x + xor, screen.get_width(), syntax_view_width)
-        y = sane_x_or_y(y + yor, screen.get_height(), syntax_view_height)
-        return (x, y)
+        if hasattr(document, 'get_language'):
+            # How can we not get a document or language?
+            language = document.get_language()
+            if language is not None:
+                language_id = language.get_id()
+        title = _('GDP Syntax Completer')
+        self.provider = DynamicProvider(
+            title, language_id, self.on_proposal_activated, document)
+        self.completion.show(
+            [self.provider], self.completion.create_context())
 
     def get_word_prefix(self, document):
         """Return a 3-tuple of the word fragment before the cursor.
@@ -648,13 +608,16 @@ class SyntaxController(PluginMixin):
         if doctest_pattern.match(file_path):
             document.set_language(doctest_language)
 
-    def on_syntaxview_row_activated(self, syntax_view, word):
-        """Insert the word into the Document."""
-        if not word:
+    def on_proposal_activated(self, proposal, piter):
+        if not proposal:
             return
+        buf = self.view.get_buffer()
+        bounds = buf.get_selection_bounds()
+        word = proposal.get_text()
         document = self.view.get_buffer()
         (ignored, start, end_) = self.get_word_prefix(document)
         self.insert_word(word, start)
+        return True
 
     def on_notify_editable(self, view, param_spec):
         """Update the controller when the view editable state changes.

@@ -49,7 +49,7 @@ def find_files(root_dir, skip_dir_pattern='^[.]', file_pattern='.*'):
             if os.path.islink(file_path):
                 continue
             mime_type, encoding_ = mimetypes.guess_type(file_)
-            if mime_type is None or 'text/' in mime_type:
+            if PluginMixin.is_editable(mime_type):
                 if file_re.match(file_path) is not None:
                     yield file_path, mime_type
 
