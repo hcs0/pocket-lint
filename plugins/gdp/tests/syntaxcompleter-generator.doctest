@@ -319,4 +319,4 @@ tags listed.
     INSIDE_CLOSE
 
     >>> sorted([proposal._word for proposal in proposals])
-    ['head', 'html', 'style']
+    ['head>', 'html>', 'style>']

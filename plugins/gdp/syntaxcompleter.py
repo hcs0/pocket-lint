@@ -411,7 +411,7 @@ class MarkupGenerator(BaseSyntaxGenerator):
         for tag in close_tags:
             if tag in open_tags:
                 open_tags.remove(tag)
-        return [DynamicProposal(tag) for tag in open_tags]
+        return [DynamicProposal(tag + '>') for tag in open_tags]
 
 
 class PythonSyntaxGenerator(BaseSyntaxGenerator):
