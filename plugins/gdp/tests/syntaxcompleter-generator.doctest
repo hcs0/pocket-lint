@@ -68,15 +68,22 @@ punctuation and line ends.
     'This is the Project Gutenberg Etext of The Hunting of the Snark...'
 
 The get_words() method returns a 2-tuple of is_authoritative and a list of
-all words in the generator.
+all proposals in the generator.
 
     >>> is_authoritative, proposals = text_generator.get_words()
+
     >>> len(proposals)
     1987
+
     >>> type(proposals)
     <type 'list'>
-    >>> sorted([proposal._word for proposal in proposals], key=str.lower)
-    ['000', '000x100', '03', '08', '1', '10', '1992', '2', '20', ...]
+
+    >>> proposals = sorted([proposal for proposal in proposals])
+    >>> proposals[0]
+    <DynamicProposal word="000" ...>
+
+    >>> [proposal._word for proposal in proposals][0:9]
+    ['000', '000x100', '03', '08', '1', '10', '1992', '2', '20']
 
 is_authoritative is always False because the TextGenerator works with all
 documents instead of a specific GtkSourceView Language.
@@ -91,15 +98,15 @@ contain words that start with the prefix. Matching is case-insensitive.
     >>> is_authoritative, proposals = text_generator.get_words()
     >>> len(proposals)
     16
-    >>> sorted([proposal._word for proposal in proposals], key=str.lower)
-    ['backwards', 'bade', 'bags', 'bake', 'Baker', 'BAKER', ...]
+    >>> sorted([proposal._word for proposal in proposals])
+    ['BAKER', 'BANKER', 'BARRISTER', 'Baker', 'Bandersnatch', ...]
 
     >>> text_generator = TextGenerator(document, prefix='Snar')
     >>> is_authoritative, proposals = text_generator.get_words()
     >>> len(proposals)
     5
-    >>> sorted([proposal._word for proposal in proposals], key=str.lower)
-    ['SNARK', 'Snark', 'snark12', 'snarked', 'Snarks']
+    >>> sorted([proposal._word for proposal in proposals])
+    ['SNARK', 'Snark', 'Snarks', 'snark12', 'snarked']
 
     >>> text_generator = TextGenerator(document, prefix='snar')
     >>> is_authoritative, lowercase_proposals = text_generator.get_words()
@@ -214,6 +221,37 @@ line, it is replaced with 'pass'.
         while not found:
             pass
 
+
+PythonProposal
+..............
+
+The PythonGenerator returns PythonProposals.
+
+    >>> document.load(snark_py, None, 0, False)
+    >>> document.place_cursor(document.get_end_iter())
+    >>> document.insert_at_cursor('os.path.j')
+    >>> is_authoritative, proposals = python_generator.get_words('j')
+    >>> proposals
+    [<PythonProposal word="join" ...]
+
+The PythonProposal has the identifier as the info. The do_get_info() method
+returns the PangoDoc formating of the instance's pydoc.
+
+    >>> proposal = proposals[0]
+    >>> proposal._info
+    <function join ...>
+
+    >>> print proposal.do_get_info()
+    <b>join</b>(a, *p)
+    Join two or more pathname components, inserting '/' as needed.
+    If any component is an absolute path, all previous path components
+    will be discarded.
+
+The pydoc is None if the info is None.
+
+    >>> proposal._info = None
+    >>> print proposal.do_get_info()
+    None
 
 MarkupGenerator
 ---------------

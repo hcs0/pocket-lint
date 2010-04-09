@@ -14,9 +14,11 @@ __all__ = [
     'TextGenerator',
     ]
 
+
 import re
 from gettext import gettext as _
 from keyword import kwlist
+from pydoc import TextDoc
 from xml.sax import saxutils
 
 import gobject
@@ -85,12 +87,30 @@ class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
         self._info = info or ''
 
     def __repr__(self):
-        return '<DynamicProposal word="%s" at 0x%x>' % (self._word, id(self))
+        return '<%s word="%s" at 0x%x>' % (
+            self.__class__.__name__, self._word, id(self))
 
     def __eq__(self, other):
         if type(other) != type(self):
             return False
         return other._word == self._word and other._info == self._info
+
+    def __cmp__(self, other):
+        if self.__eq__(other):
+            return 0
+        elif self._word < other._word:
+            return -1
+        else:
+            return 1
+
+    def __hash__(self):
+        return hash((type(self), self._word, self._info))
+
+    def equal(self, other):
+        return self.__eq__(other)
+
+    def hash(self):
+        return self.__hash__()
 
     def do_get_text(self):
         """See `CompletionProvider`."""
@@ -103,6 +123,29 @@ class DynamicProposal(gobject.GObject, gsv.CompletionProposal):
     def do_get_info(self):
         """See `CompletionProvider`."""
         return self._info
+
+
+class PangoDoc(TextDoc):
+
+    def bold(self, text):
+        return '\x86%s\x87' % text
+
+    def document(self, mod, *args):
+        text = TextDoc.document(self, mod)
+        text = saxutils.escape(text)
+        text = text.replace('\x86', '<b>')
+        text = text.replace('\x87', '</b>')
+        return text
+
+
+class PythonProposal(DynamicProposal):
+    """A proposal that provides pydoc info."""
+
+    def do_get_info(self):
+        """See `CompletionProvider`."""
+        if self._info is None:
+            return None
+        return PangoDoc().document(self._info)
 
 
 class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
@@ -198,23 +241,20 @@ class DynamicProvider(gobject.GObject, gsv.CompletionProvider):
     def do_get_info_widget(self, proposal):
         """See `DynamicProvider`."""
         if self.info_widget is None:
-            self.info_view = gsv.View(gsv.Buffer())
+            self.info_view = gtk.Label('')
+            self.info_view.set_alignment(0.0, 0.0)
             self.info_widget = gtk.ScrolledWindow()
-            self.info_widget.add(self.info_view)
+            self.info_widget.add_with_viewport(self.info_view)
         return self.info_widget
 
     def do_update_info(self, proposal, info):
         """See `CompletionProvider`."""
-        buffer_ = self.info_view.get_buffer()
-        buffer_.set_text(proposal.get_info())
-        start_iter = buffer_.get_start_iter()
-        buffer_.move_mark(buffer_.get_insert(), start_iter)
-        buffer_.move_mark(buffer_.get_selection_bound(), start_iter)
-        self.info_view.scroll_to_iter(start_iter, False)
+        markup = proposal.get_info() or ''
+        self.info_view.set_markup(markup)
         self.info_view.show()
-        info.set_sizing(-1, -1, False, False)
+        self.info_widget.set_size_request(400, -1)
+        info.set_sizing(400, -1, False, False)
         info.process_resize()
-
 
 gobject.type_register(DynamicProposal)
 gobject.type_register(DynamicProvider)
@@ -520,11 +560,13 @@ class PythonSyntaxGenerator(BaseSyntaxGenerator):
 
     def _get_dynamic_proposal(self, module, name):
         info = None
-        if module is not None:
+        if module is None:
+            identifier = None
+        elif type(module) == 'dict':
+            identifier = module[name]
+        else:
             identifier = module.__dict__[name]
-            if callable(identifier):
-                info = identifier.__doc__
-        return DynamicProposal(name, info=info)
+        return PythonProposal(name, info=identifier)
 
 
 class SyntaxController(PluginMixin):

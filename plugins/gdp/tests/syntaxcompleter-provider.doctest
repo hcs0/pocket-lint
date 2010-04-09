@@ -46,8 +46,13 @@ CompleteModel.on_iter_next() can enter an infinite loop.
     >>> proposals = provider.get_proposals(prefix='')
     >>> len(proposals)
     1987
-    >>> sorted([proposal._word for proposal in proposals])
-    ['000', '000x100', '03', '08', '1', '10', '1992', '2', ...]
+
+    >>> proposals = sorted([proposal for proposal in proposals])
+    >>> proposals[0]
+    <DynamicProposal word="000" ...>
+
+    >>> [proposal._word for proposal in proposals][0:9]
+    ['000', '000x100', '03', '08', '1', '10', '1992', '2', '20']
 
 
 get_generator()
@@ -82,3 +87,11 @@ The MarkupGenerator is returned for XML-based markup documents.
     ...     "tester", language_id, handler, markup_document)
     >>> provider.get_generator(markup_document, '')
     <gdp.syntaxcompleter.MarkupGenerator ...>
+
+
+do_get_info_widget
+~~~~~~~~~~~~~~~~~~
+
+    >>> widget = provider.do_get_info_widget(None)
+    >>> widget
+    <gtk.ScrolledWindow ...>
