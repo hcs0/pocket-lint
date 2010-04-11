@@ -108,6 +108,8 @@ class Finder(PluginMixin):
         self.widgets.connect_signals(self.ui_callbacks)
         self.pattern_comboentry = self.widgets.get_object(
             'pattern_comboentry')
+        self.pattern_comboentry.get_child().connect(
+            'activate', self.on_find_in_files)
         self.setup_comboentry(self.pattern_comboentry)
         self.path_comboentry = self.widgets.get_object('path_comboentry')
         self.setup_comboentry(self.path_comboentry, self.CURRENT_FILE)
