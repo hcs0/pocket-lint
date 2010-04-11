@@ -110,6 +110,7 @@ class Finder(PluginMixin):
             'pattern_comboentry')
         self.pattern_comboentry.get_child().connect(
             'activate', self.on_find_in_files)
+        self.pattern_comboentry.get_child().set_width_chars(24)
         self.setup_comboentry(self.pattern_comboentry)
         self.path_comboentry = self.widgets.get_object('path_comboentry')
         self.setup_comboentry(self.path_comboentry, self.CURRENT_FILE)

@@ -41,7 +41,7 @@
             <child>
               <object class="GtkLabel" id="match_label">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Match text:</property>
+                <property name="label" translatable="yes">Search for:</property>
               </object>
               <packing>
                 <property name="top_attach">1</property>
@@ -65,13 +65,14 @@
                 </child>
                 <child>
                   <object class="GtkButton" id="find_in_files_button">
-                    <property name="label" translatable="yes">Find</property>
+                    <property name="label" translatable="yes">   Find   </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <signal name="clicked" handler="on_find_in_files"/>
                   </object>
                   <packing>
+                    <property name="expand">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
@@ -203,7 +204,7 @@
                     <child>
                       <object class="GtkLabel" id="label2">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Replace match:</property>
+                        <property name="label" translatable="yes">Replace with:</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
