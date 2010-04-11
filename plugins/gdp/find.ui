@@ -7,7 +7,6 @@
     <child>
       <object class="GtkVBox" id="major_controls">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <object class="GtkTable" id="find_controls">
@@ -98,7 +97,6 @@
             <child>
               <object class="GtkVBox" id="vbox1">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkCheckButton" id="re_checkbox">
                     <property name="label" translatable="yes">Regular expression</property>
@@ -197,7 +195,6 @@
             <child>
               <object class="GtkVBox" id="vbox2">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <property name="spacing">6</property>
                 <child>
                   <object class="GtkHBox" id="hbox5">
