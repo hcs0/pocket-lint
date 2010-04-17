@@ -1,3 +1,11 @@
+gdp-0.4.1 (2.30.0): Pydoc proprosals in completions
+===================================================
+
+This release added pydoc to the completion details. The complete pydoc for
+modules, classes, and members is presented the the details window when
+completing python code.
+
+
 gdp-0.4.0 (2.30.0): Update to GTKSourceView Completions
 =======================================================
 
