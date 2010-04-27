@@ -1,0 +1,26 @@
+Text formatters
+---------------
+
+CSS can be reformatted.
+
+    >>> from gdp.format import Formatter
+    >>> from testing.gedithelpers import get_window
+
+    >>> window, view, document = get_window('plugins/gdp/data/snark.css')
+    >>> formatter = Formatter(window)
+    >>> document.select_range(
+    ...     document.get_start_iter(), document.get_end_iter())
+    >>> formatter.reformat_css(None)
+    >>> print formatter.text #doctest: -NORMALIZE_WHITESPACE
+    .snark {
+        font-style: italic;
+        color: #ff0000;
+        }
+    .baker {
+        font-style: italic;
+        color: #3333ff;
+        }
+    .banker {
+        font-style: italic;
+        color: #666;
+        }

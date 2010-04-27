@@ -193,6 +193,33 @@ class Formatter(PluginMixin):
         text = self._wrap_text(text)
         self._put_bounded_text(bounds, text)
 
+    def reformat_css(self, data):
+        """Reformat the CSS."""
+        bounds, text = self._get_bounded_text()
+        # Break the text into rules using the trailing brace; the last item
+        # is not css.
+        rules = text.split('}')
+        trailing_text = rules.pop().strip()
+        css = []
+        for rule in rules:
+            rule = rule.strip()
+            selectors, properties = rule.split('{')
+            css.append('%s {' % selectors.strip())
+            for prop in properties.split(';'):
+                if not prop:
+                    # We always check after the last semicolon because it is
+                    # a common mistake to forget it on the last property.
+                    # This loop fixes the syntax if there is remaining text.
+                    break
+                prop = ': '.join(
+                    [part.strip() for part in prop.split(':')])
+                css.append('    %s;' % prop)
+            css.append('    }')
+        if trailing_text:
+            # This could be a comment.
+            css.append(trailing_text)
+        self._put_bounded_text(bounds, '\n'.join(css))
+
     def re_replace(self, data):
         """Replace each line using an re pattern."""
         self.replace_dialog.show()

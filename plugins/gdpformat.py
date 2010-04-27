@@ -45,6 +45,7 @@ class FormatPlugin(gedit.Plugin):
                 <menuitem action="CheckProblems"/>
                 <menuitem action="CheckAllProblems"/>
                 <menuitem action="ReformatDoctest"/>
+                <menuitem action="ReformatCSS"/>
                 <separator />
               </placeholder>
             </menu>
@@ -83,6 +84,9 @@ class FormatPlugin(gedit.Plugin):
             ('ReformatDoctest', None, _("Reformat _doctest"), None,
                 _("Reformat the doctest."),
                 formatter.reformat_doctest),
+            ('ReformatCSS', None, _("Reformat _CSS"), None,
+                _("Reformat the CSS file or selection."),
+                formatter.reformat_css),
             ('CheckProblems', None, _("C_heck syntax and style"), 'F3',
                 _("Check syntax and style problems."),
                 formatter.check_style),
