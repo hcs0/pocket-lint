@@ -23,9 +23,13 @@ from xml.parsers.expat import ErrorString, ExpatError
 
 from gdp.formatdoctest import DoctestReviewer
 
-import cssutils
 import pep8
 from pyflakes.checker import Checker
+try:
+    import cssutils
+    HAS_CSSUTILS = True
+except ImportError:
+    HAS_CSSUTILS = False
 
 
 class Reporter:
@@ -238,12 +242,14 @@ class CSSChecker(BaseChecker, AnyTextMixin):
 
     def check(self):
         """Check the syntax of the CSS code."""
-        if self.text == '':
+        if self.text == '' or not HAS_CSSUTILS:
             return
+        # Suppress the default reports to stderr.
         cssutils.log._log = logging.getLogger('gdp')
         cssutils.log.raiseExceptions = False
+        # Add a handler that will report data during parsing.
         cssutils.log.addHandler(ReporterHandler(self))
-        sheet = cssutils.parseString(self.text)
+        cssutils.parseString(self.text)
 
 
 class PythonChecker(BaseChecker):
