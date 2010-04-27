@@ -24,3 +24,13 @@ CSS can be reformatted.
         font-style: italic;
         color: #666;
         }
+    ...
+
+CSS can be checked.
+
+    >>> from gdp.formatcheck import CSSChecker
+
+    >>> CSSChecker('snark.css', formatter.text).check()
+    14: Unknown Property name.: font-crack
+    15: Invalid value for "CSS Color Module Level 3/CSS Level 2.1"
+        property: none: color

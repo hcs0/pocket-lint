@@ -13,6 +13,7 @@ __all__ = [
 
 import compiler
 import htmlentitydefs
+import logging
 import os
 import re
 
@@ -22,6 +23,7 @@ from xml.parsers.expat import ErrorString, ExpatError
 
 from gdp.formatdoctest import DoctestReviewer
 
+import cssutils
 import pep8
 from pyflakes.checker import Checker
 
@@ -64,6 +66,27 @@ class Reporter:
                 None, (file_name, mime_type, 0, None, base_dir))
         self.treestore.append(
             self.piter, (file_name, icon, line_no, message, base_dir))
+
+
+class ReporterHandler(logging.Handler):
+    """A logging handler that uses the checker to report issues."""
+
+    def __init__(self, checker):
+        logging.Handler.__init__(self, logging.INFO)
+        self.checker = checker
+
+    def handleError(self, record):
+        pass
+
+    def emit(self, record):
+        if record.levelname == 'ERROR':
+            icon = 'error'
+        else:
+            icon = 'info'
+        matches = self.checker.message_pattern.search(record.getMessage())
+        line_no = matches.group(2)
+        message = "%s: %s" % (matches.group(1), matches.group(3))
+        self.checker.message(int(line_no), message, icon=icon)
 
 
 class BaseChecker:
@@ -119,6 +142,8 @@ class UniversalChecker(BaseChecker):
             PythonChecker(self.file_path, self.text, self._reporter).check()
         elif self.language == 'doctest':
             DoctestReviewer(self.text, self.file_path, self._reporter).check()
+        elif self.language == 'css':
+            CSSChecker(self.file_path, self.text, self._reporter).check()
         elif self.language in ('xml', 'xslt', 'html', 'pt', 'docbook'):
             XMLChecker(self.file_path, self.text, self._reporter).check()
         else:
@@ -204,6 +229,21 @@ class XMLChecker(BaseChecker, AnyTextMixin):
         for line_no, line in enumerate(self.text.splitlines()):
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+
+
+class CSSChecker(BaseChecker, AnyTextMixin):
+    """Check XML documents."""
+
+    message_pattern = re.compile(r'[^ ]+ (.*) \[(\d+):\d+: (.+)\]')
+
+    def check(self):
+        """Check the syntax of the CSS code."""
+        if self.text == '':
+            return
+        cssutils.log._log = logging.getLogger('gdp')
+        cssutils.log.raiseExceptions = False
+        cssutils.log.addHandler(ReporterHandler(self))
+        sheet = cssutils.parseString(self.text)
 
 
 class PythonChecker(BaseChecker):
