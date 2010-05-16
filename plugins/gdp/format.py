@@ -37,6 +37,8 @@ class Formatter(PluginMixin):
             'replace_pattern_entry')
         self.replace_replacement_entry = widgets.get_object(
             'replace_replacement_entry')
+        self._bounds = None
+        self._text = None
         # Syntax and style reporting use the panel.
         other_widgets = gtk.Builder()
         other_widgets.add_from_file(
@@ -80,6 +82,7 @@ class Formatter(PluginMixin):
         """
         document = self.active_document
         document.begin_user_action()
+        document.place_cursor(bounds[0])
         document.delete(*bounds)
         document.insert_at_cursor(text)
         document.end_user_action()
@@ -222,11 +225,14 @@ class Formatter(PluginMixin):
 
     def re_replace(self, data):
         """Replace each line using an re pattern."""
+        self._bounds, self._text = self._get_bounded_text()
         self.replace_dialog.show()
         self.replace_dialog.run()
 
     def on_replace_quit(self, widget=None):
         """End the replacement, hide he dialog."""
+        self._bounds = None
+        self._text = None
         self.replace_dialog.hide()
 
     def on_replace(self, widget=None):
@@ -241,9 +247,10 @@ class Formatter(PluginMixin):
             self.replace_label.set_markup(
                 '%s\n<b>%s</b>' % (self.replace_label_text, message))
             return
-        bounds, text = self._get_bounded_text()
-        lines = [line_re.sub(replacement, line) for line in text.splitlines()]
-        self._put_bounded_text(bounds, '\n'.join(lines))
+        lines = [
+            line_re.sub(replacement, line)
+            for line in self._text.splitlines()]
+        self._put_bounded_text(self._bounds, '\n'.join(lines))
         self.on_replace_quit()
 
     def show(self, data):
