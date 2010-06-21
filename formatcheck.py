@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # Copyright (C) 2009 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the GNU General Public License version 2
 # (see the file COPYING).
@@ -10,21 +11,23 @@ __all__ = [
     'UniversalChecker',
     ]
 
-
 import compiler
 import htmlentitydefs
 import logging
+import mimetypes
 import os
 import re
+import sys
 
+from optparse import OptionParser
 from StringIO import StringIO
 from xml.etree import ElementTree
 from xml.parsers.expat import ErrorString, ExpatError
 
 from gdp.formatdoctest import DoctestReviewer
 
-import pep8
-from pyflakes.checker import Checker
+import contrib.pep8 as pep8
+from contrib.pyflakes.checker import Checker
 try:
     import cssutils
     HAS_CSSUTILS = True
@@ -93,6 +96,46 @@ class ReporterHandler(logging.Handler):
         self.checker.message(int(line_no), message, icon=icon)
 
 
+doctest_pattern = re.compile(
+    r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
+
+
+class Language:
+    """Supported Language types."""
+    TEXT = object()
+    PYTHON = object()
+    DOCTEST = object()
+    CSS = object()
+    XML = object()
+    XSLT = object()
+    HTML = object()
+    ZPT = object()
+    DOCBOOK = object()
+
+    XML_LIKE = (XML, XSLT, HTML, ZPT, DOCBOOK)
+
+    mime_type_language = {
+        'text/x-python': PYTHON,
+        'text/css': CSS,
+        'application/xml': XML,
+        'text/html': HTML,
+        'text/plain': TEXT,
+        }
+
+    def get_language(self, file_path):
+        """Return the language for the source."""
+        # Doctests can easilly be mistyped, so it must be checked first.
+        if doctest_pattern.match(file_path):
+            return Language.DOCTEST
+        mime_type, encoding = mimetypes.guess_type(file_path)
+        if mime_type.endswith('+xml'):
+            return Language.XML
+        if mime_type in Language.XML_LIKE:
+            return Language.XML
+        if mime_type in Language.mime_type_language:
+            return Language.mime_type_language[mime_type]
+
+
 class BaseChecker:
     """Common rules for checkers.
 
@@ -142,13 +185,13 @@ class UniversalChecker(BaseChecker):
 
     def check(self):
         """Check the file syntax and style."""
-        if self.language == 'python':
+        if self.language is Language.PYTHON:
             PythonChecker(self.file_path, self.text, self._reporter).check()
-        elif self.language == 'doctest':
+        elif self.language is Language.doctest:
             DoctestReviewer(self.text, self.file_path, self._reporter).check()
-        elif self.language == 'css':
+        elif self.language is Language.css:
             CSSChecker(self.file_path, self.text, self._reporter).check()
-        elif self.language in ('xml', 'xslt', 'html', 'pt', 'docbook'):
+        elif self.language in Language.XML_LIKE:
             XMLChecker(self.file_path, self.text, self._reporter).check()
         else:
             AnyTextChecker(self.file_path, self.text, self._reporter).check()
@@ -291,3 +334,45 @@ class PythonChecker(BaseChecker):
             pep8.Checker(self.file_path).check_all()
         finally:
             Checker.report_error = original_report_error
+
+
+def get_option_parser():
+    """Return the option parser for this program."""
+    usage = "usage: %prog [options] arg1"
+    parser = OptionParser(usage=usage)
+    parser.add_option(
+        "-v", "--verbose", action="store_true", dest="verbose")
+    parser.add_option(
+        "-q", "--quiet", action="store_false", dest="verbose")
+    parser.set_defaults(verbose=True)
+    return parser
+
+
+def check_sources(sources):
+    for source in sources:
+        file_path = os.path.normpath(source)
+        language = Language.get_language(file_path)
+        with open(file_path) as file_:
+            text = file_.read()
+        reporter = Reporter(Reporter.CONSOLE)
+        checker = UniversalChecker(
+            file_path, text=text, language=language, reporter=reporter)
+        checker.check()
+
+
+def main(argv=None):
+    """Run the command line operations."""
+    if argv is None:
+        argv = sys.argv
+    parser = get_option_parser()
+    (options, sources) = parser.parse_args(args=argv[1:])
+    # Handle standard args.
+    if len(sources) == 0:
+        parser.error("Expected file paths.")
+    if options.verbose:
+        pass
+    check_sources(sources)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
