@@ -24,7 +24,7 @@ from StringIO import StringIO
 from xml.etree import ElementTree
 from xml.parsers.expat import ErrorString, ExpatError
 
-from gdp.formatdoctest import DoctestReviewer
+from formatdoctest import DoctestReviewer
 
 import contrib.pep8 as pep8
 from contrib.pyflakes.checker import Checker
@@ -96,10 +96,6 @@ class ReporterHandler(logging.Handler):
         self.checker.message(int(line_no), message, icon=icon)
 
 
-doctest_pattern = re.compile(
-    r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
-
-
 class Language:
     """Supported Language types."""
     TEXT = object()
@@ -122,10 +118,14 @@ class Language:
         'text/plain': TEXT,
         }
 
-    def get_language(self, file_path):
+    doctest_pattern = re.compile(
+        r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
+
+    @staticmethod
+    def get_language(file_path):
         """Return the language for the source."""
         # Doctests can easilly be mistyped, so it must be checked first.
-        if doctest_pattern.match(file_path):
+        if Language.doctest_pattern.match(file_path):
             return Language.DOCTEST
         mime_type, encoding = mimetypes.guess_type(file_path)
         if mime_type.endswith('+xml'):
@@ -187,7 +187,7 @@ class UniversalChecker(BaseChecker):
         """Check the file syntax and style."""
         if self.language is Language.PYTHON:
             PythonChecker(self.file_path, self.text, self._reporter).check()
-        elif self.language is Language.doctest:
+        elif self.language is Language.DOCTEST:
             DoctestReviewer(self.text, self.file_path, self._reporter).check()
         elif self.language is Language.css:
             CSSChecker(self.file_path, self.text, self._reporter).check()
@@ -195,7 +195,6 @@ class UniversalChecker(BaseChecker):
             XMLChecker(self.file_path, self.text, self._reporter).check()
         else:
             AnyTextChecker(self.file_path, self.text, self._reporter).check()
-        self._reporter.file_lines_view.expand_all()
 
 
 class AnyTextMixin:
