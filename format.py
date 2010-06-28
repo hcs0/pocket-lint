@@ -1,6 +1,9 @@
 # Copyright (C) 2009-2010 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
-"""Format text and code"""
+"""Format text and code
+
+This is vestigal and may be removed. It is not used at this time.
+"""
 
 __metatype__ = type
 
