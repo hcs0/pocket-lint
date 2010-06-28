@@ -1,15 +1,9 @@
 #!/usr/bin/python
-# Copyright (C) 2009 - Curtis Hovey <sinzui.is at verizon.net>
-# This software is licensed under the GNU General Public License version 2
-# (see the file COPYING).
+# Copyright (C) 2009-2010 - Curtis Hovey <sinzui.is at verizon.net>
+# This software is licensed under the MIT license (see the file COPYING).
 """Check for syntax and style problems."""
 
 __metatype__ = type
-
-__all__ = [
-    'Reporter',
-    'UniversalChecker',
-    ]
 
 import compiler
 import htmlentitydefs
@@ -33,6 +27,11 @@ try:
     HAS_CSSUTILS = True
 except ImportError:
     HAS_CSSUTILS = False
+
+__all__ = [
+    'Reporter',
+    'UniversalChecker',
+    ]
 
 
 class Reporter:
@@ -287,7 +286,7 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         if self.text == '' or not HAS_CSSUTILS:
             return
         # Suppress the default reports to stderr.
-        cssutils.log._log = logging.getLogger('gdp')
+        cssutils.log._log = logging.getLogger('pocket-lint')
         cssutils.log.raiseExceptions = False
         # Add a handler that will report data during parsing.
         cssutils.log.addHandler(ReporterHandler(self))

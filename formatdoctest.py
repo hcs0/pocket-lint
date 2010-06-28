@@ -1,15 +1,9 @@
-# Copyright (C) 2009 - Curtis Hovey <sinzui.is at verizon.net>
-# This software is licensed under the GNU General Public License version 2
-# (see the file COPYING).
 #!/usr/bin/python
+# Copyright (C) 2009-2010 - Curtis Hovey <sinzui.is at verizon.net>
+# This software is licensed under the MIT license (see the file COPYING).
 """Reformat a doctest to Launchpad style."""
 
 __metatype__ = type
-
-__all__ = [
-    'DoctestReviewer',
-    ]
-
 
 import compiler
 import os
@@ -22,6 +16,10 @@ from textwrap import wrap
 
 import pyflakes
 from pyflakes.checker import Checker
+
+__all__ = [
+    'DoctestReviewer',
+    ]
 
 
 class DoctestReviewer:

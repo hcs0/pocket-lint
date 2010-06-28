@@ -1,67 +1,24 @@
-# Copyright (C) 2009 - Curtis Hovey <sinzui.is at verizon.net>
-# This software is licensed under the GNU General Public License version 2
-# (see the file COPYING).
+# Copyright (C) 2009-2010 - Curtis Hovey <sinzui.is at verizon.net>
+# This software is licensed under the MIT license (see the file COPYING).
 """Format text and code"""
 
-import os
+__metatype__ = type
+
 import re
 
 import gconf
-import gtk
 from textwrap import wrap
-from gettext import gettext as _
 
-from gdp import PluginMixin, setup_file_lines_view
-from gdp.formatdoctest import DoctestReviewer
-from gdp.formatcheck import Reporter, UniversalChecker
+from formatdoctest import DoctestReviewer
+from formatcheck import Reporter, UniversalChecker
 
 __all__ = [
     'Formatter',
     ]
 
 
-class Formatter(PluginMixin):
+class Formatter:
     """Format Gedit Document and selection text."""
-
-    def __init__(self, window):
-        self.window = window
-        # The replace in text uses the replace dialog.
-        widgets = gtk.Builder()
-        widgets.add_from_file(
-            '%s/format.ui' % os.path.dirname(__file__))
-        widgets.connect_signals(self.ui_callbacks)
-        self.replace_dialog = widgets.get_object('replace_dialog')
-        self.replace_label = widgets.get_object('replace_label')
-        self.replace_label_text = self.replace_label.get_text()
-        self.replace_pattern_entry = widgets.get_object(
-            'replace_pattern_entry')
-        self.replace_replacement_entry = widgets.get_object(
-            'replace_replacement_entry')
-        self._bounds = None
-        self._text = None
-        # Syntax and style reporting use the panel.
-        other_widgets = gtk.Builder()
-        other_widgets.add_from_file(
-            '%s/format.ui' % os.path.dirname(__file__))
-        self.file_lines = other_widgets.get_object('file_lines_scrolledwindow')
-        self.file_lines_view = other_widgets.get_object('file_lines_view')
-        setup_file_lines_view(self.file_lines_view, self, 'Problems')
-        panel = window.get_side_panel()
-        icon = gtk.image_new_from_stock(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)
-        panel.add_item(self.file_lines, 'Check syntax and style', icon)
-
-    def deactivate(self):
-        """Clean up resources before deactivation."""
-        panel = self.window.get_side_panel()
-        panel.remove_item(self.file_lines)
-
-    @property
-    def ui_callbacks(self):
-        """The dict of callbacks for the ui widgets."""
-        return {
-            'on_replace_quit': self.on_replace_quit,
-            'on_replace': self.on_replace,
-            }
 
     def _get_bounded_text(self):
         """Return tuple of the bounds and formattable text.
@@ -223,42 +180,6 @@ class Formatter(PluginMixin):
             css.append(trailing_text)
         self._put_bounded_text(bounds, '\n'.join(css))
 
-    def re_replace(self, data):
-        """Replace each line using an re pattern."""
-        self._bounds, self._text = self._get_bounded_text()
-        self.replace_dialog.show()
-        self.replace_dialog.run()
-
-    def on_replace_quit(self, widget=None):
-        """End the replacement, hide he dialog."""
-        self._bounds = None
-        self._text = None
-        self.replace_dialog.hide()
-
-    def on_replace(self, widget=None):
-        """replace each line of text."""
-        pattern = self.replace_pattern_entry.get_text()
-        replacement = self.replace_replacement_entry.get_text()
-        try:
-            line_re = re.compile(pattern)
-        except re.error:
-            # Show a message that the pattern failed.
-            message = _("The regular expression pattern has an error in it.")
-            self.replace_label.set_markup(
-                '%s\n<b>%s</b>' % (self.replace_label_text, message))
-            return
-        lines = [
-            line_re.sub(replacement, line)
-            for line in self._text.splitlines()]
-        self._put_bounded_text(self._bounds, '\n'.join(lines))
-        self.on_replace_quit()
-
-    def show(self, data):
-        """Show the finder pane."""
-        panel = self.window.get_side_panel()
-        panel.activate_item(self.file_lines)
-        panel.props.visible = True
-
     def reformat_doctest(self, data):
         """Reformat the doctest."""
         bounds, text = self._get_bounded_text()
@@ -286,8 +207,6 @@ class Formatter(PluginMixin):
 
     def check_style(self, data, documents=None):
         """Check the style and syntax of the active document."""
-        self.file_lines_view.get_model().clear()
-        self.show(None)
         if documents is None:
             documents = [self.active_document]
         for document in documents:

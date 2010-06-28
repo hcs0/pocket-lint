@@ -1,7 +1,3 @@
-gedit/__init__.py
-gedit/geditcommands.py
-gedit/geditutils.py
-gdp.xml
 Makefile.in
 intltool-extract
 intltool-extract.in
@@ -25,7 +21,6 @@ Makefile
 install-sh
 po/POTFILES
 missing
-*.gedit-plugin
 ChangeLog
 mkinstalldirs
 config.status.lineno
