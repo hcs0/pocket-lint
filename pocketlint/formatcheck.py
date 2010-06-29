@@ -45,6 +45,7 @@ class Reporter:
         if self.file_lines_view is not None:
             self.treestore = self.file_lines_view.get_model()
         self.piter = None
+        self._last_file_name = None
 
     def __call__(self, line_no, message, icon=None,
                  base_dir=None, file_name=None):
@@ -61,7 +62,14 @@ class Reporter:
     def _message_console(self, line_no, message, icon=None,
                          base_dir=None, file_name=None):
         """Print the messages to the console."""
-        print '%4s: %s' % (line_no, message)
+        self._message_console_group(base_dir, file_name)
+        print '    %4s: %s' % (line_no, message)
+
+    def _message_console_group(self, base_dir, file_name):
+        """Print the file name is it has not been seen yet."""
+        if file_name is not None and file_name != self._last_file_name:
+            self._last_file_name = file_name
+            print '%s' % os.path.join('./', base_dir, file_name)
 
     def _message_file_lines(self, line_no, message, icon=None,
                             base_dir=None, file_name=None):
@@ -127,6 +135,8 @@ class Language:
         if Language.doctest_pattern.match(file_path):
             return Language.DOCTEST
         mime_type, encoding = mimetypes.guess_type(file_path)
+        if mime_type is None:
+            return Language.TEXT
         if mime_type.endswith('+xml'):
             return Language.XML
         if mime_type in Language.XML_LIKE:
@@ -188,7 +198,7 @@ class UniversalChecker(BaseChecker):
             PythonChecker(self.file_path, self.text, self._reporter).check()
         elif self.language is Language.DOCTEST:
             DoctestReviewer(self.text, self.file_path, self._reporter).check()
-        elif self.language is Language.css:
+        elif self.language is Language.CSS:
             CSSChecker(self.file_path, self.text, self._reporter).check()
         elif self.language in Language.XML_LIKE:
             XMLChecker(self.file_path, self.text, self._reporter).check()
@@ -349,6 +359,8 @@ def get_option_parser():
 def check_sources(sources):
     for source in sources:
         file_path = os.path.normpath(source)
+        if os.path.isdir(source):
+            continue
         language = Language.get_language(file_path)
         with open(file_path) as file_:
             text = file_.read()
