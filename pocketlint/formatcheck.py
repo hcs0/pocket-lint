@@ -109,6 +109,8 @@ class Language:
     PYTHON = object()
     DOCTEST = object()
     CSS = object()
+    JAVASCRIPT = object()
+    SH = object()
     XML = object()
     XSLT = object()
     HTML = object()
@@ -123,8 +125,9 @@ class Language:
         'application/xml': XML,
         'text/html': HTML,
         'text/plain': TEXT,
+        'application/javascript': JAVASCRIPT,
+        'application/x-sh': SH,
         }
-
     doctest_pattern = re.compile(
         r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
 
@@ -136,13 +139,27 @@ class Language:
             return Language.DOCTEST
         mime_type, encoding = mimetypes.guess_type(file_path)
         if mime_type is None:
+            # This could be a very bad guess.
             return Language.TEXT
-        if mime_type.endswith('+xml'):
-            return Language.XML
-        if mime_type in Language.XML_LIKE:
-            return Language.XML
-        if mime_type in Language.mime_type_language:
+        elif mime_type in Language.mime_type_language:
             return Language.mime_type_language[mime_type]
+        elif mime_type in Language.XML_LIKE:
+            return Language.XML
+        elif mime_type.endswith('+xml'):
+            return Language.XML
+        elif 'text/' in mime_type:
+            return Language.TEXT
+        else:
+            return None
+
+    @staticmethod
+    def is_editable(file_path):
+        """ Only search mime-types that are like sources can open.
+
+        A fuzzy match of text/ or +xml is good, but some files types are
+        unknown or described as application data.
+        """
+        return Language.get_language(file_path) is not None
 
 
 class BaseChecker:
@@ -211,7 +228,7 @@ class AnyTextMixin:
 
     def check_conflicts(self, line_no, line):
         """Check that there are no merge conflict markers."""
-        if line.startswith('<<<<<<<'):
+        if line.startswith('<' * 7) or line.startswith('>' * 7):
             self.message(line_no, 'File has conflicts.', icon='errror')
 
     def check_length(self, line_no, line):
@@ -303,7 +320,7 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         cssutils.parseString(self.text)
 
 
-class PythonChecker(BaseChecker):
+class PythonChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
 
     def check(self):
@@ -312,6 +329,7 @@ class PythonChecker(BaseChecker):
             return
         self.check_flakes()
         self.check_pep8()
+        self.check_text()
 
     def check_flakes(self):
         """Check compilation and syntax."""
@@ -343,6 +361,21 @@ class PythonChecker(BaseChecker):
         finally:
             Checker.report_error = original_report_error
 
+    def check_text(self):
+        """Call each line_method for each line in text."""
+        for line_no, line in enumerate(self.text.splitlines()):
+            self.check_pdb(line_no, line)
+            self.check_length(line_no, line)
+            self.check_trailing_whitespace(line_no, line)
+            self.check_conflicts(line_no, line)
+
+    def check_pdb(self, line_no, line):
+        """Check the length of the line."""
+        pdb_call = 'pdb.' + 'set_trace'
+        if pdb_call in line:
+            self.message(
+                line_no, 'Line contains a call to pdb.', icon='error')
+
 
 def get_option_parser():
     """Return the option parser for this program."""
@@ -359,7 +392,7 @@ def get_option_parser():
 def check_sources(sources):
     for source in sources:
         file_path = os.path.normpath(source)
-        if os.path.isdir(source):
+        if os.path.isdir(source) or not Language.is_editable(source):
             continue
         language = Language.get_language(file_path)
         with open(file_path) as file_:
