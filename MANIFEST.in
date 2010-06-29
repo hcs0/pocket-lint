@@ -3,3 +3,4 @@ include COPYING
 include HACKING
 include INSTALL
 include README
+include ChangeLog
