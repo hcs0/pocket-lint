@@ -7,5 +7,6 @@ setup(
     maintainer="Curtis C. Hovey",
     maintainer_email="sinzui.is@verizon.net",
     url="https://launchpad.net/pocket-lint",
-    packages=['pocketlint'],
+    packages=[
+        'pocketlint', 'pocketlint/contrib', 'pocketlint/contrib/pyflakes'],
     )
