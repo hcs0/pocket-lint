@@ -9,4 +9,5 @@ setup(
     url="https://launchpad.net/pocket-lint",
     packages=[
         'pocketlint', 'pocketlint/contrib', 'pocketlint/contrib/pyflakes'],
+    scripts=['scripts/pocketlint'],
     )
