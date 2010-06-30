@@ -11,6 +11,7 @@ import logging
 import mimetypes
 import os
 import re
+import subprocess
 import sys
 
 from optparse import OptionParser
@@ -27,6 +28,15 @@ try:
     HAS_CSSUTILS = True
 except ImportError:
     HAS_CSSUTILS = False
+
+# Javascript checking is available if spider money's js is available.
+js = subprocess.Popen(
+    ['which', 'js'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+js_exec, ignore = js.communicate()
+if js.returncode != 0:
+    JS = None
+else:
+    JS = js_exec.strip()
 
 __all__ = [
     'Reporter',
@@ -219,6 +229,9 @@ class UniversalChecker(BaseChecker):
             CSSChecker(self.file_path, self.text, self._reporter).check()
         elif self.language in Language.XML_LIKE:
             XMLChecker(self.file_path, self.text, self._reporter).check()
+        elif self.language is Language.JAVASCRIPT:
+            JavascriptChecker(
+                self.file_path, self.text, self._reporter).check()
         else:
             AnyTextChecker(self.file_path, self.text, self._reporter).check()
 
@@ -375,6 +388,28 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         if pdb_call in line:
             self.message(
                 line_no, 'Line contains a call to pdb.', icon='error')
+
+
+class JavascriptChecker(BaseChecker, AnyTextMixin):
+    """Check python source code."""
+
+    HERE = os.path.dirname(__file__)
+    FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
+    JSREPORTER = os.path.join(HERE, 'jsreporter.js')
+
+    def check(self):
+        """Check the syntax of the javascript code."""
+        if JS is None or self.text == '':
+            return
+        args = [JS, '-f', self.FULLJSLINT, self.JSREPORTER, self.text]
+        jslint = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        issues, errors = jslint.communicate()
+        issues = issues.strip()
+        if issues:
+            for issue in issues.splitlines():
+                line_no, char_no_, message = issue.split('::')
+                self.message(line_no, message, icon='error')
 
 
 def get_option_parser():
