@@ -10,7 +10,7 @@ function report_implied_names() {
             }
         }
     if (implied_names.length > 0) {
-        implied_names.sort()
+        implied_names.sort();
         print('0::0::Implied globals:' + implied_names.join(', '));
         }
     }
@@ -23,7 +23,10 @@ function report_lint_errors() {
         if (error === null) {
             print('0::0::JSLINT had a fatal error.');
             }
-        print(++error.line + '::' + ++error.character + '::' + error.reason);
+        // Fix the line and character offset for editors.
+        error.line += 1;
+        error.character += 1;
+        print(error.line + '::' + error.character + '::' + error.reason);
         }
     }
 
@@ -38,4 +41,4 @@ function main(source_script) {
     }
 
 
-main(arguments[0])
+main(arguments[0]);
