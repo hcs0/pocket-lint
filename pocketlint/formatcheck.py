@@ -125,18 +125,23 @@ class Language:
     XSLT = object()
     HTML = object()
     ZPT = object()
+    ZCML = object()
     DOCBOOK = object()
 
-    XML_LIKE = (XML, XSLT, HTML, ZPT, DOCBOOK)
+    XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
+    mimetypes.add_type('application/x-zope-configuation', '.zcml')
+    mimetypes.add_type('application/x-zope-page-template', '.pt')
     mime_type_language = {
         'text/x-python': PYTHON,
         'text/css': CSS,
-        'application/xml': XML,
         'text/html': HTML,
         'text/plain': TEXT,
         'application/javascript': JAVASCRIPT,
+        'application/xml': XML,
         'application/x-sh': SH,
+        'application/x-zope-configuation': ZCML,
+        'application/x-zope-page-template': ZPT,
         }
     doctest_pattern = re.compile(
         r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
