@@ -19,6 +19,9 @@ manifest: changelog
 dist: build manifest
 	$(PYTHON) setup.py sdist
 
+install:
+	$(PYTHON) setup.py install
+
 clean:
 	$(PYTHON) setup.py clean
 	rm -r build/

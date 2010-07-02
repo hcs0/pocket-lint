@@ -429,7 +429,9 @@ def get_option_parser():
     return parser
 
 
-def check_sources(sources):
+def check_sources(sources, reporter=None):
+    if reporter is None:
+        reporter = Reporter(Reporter.CONSOLE)
     for source in sources:
         file_path = os.path.normpath(source)
         if os.path.isdir(source) or not Language.is_editable(source):
@@ -437,7 +439,6 @@ def check_sources(sources):
         language = Language.get_language(file_path)
         with open(file_path) as file_:
             text = file_.read()
-        reporter = Reporter(Reporter.CONSOLE)
         checker = UniversalChecker(
             file_path, text=text, language=language, reporter=reporter)
         checker.check()
@@ -454,7 +455,8 @@ def main(argv=None):
         parser.error("Expected file paths.")
     if options.verbose:
         pass
-    check_sources(sources)
+    reporter = Reporter(Reporter.CONSOLE)
+    check_sources(sources, reporter)
 
 
 if __name__ == '__main__':

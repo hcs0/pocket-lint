@@ -35,9 +35,11 @@ as they are released.
 Installation from tarball
 -------------------------
 
-# Is this makefile or setup?
+run 
+    make install
 
-See HACKING for instructions to build the plugins from a branch.
+For more control over your options see
+    python ./setup.py --help 
 
 
 Reporting bugs and contributing

@@ -1,3 +1,9 @@
+pocket-lint-0.3: The first release
+==================================
+
+Fixed rules to ensure Zope zcml and pt are recongnised as XML.
+
+
 pocket-lint-0.1: The first release
 ==================================
 
