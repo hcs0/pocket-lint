@@ -261,6 +261,12 @@ class AnyTextMixin:
             self.message(
                 line_no, 'Line has trailing whitespace.', icon='info')
 
+    def check_tab(self, line_no, line):
+        """Check for the presence of tabs in the line."""
+        if '\t' in line:
+            self.message(
+                line_no, 'Line contains a tab character.', icon='info')
+
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
     """Verify the text of the document."""
@@ -275,6 +281,7 @@ class AnyTextChecker(BaseChecker, AnyTextMixin):
     def check(self):
         """Call each line_method for each line in text."""
         for line_no, line in enumerate(self.text.splitlines()):
+            line_no += 1
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
@@ -336,6 +343,16 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         # Add a handler that will report data during parsing.
         cssutils.log.addHandler(ReporterHandler(self))
         cssutils.parseString(self.text)
+        self.check_text()
+
+    def check_text(self):
+        """Call each line_method for each line in text."""
+        for line_no, line in enumerate(self.text.splitlines()):
+            line_no += 1
+            self.check_length(line_no, line)
+            self.check_trailing_whitespace(line_no, line)
+            self.check_conflicts(line_no, line)
+            self.check_tab(line_no, line)
 
 
 class PythonChecker(BaseChecker, AnyTextMixin):
@@ -382,10 +399,12 @@ class PythonChecker(BaseChecker, AnyTextMixin):
     def check_text(self):
         """Call each line_method for each line in text."""
         for line_no, line in enumerate(self.text.splitlines()):
+            line_no += 1
             self.check_pdb(line_no, line)
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_tab(line_no, line)
 
     def check_pdb(self, line_no, line):
         """Check the length of the line."""
@@ -415,6 +434,16 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')
                 self.message(line_no, message, icon='error')
+        self.check_text()
+
+    def check_text(self):
+        """Call each line_method for each line in text."""
+        for line_no, line in enumerate(self.text.splitlines()):
+            line_no += 1
+            self.check_length(line_no, line)
+            self.check_trailing_whitespace(line_no, line)
+            self.check_conflicts(line_no, line)
+            self.check_tab(line_no, line)
 
 
 def get_option_parser():
