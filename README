@@ -35,11 +35,11 @@ as they are released.
 Installation from tarball
 -------------------------
 
-run 
+run
     make install
 
 For more control over your options see
-    python ./setup.py --help 
+    python ./setup.py --help
 
 
 Reporting bugs and contributing
