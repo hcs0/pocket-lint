@@ -3,6 +3,8 @@
 # This software is licensed under the MIT license (see the file COPYING).
 """Check for syntax and style problems."""
 
+from __future__ import with_statement
+
 __metaclass__ = type
 
 import compiler
