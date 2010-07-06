@@ -3,7 +3,7 @@
 # This software is licensed under the MIT license (see the file COPYING).
 """Check for syntax and style problems."""
 
-__metatype__ = type
+__metaclass__ = type
 
 import compiler
 import htmlentitydefs
@@ -358,6 +358,11 @@ class CSSChecker(BaseChecker, AnyTextMixin):
 class PythonChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
 
+    def __init__(self, file_path, text, reporter=None):
+        super(PythonChecker, self).__init__(
+            file_path, text, reporter=reporter)
+        self.is_utf8 = False
+
     def check(self):
         """Check the syntax of the python code."""
         if self.text == '':
@@ -400,11 +405,14 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         """Call each line_method for each line in text."""
         for line_no, line in enumerate(self.text.splitlines()):
             line_no += 1
+            if line_no in (1, 2) and '# -*- coding: utf-8 -*-' in line:
+                self.is_utf8 = True
             self.check_pdb(line_no, line)
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_tab(line_no, line)
+            self.check_ascii(line_no, line)
 
     def check_pdb(self, line_no, line):
         """Check the length of the line."""
@@ -412,6 +420,17 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         if pdb_call in line:
             self.message(
                 line_no, 'Line contains a call to pdb.', icon='error')
+
+    def check_ascii(self, line_no, line):
+        """Check that the line is ascii."""
+        if self.is_utf8:
+            return
+        try:
+            ascii_line = line.encode('ascii')
+        except UnicodeDecodeError, error:
+            self.message(
+                line_no, 'Non-ascii characer at position %s.' % error.end,
+                icon='error')
 
 
 class JavascriptChecker(BaseChecker, AnyTextMixin):

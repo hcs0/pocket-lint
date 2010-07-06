@@ -3,7 +3,7 @@
 # This software is licensed under the MIT license (see the file COPYING).
 """Reformat a doctest to Launchpad style."""
 
-__metatype__ = type
+__metaclass__ = type
 
 import compiler
 import os
