@@ -79,8 +79,9 @@ class Reporter:
 
     def _message_console_group(self, base_dir, file_name):
         """Print the file name is it has not been seen yet."""
-        if file_name is not None and file_name != self._last_file_name:
-            self._last_file_name = file_name
+        source = (base_dir, file_name)
+        if file_name is not None and source != self._last_file_name:
+            self._last_file_name = source
             print '%s' % os.path.join('./', base_dir, file_name)
 
     def _message_file_lines(self, line_no, message, icon=None,
