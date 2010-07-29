@@ -130,18 +130,21 @@ class Language:
     ZPT = object()
     ZCML = object()
     DOCBOOK = object()
+    LOG = object()
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
     mimetypes.add_type('application/x-zope-configuation', '.zcml')
     mimetypes.add_type('application/x-zope-page-template', '.pt')
     mimetypes.add_type('text/x-python-doctest', '.doctest')
+    mimetypes.add_type('text/x-log', '.log')
     mime_type_language = {
         'text/x-python': PYTHON,
         'text/x-python-doctest': DOCTEST,
         'text/css': CSS,
         'text/html': HTML,
         'text/plain': TEXT,
+        'text/x-log': LOG,
         'application/javascript': JAVASCRIPT,
         'application/xml': XML,
         'application/x-sh': SH,
@@ -242,6 +245,10 @@ class UniversalChecker(BaseChecker):
         elif self.language is Language.JAVASCRIPT:
             JavascriptChecker(
                 self.file_path, self.text, self._reporter).check()
+        elif self.language is Language.LOG:
+            # Log files are not source, but they are often in source code
+            # trees.
+            pass
         else:
             AnyTextChecker(self.file_path, self.text, self._reporter).check()
 
