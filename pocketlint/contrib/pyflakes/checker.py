@@ -5,7 +5,7 @@
 import __builtin__
 from compiler import ast
 
-from pyflakes import messages
+from contrib.pyflakes import messages
 
 
 class Binding(object):

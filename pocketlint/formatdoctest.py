@@ -14,8 +14,8 @@ from doctest import DocTestParser, Example
 from optparse import OptionParser
 from textwrap import wrap
 
-from contrib.pyflakes.checker import Checker
 from contrib.pyflakes.messages import UndefinedName
+from contrib.pyflakes.checker import Checker
 
 
 __all__ = [
