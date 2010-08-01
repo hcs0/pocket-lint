@@ -14,8 +14,9 @@ from doctest import DocTestParser, Example
 from optparse import OptionParser
 from textwrap import wrap
 
-import pyflakes
-from pyflakes.checker import Checker
+from contrib.pyflakes.checker import Checker
+from contrib.pyflakes.messages import UndefinedName
+
 
 __all__ = [
     'DoctestReviewer',
@@ -303,7 +304,7 @@ class DoctestReviewer:
         else:
             warnings = Checker(tree)
             for warning in warnings.messages:
-                if isinstance(warning, pyflakes.messages.UndefinedName):
+                if isinstance(warning, UndefinedName):
                     continue
                 dummy, lineno, message = str(warning).split(':')
                 self._print_message(message.strip(), lineno)
