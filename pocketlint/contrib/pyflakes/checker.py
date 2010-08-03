@@ -5,7 +5,7 @@
 import __builtin__
 from compiler import ast
 
-from contrib.pyflakes import messages
+from pocketlint.contrib.pyflakes import messages
 
 
 class Binding(object):
