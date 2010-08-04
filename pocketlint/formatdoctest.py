@@ -275,7 +275,7 @@ class DoctestReviewer:
             return line
         moin = self.moin_pattern.match(line)
         if moin is not None:
-            self._print_message('%s uses a moin header.' % kind, lineno - 1)
+            self._print_message('%s uses a moin header.' % kind, lineno)
         return line
 
     def check_source_code(self, code):
@@ -293,7 +293,7 @@ class DoctestReviewer:
             if line.endswith("\n"):
                 line = line[:-1]
             self._print_message(
-                'Could not compile:\n          %s' % line, lineno - 1)
+                'Could not compile:\n          %s' % line, lineno)
         else:
             warnings = Checker(tree)
             for warning in warnings.messages:
