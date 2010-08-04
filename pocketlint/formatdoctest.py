@@ -14,7 +14,6 @@ from doctest import DocTestParser, Example
 from optparse import OptionParser
 from textwrap import wrap
 
-from contrib.pyflakes.messages import UndefinedName
 from contrib.pyflakes.checker import Checker
 
 
@@ -27,7 +26,6 @@ class DoctestReviewer:
     """Check and reformat doctests."""
     rule_pattern = re.compile(r'([=~-])+[ ]*$')
     moin_pattern = re.compile(r'^(=+)[ ](.+)[ ](=+[ ]*)$')
-    continuation_pattern = re.compile(r'^(\s*\.\.\.) ([^ ]+)$', re.M)
 
     SOURCE = 'source'
     WANT = 'want'
@@ -38,7 +36,6 @@ class DoctestReviewer:
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
         self.file_name = os.path.basename(file_path)
-        doctest = self._disambuguate_doctest(doctest)
         parser = DocTestParser()
         self.parts = parser.parse(doctest, file_path)
         self.blocks = []
@@ -49,10 +46,6 @@ class DoctestReviewer:
         self.last_bad_indent = 0
         self.has_printed_filename = False
         self._reporter = reporter
-
-    def _disambuguate_doctest(self, doctest):
-        """Clarify continuations that the doctest parser hides."""
-        return self.continuation_pattern.sub(r'\1    \2', doctest)
 
     def _print_message(self, message, lineno):
         """Print the error message with the lineno.
@@ -304,7 +297,7 @@ class DoctestReviewer:
         else:
             warnings = Checker(tree)
             for warning in warnings.messages:
-                if isinstance(warning, UndefinedName):
+                if 'undefined name ' in str(warning):
                     continue
                 dummy, lineno, message = str(warning).split(':')
                 self._print_message(message.strip(), lineno)
