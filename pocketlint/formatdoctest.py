@@ -36,8 +36,6 @@ class DoctestReviewer:
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
         self.file_name = os.path.basename(file_path)
-        parser = DocTestParser()
-        self.parts = parser.parse(doctest, file_path)
         self.blocks = []
         self.block = []
         self.block_method = self.preserve_block
@@ -46,6 +44,14 @@ class DoctestReviewer:
         self.last_bad_indent = 0
         self.has_printed_filename = False
         self._reporter = reporter
+
+    def get_parts(self):
+        parser = DocTestParser()
+        try:
+            return parser.parse(self.doctest, self.file_path)
+        except ValueError, error:
+            self._print_message(str(error), 0)
+            return []
 
     def _print_message(self, message, lineno):
         """Print the error message with the lineno.
@@ -109,7 +115,7 @@ class DoctestReviewer:
         self.block = []
         lineno = 0
         previous_kind = DoctestReviewer.NARRATIVE
-        for line, kind in self._walk(self.parts):
+        for line, kind in self._walk(self.get_parts()):
             lineno += 1
             self._append_source(kind, line)
             if kind != previous_kind and kind != DoctestReviewer.WANT:
