@@ -19,6 +19,7 @@ import sys
 from optparse import OptionParser
 from StringIO import StringIO
 from xml.etree import ElementTree
+from xml.etree.ElementTree import ParseError
 from xml.parsers.expat import ErrorString, ExpatError
 
 from formatdoctest import DoctestReviewer
@@ -327,10 +328,15 @@ class XMLChecker(BaseChecker, AnyTextMixin):
                 text = text[:start] + self.xhtml_doctype + text[end:]
         try:
             root = ElementTree.parse(StringIO(text), parser)
-        except ExpatError, error:
+        except (ExpatError, ParseError), error:
             if hasattr(error, 'code'):
                 error_message = ErrorString(error.code)
-                error_lineno = error.lineno - offset
+                if error.position:
+                    error_lineno, error_charno = error.position
+                elif error.lineno:
+                    error_lineno = error.lineno - offset
+                else:
+                    error_lineno = 0
             else:
                 error_message, location = str(error).rsplit(':')
                 error_lineno = int(location.split(',')[0].split()[1])- offset
