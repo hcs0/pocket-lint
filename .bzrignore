@@ -26,3 +26,5 @@ mkinstalldirs
 config.status.lineno
 install-sh
 missing
+MANIFEST
+dist
