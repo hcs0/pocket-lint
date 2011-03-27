@@ -41,10 +41,6 @@ class Test:
         a =  "okay"
 """
 
-pdb_python = "import pdb; pdb." + "set_trace()"
-
-utf8_python = u"a = 'this is utf-8 [\u272a]'"
-
 
 class TestPyflakes(CheckerTestCase):
     """Verify pyflakes integration."""
@@ -122,17 +118,20 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self.assertEqual([], self.reporter.messages)
 
     def test_code_with_pdb(self):
+        pdb_python = "import pdb; pdb." + "set_trace()"
         checker = PythonChecker('bogus', pdb_python, self.reporter)
         checker.check_text()
         self.assertEqual(
             [(1, 'Line contains a call to pdb.')], self.reporter.messages)
 
     def test_code_is_utf8(self):
+        utf8_python = u"a = 'this is utf-8 [\u272a]'"
         checker = PythonChecker('bogus', utf8_python, self.reporter)
         checker.is_utf8 = True
         checker.check_text()
 
     def test_code_ascii_is_not_is_utf8(self):
+        utf8_python = u"a = 'this is utf-8 [\u272a]'"
         checker = PythonChecker('bogus', utf8_python, self.reporter)
         checker.check_text()
         self.assertEqual(
