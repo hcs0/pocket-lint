@@ -1,21 +1,17 @@
 # Copyright (C) 2011 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
-import unittest
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatcheck import PythonChecker
 from pocketlint.tests import (
+    CheckerTestCase,
     data,
-    TestReporter,
     )
 
 
-class TestPyflakes(unittest.TestCase):
+class TestPyflakes(CheckerTestCase):
     """Verify pyflakes integration."""
-
-    def setUp(self):
-        self.reporter = TestReporter()
 
     def test_code_without_issues(self):
         checker = PythonChecker('bogus', data.good_python, self.reporter)
@@ -47,11 +43,11 @@ class TestPyflakes(unittest.TestCase):
             [(3, "undefined name 'b'")], self.reporter.messages)
 
 
-class TestPEP8(unittest.TestCase):
+class TestPEP8(CheckerTestCase):
     """Verify PEP8 integration."""
 
     def setUp(self):
-        self.reporter = TestReporter()
+        super(TestPEP8, self).setUp()
         self.file = NamedTemporaryFile(prefix='pocketlint_')
 
     def tearDown(self):
@@ -76,11 +72,8 @@ class TestPEP8(unittest.TestCase):
             self.reporter.messages)
 
 
-class TestText(unittest.TestCase):
+class TestText(CheckerTestCase):
     """Verify text integration."""
-
-    def setUp(self):
-        self.reporter = TestReporter()
 
     def test_code_without_issues(self):
         checker = PythonChecker('bogus', data.good_python, self.reporter)

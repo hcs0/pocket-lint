@@ -1,6 +1,9 @@
 # Copyright (C) 2011 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
+import unittest
+
+
 class TestReporter:
     """A reporter that stores the messages in a property for interogation."""
 
@@ -18,3 +21,10 @@ class TestReporter:
                          base_dir=None, file_name=None):
         """Print the messages to the console."""
         self.messages.append((line_no, message))
+
+
+class CheckerTestCase(unittest.TestCase):
+    """A testcase with a TestReporter for checkers."""
+
+    def setUp(self):
+        self.reporter = TestReporter()
