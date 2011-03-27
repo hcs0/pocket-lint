@@ -2,10 +2,7 @@
 # This software is licensed under the MIT license (see the file COPYING).
 
 from pocketlint.formatcheck import AnyTextChecker
-from pocketlint.tests import (
-    CheckerTestCase,
-    data,
-    )
+from pocketlint.tests import CheckerTestCase
 
 
 class TestAnyTextMixin:
