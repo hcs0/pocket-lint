@@ -8,6 +8,7 @@ from pocketlint.tests import (
     CheckerTestCase,
     data,
     )
+from pocketlint.tests.test_text import TestAnyTextMixin
 
 
 class TestPyflakes(CheckerTestCase):
@@ -72,8 +73,13 @@ class TestPEP8(CheckerTestCase):
             self.reporter.messages)
 
 
-class TestText(CheckerTestCase):
+class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
+
+    def create_and_check(self, file_name, text):
+        """Used by the TestAnyTextMixin tests."""
+        checker = PythonChecker(file_name, text, self.reporter)
+        checker.check_text()
 
     def test_code_without_issues(self):
         checker = PythonChecker('bogus', data.good_python, self.reporter)
