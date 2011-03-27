@@ -341,7 +341,11 @@ class XMLChecker(BaseChecker, AnyTextMixin):
                 error_message, location = str(error).rsplit(':')
                 error_lineno = int(location.split(',')[0].split()[1])- offset
             self.message(error_lineno, error_message, icon='error')
+        self.check_text()
+
+    def check_text(self):
         for line_no, line in enumerate(self.text.splitlines()):
+            line_no += 1
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
 
