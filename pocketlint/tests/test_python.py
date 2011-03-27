@@ -31,7 +31,7 @@ class example:
 """
 
 
-bad_python = """
+bad_syntax_python = """
 class Test():
     def __init__(self, default='', non_default):
         pass
@@ -45,6 +45,12 @@ class Test:
 """
 
 
+ugly_python = """
+class Test:
+    def __init__(self):
+        a = b
+"""
+
 
 class TestPyflakes(unittest.TestCase):
     """Verify pyflakes integration."""
@@ -57,7 +63,7 @@ class TestPyflakes(unittest.TestCase):
 
     def test_code_with_syntax_issues(self):
         reporter = TestReporter()
-        checker = PythonChecker('bogus', bad_python, reporter)
+        checker = PythonChecker('bogus', bad_syntax_python, reporter)
         checker.check_flakes()
         expected = [(
             0, 'Could not compile; non-default argument follows '
@@ -71,4 +77,11 @@ class TestPyflakes(unittest.TestCase):
         expected = [
             (5, 'Could not compile; unindent does not match any '
                 'outer indentation level: b = 1')]
+        self.assertEqual(expected, reporter.messages)
+
+    def test_code_with_warnings(self):
+        reporter = TestReporter()
+        checker = PythonChecker('bogus', ugly_python, reporter)
+        checker.check_flakes()
+        expected = [(4, "undefined name 'b'")]
         self.assertEqual(expected, reporter.messages)
