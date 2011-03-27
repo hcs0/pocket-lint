@@ -3,8 +3,10 @@ PYTHON = python
 build:
 	$(PYTHON) setup.py build
 
-check: build
-	$(PYTHON) test.py -v
+test:
+	$(PYTHON) test.py
+
+check: build test
 
 changelog:
 	@if test -d .bzr/branch; then \

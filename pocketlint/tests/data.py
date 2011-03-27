@@ -10,7 +10,6 @@ class example:
         print "Good night."
 """
 
-
 bad_syntax_python = """\
 class Test():
     def __init__(self, default='', non_default):
@@ -23,7 +22,6 @@ class Test:
         a = 0
       b = 1
 """
-
 
 ugly_python = """\
 class Test:
