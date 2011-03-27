@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (C) 2009-2010 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
 __metaclass__ = type
