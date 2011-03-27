@@ -397,9 +397,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             line_no = exc.lineno or 0
             offset = exc.offset or 0
             line = exc.text or ''
-            #(line_no, offset, line) = exc[1][1:]
-            explanation = 'Could not compile; %s at ' % exc.message 
-            message = '%s %s: %s' % (explanation, offset, line.strip())
+            explanation = 'Could not compile; %s' % exc.msg
+            message = '%s: %s' % (explanation, line.strip())
             self.message(line_no, message, icon='error')
         else:
             warnings = Checker(tree)

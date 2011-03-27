@@ -37,6 +37,14 @@ class Test():
         pass
 """
 
+bad_indentation_python = """
+class Test:
+    def __init__(self):
+        a = 0
+      b = 1
+"""
+
+
 
 class TestPyflakes(unittest.TestCase):
     """Verify pyflakes integration."""
@@ -53,5 +61,14 @@ class TestPyflakes(unittest.TestCase):
         checker.check_flakes()
         expected = [(
             0, 'Could not compile; non-default argument follows '
-               'default argument at  0: ')]
+               'default argument: ')]
+        self.assertEqual(expected, reporter.messages)
+
+    def test_code_with_indentation_issues(self):
+        reporter = TestReporter()
+        checker = PythonChecker('bogus', bad_indentation_python, reporter)
+        checker.check_flakes()
+        expected = [
+            (5, 'Could not compile; unindent does not match any '
+                'outer indentation level: b = 1')]
         self.assertEqual(expected, reporter.messages)
