@@ -37,3 +37,7 @@ class Test:
     def __init__(self):
         a =  "okay"
 """
+
+pdb_python = "import pdb; pdb." + "set_trace()"
+
+utf8_python = u"a = 'this is utf-8 [\u272a]'"

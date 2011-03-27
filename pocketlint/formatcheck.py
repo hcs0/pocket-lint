@@ -447,7 +447,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             return
         try:
             ascii_line = line.encode('ascii')
-        except UnicodeDecodeError, error:
+        except UnicodeEncodeError, error:
             self.message(
                 line_no, 'Non-ascii characer at position %s.' % error.end,
                 icon='error')

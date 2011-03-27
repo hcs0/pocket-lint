@@ -74,3 +74,33 @@ class TestPEP8(unittest.TestCase):
         self.assertEqual(
             [(4, 'E222 multiple spaces after operator')],
             self.reporter.messages)
+
+
+class TestText(unittest.TestCase):
+    """Verify text integration."""
+
+    def setUp(self):
+        self.reporter = TestReporter()
+
+    def test_code_without_issues(self):
+        checker = PythonChecker('bogus', data.good_python, self.reporter)
+        checker.check_text()
+        self.assertEqual([], self.reporter.messages)
+
+    def test_code_with_pdb(self):
+        checker = PythonChecker('bogus', data.pdb_python, self.reporter)
+        checker.check_text()
+        self.assertEqual(
+            [(1, 'Line contains a call to pdb.')], self.reporter.messages)
+
+    def test_code_is_utf8(self):
+        checker = PythonChecker('bogus', data.utf8_python, self.reporter)
+        checker.is_utf8 = True
+        checker.check_text()
+
+    def test_code_ascii_is_not_is_utf8(self):
+        checker = PythonChecker('bogus', data.utf8_python, self.reporter)
+        checker.check_text()
+        self.assertEqual(
+            [(1, 'Non-ascii characer at position 21.')],
+            self.reporter.messages)
