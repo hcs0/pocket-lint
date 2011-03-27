@@ -1,7 +1,10 @@
 # Copyright (C) 2011 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
-from pocketlint.formatcheck import CSSChecker
+from pocketlint.formatcheck import(
+     CSSChecker,
+     HAS_CSSUTILS,
+    )
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
@@ -35,6 +38,8 @@ class TestCSS(CheckerTestCase):
         self.assertEqual([], self.reporter.messages)
 
     def test_ill_formed_property(self):
+        if not HAS_CSSUTILS:
+            return
         checker = CSSChecker('bogus', ill_formed_property, self.reporter)
         checker.check()
         messages = [
@@ -44,6 +49,8 @@ class TestCSS(CheckerTestCase):
         self.assertEqual(messages, self.reporter.messages)
 
     def test_invalid_value(self):
+        if not HAS_CSSUTILS:
+            return
         checker = CSSChecker('bogus', invalid_value, self.reporter)
         checker.check()
         message = (
