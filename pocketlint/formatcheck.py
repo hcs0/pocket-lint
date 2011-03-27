@@ -394,9 +394,12 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         try:
             tree = compiler.parse(self.text)
         except (SyntaxError, IndentationError), exc:
-            (line_no, offset, line) = exc[1][1:]
-            message = 'Could not compile offset %s: %s' % (
-                offset, line.strip())
+            line_no = exc.lineno or 0
+            offset = exc.offset or 0
+            line = exc.text or ''
+            #(line_no, offset, line) = exc[1][1:]
+            explanation = 'Could not compile; %s at ' % exc.message 
+            message = '%s %s: %s' % (explanation, offset, line.strip())
             self.message(line_no, message, icon='error')
         else:
             warnings = Checker(tree)

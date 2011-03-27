@@ -31,10 +31,27 @@ class example:
 """
 
 
+bad_python = """
+class Test():
+    def __init__(self, default='', non_default):
+        pass
+"""
+
+
 class TestPyflakes(unittest.TestCase):
     """Verify pyflakes integration."""
 
     def test_code_without_issues(self):
         reporter = TestReporter()
-        PythonChecker('bogus', good_python, reporter)
+        checker = PythonChecker('bogus', good_python, reporter)
+        checker.check_flakes()
         self.assertEqual([], reporter.messages)
+
+    def test_code_with_syntax_issues(self):
+        reporter = TestReporter()
+        checker = PythonChecker('bogus', bad_python, reporter)
+        checker.check_flakes()
+        expected = [(
+            0, 'Could not compile; non-default argument follows '
+               'default argument at  0: ')]
+        self.assertEqual(expected, reporter.messages)
