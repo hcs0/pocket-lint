@@ -96,27 +96,6 @@ class Reporter:
             self.piter, (file_name, icon, line_no, message, base_dir))
 
 
-class ReporterHandler(logging.Handler):
-    """A logging handler that uses the checker to report issues."""
-
-    def __init__(self, checker):
-        logging.Handler.__init__(self, logging.INFO)
-        self.checker = checker
-
-    def handleError(self, record):
-        pass
-
-    def emit(self, record):
-        if record.levelname == 'ERROR':
-            icon = 'error'
-        else:
-            icon = 'info'
-        matches = self.checker.message_pattern.search(record.getMessage())
-        line_no = matches.group(2)
-        message = "%s: %s" % (matches.group(1), matches.group(3))
-        self.checker.message(int(line_no), message, icon=icon)
-
-
 class Language:
     """Supported Language types."""
     TEXT = object()
@@ -350,10 +329,44 @@ class XMLChecker(BaseChecker, AnyTextMixin):
             self.check_conflicts(line_no, line)
 
 
+class CSSReporterHandler(logging.Handler):
+    """A logging handler that uses the checker to report issues."""
+
+    error_pattern = re.compile(
+        r'(?P<issue>[^(]+): \((?P<text>[^,]+, [^,]+), (?P<lineno>\d+).*')
+    message_pattern = re.compile(
+        r'(?P<issue>[^:]+:[^:]+): (?P<text>.*) (?P<lineno>0)$')
+
+    def __init__(self, checker):
+        logging.Handler.__init__(self, logging.INFO)
+        self.checker = checker
+
+    def handleError(self, record):
+        pass
+
+    def emit(self, record):
+        if record.levelname == 'ERROR':
+            icon = 'error'
+        else:
+            icon = 'info'
+        matches = self.checker.message_pattern.search(record.getMessage())
+        if matches is None:
+            matches = self.error_pattern.search(record.getMessage())
+        try:
+            line_no = matches.group('lineno')
+            message = "%s: %s" % (
+                matches.group('issue'), matches.group('text'))
+        except AttributeError:
+            line_no = 0
+            message = record.getMessage()
+        self.checker.message(int(line_no), message, icon=icon)
+
+
 class CSSChecker(BaseChecker, AnyTextMixin):
     """Check XML documents."""
 
-    message_pattern = re.compile(r'[^ ]+ (.*) \[(\d+):\d+: (.+)\]')
+    message_pattern = re.compile(
+        r'[^ ]+ (?P<issue>.*) \[(?P<lineno>\d+):\d+: (?P<text>.+)\]')
 
     def check(self):
         """Check the syntax of the CSS code."""
@@ -363,7 +376,7 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         cssutils.log._log = logging.getLogger('pocket-lint')
         cssutils.log.raiseExceptions = False
         # Add a handler that will report data during parsing.
-        cssutils.log.addHandler(ReporterHandler(self))
+        cssutils.log.addHandler(CSSReporterHandler(self))
         cssutils.parseString(self.text)
         self.check_text()
 
