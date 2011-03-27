@@ -6,9 +6,23 @@ from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
 
-missing_dtd = """\
+good_markup = """\
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<root>
+  <child>hello world</child>
+</root>
+"""
+
+missing_dtd_and_xml = """\
 <root>
   <child>hello&nbsp;world</child>
+</root>
+"""
+
+ill_formed_markup = """\
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<root>
+  <child>hello world<
 </root>
 """
 
@@ -16,10 +30,21 @@ missing_dtd = """\
 class TestXML(CheckerTestCase):
     """Verify XML integration."""
 
-    def test_missing_dtd(self):
-        checker = XMLChecker('bogus', missing_dtd, self.reporter)
+    def test_good_markup(self):
+        checker = XMLChecker('bogus', good_markup, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
+
+    def test_missing_dtd_and_xml(self):
+        checker = XMLChecker('bogus', missing_dtd_and_xml, self.reporter)
+        checker.check()
+        self.assertEqual([], self.reporter.messages)
+
+    def test_ill_formed_markup(self):
+        checker = XMLChecker('bogus', ill_formed_markup, self.reporter)
+        checker.check()
+        self.assertEqual(
+            [(6, 'not well-formed (invalid token)')], self.reporter.messages)
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):
