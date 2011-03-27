@@ -4,24 +4,59 @@
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatcheck import PythonChecker
-from pocketlint.tests import (
-    CheckerTestCase,
-    data,
-    )
+from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
+
+
+good_python = """\
+class example:
+
+    def __init__(self, value):
+        print "Good night."
+"""
+
+bad_syntax_python = """\
+class Test():
+    def __init__(self, default='', non_default):
+        pass
+"""
+
+bad_indentation_python = """\
+class Test:
+    def __init__(self):
+        a = 0
+      b = 1
+"""
+
+ugly_python = """\
+class Test:
+    def __init__(self):
+        a = b
+"""
+
+ugly_style_python = """\
+class Test:
+
+    def __init__(self):
+        a =  "okay"
+"""
+
+pdb_python = "import pdb; pdb." + "set_trace()"
+
+utf8_python = u"a = 'this is utf-8 [\u272a]'"
 
 
 class TestPyflakes(CheckerTestCase):
     """Verify pyflakes integration."""
 
     def test_code_without_issues(self):
-        checker = PythonChecker('bogus', data.good_python, self.reporter)
+        checker = PythonChecker('bogus', good_python, self.reporter)
         checker.check_flakes()
         self.assertEqual([], self.reporter.messages)
 
     def test_code_with_SyntaxError(self):
         checker = PythonChecker(
-            'bogus', data.bad_syntax_python, self.reporter)
+            'bogus', bad_syntax_python, self.reporter)
         checker.check_flakes()
         expected = [(
             0, 'Could not compile; non-default argument follows '
@@ -30,7 +65,7 @@ class TestPyflakes(CheckerTestCase):
 
     def test_code_with_IndentationError(self):
         checker = PythonChecker(
-            'bogus', data.bad_indentation_python, self.reporter)
+            'bogus', bad_indentation_python, self.reporter)
         checker.check_flakes()
         expected = [
             (4, 'Could not compile; unindent does not match any '
@@ -38,7 +73,7 @@ class TestPyflakes(CheckerTestCase):
         self.assertEqual(expected, self.reporter.messages)
 
     def test_code_with_warnings(self):
-        checker = PythonChecker('bogus', data.ugly_python, self.reporter)
+        checker = PythonChecker('bogus', ugly_python, self.reporter)
         checker.check_flakes()
         self.assertEqual(
             [(3, "undefined name 'b'")], self.reporter.messages)
@@ -55,18 +90,18 @@ class TestPEP8(CheckerTestCase):
         self.file.close()
 
     def test_code_without_issues(self):
-        self.file.write(data.good_python)
+        self.file.write(good_python)
         self.file.flush()
         checker = PythonChecker(
-            self.file.name, data.good_python, self.reporter)
+            self.file.name, good_python, self.reporter)
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
     def test_code_with_issues(self):
-        self.file.write(data.ugly_style_python)
+        self.file.write(ugly_style_python)
         self.file.flush()
         checker = PythonChecker(
-            self.file.name, data.ugly_style_python, self.reporter)
+            self.file.name, ugly_style_python, self.reporter)
         checker.check_pep8()
         self.assertEqual(
             [(4, 'E222 multiple spaces after operator')],
@@ -82,23 +117,23 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         checker.check_text()
 
     def test_code_without_issues(self):
-        checker = PythonChecker('bogus', data.good_python, self.reporter)
+        checker = PythonChecker('bogus', good_python, self.reporter)
         checker.check_text()
         self.assertEqual([], self.reporter.messages)
 
     def test_code_with_pdb(self):
-        checker = PythonChecker('bogus', data.pdb_python, self.reporter)
+        checker = PythonChecker('bogus', pdb_python, self.reporter)
         checker.check_text()
         self.assertEqual(
             [(1, 'Line contains a call to pdb.')], self.reporter.messages)
 
     def test_code_is_utf8(self):
-        checker = PythonChecker('bogus', data.utf8_python, self.reporter)
+        checker = PythonChecker('bogus', utf8_python, self.reporter)
         checker.is_utf8 = True
         checker.check_text()
 
     def test_code_ascii_is_not_is_utf8(self):
-        checker = PythonChecker('bogus', data.utf8_python, self.reporter)
+        checker = PythonChecker('bogus', utf8_python, self.reporter)
         checker.check_text()
         self.assertEqual(
             [(1, 'Non-ascii characer at position 21.')],
