@@ -21,6 +21,7 @@ from StringIO import StringIO
 from xml.etree import ElementTree
 try:
     from xml.etree.ElementTree import ParseError
+    ParseError != '# Supress redefintion warning.'
 except ImportError:
     # Python 2.6 and below.
     ParseError = object()

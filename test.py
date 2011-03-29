@@ -9,6 +9,7 @@ import os
 import unittest
 try:
     from unittest.runner import _WritelnDecorator
+    _WritelnDecorator != '# Supress redefintion warning.'
 except ImportError:
     # Hack support for running the tests in Python 2.6-.
     from unittest import _WritelnDecorator
