@@ -314,9 +314,11 @@ class XMLChecker(BaseChecker, AnyTextMixin):
         except (ExpatError, ParseError), error:
             if hasattr(error, 'code'):
                 error_message = ErrorString(error.code)
-                if error.position:
+                if hasattr(error, 'position') and error.position:
                     error_lineno, error_charno = error.position
+                    error_lineno = error_lineno - offset
                 elif error.lineno:
+                    # Python 2.6-
                     error_lineno = error.lineno - offset
                 else:
                     error_lineno = 0

@@ -7,7 +7,18 @@ __metaclass__ = type
 import re
 import os
 import unittest
-from unittest.runner import _WritelnDecorator
+try:
+    from unittest.runner import _WritelnDecorator
+except ImportError:
+    # Hack support for running the tests in Python 2.6-.
+    from unittest import _WritelnDecorator
+
+    class FakeRunner:
+
+        def __init__(self, writelin_decorator):
+            self._WritelnDecorator = writelin_decorator
+
+    unittest.runner = FakeRunner(_WritelnDecorator)
 
 
 class TPut:

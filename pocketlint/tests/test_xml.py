@@ -44,7 +44,7 @@ class TestXML(CheckerTestCase):
         checker = XMLChecker('bogus', ill_formed_markup, self.reporter)
         checker.check()
         self.assertEqual(
-            [(6, 'not well-formed (invalid token)')], self.reporter.messages)
+            [(3, 'not well-formed (invalid token)')], self.reporter.messages)
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):
