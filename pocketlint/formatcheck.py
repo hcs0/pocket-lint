@@ -19,7 +19,11 @@ import sys
 from optparse import OptionParser
 from StringIO import StringIO
 from xml.etree import ElementTree
-from xml.etree.ElementTree import ParseError
+try:
+    from xml.etree.ElementTree import ParseError
+except ImportError:
+    # Python 2.6 and below.
+    ParseError = object()
 from xml.parsers.expat import ErrorString, ExpatError
 
 from formatdoctest import DoctestReviewer
