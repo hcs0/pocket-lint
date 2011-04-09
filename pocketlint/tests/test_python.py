@@ -65,6 +65,14 @@ class TestPyflakes(CheckerTestCase):
                'default argument: ')]
         self.assertEqual(expected, self.reporter.messages)
 
+    def test_code_with_very_bad_SyntaxError(self):
+        checker = PythonChecker(
+            'bogus', bad_syntax2_python, self.reporter)
+        checker.check_flakes()
+        expected = [(
+            2, 'Could not compile; invalid syntax: def __init__(self, val):')]
+        self.assertEqual(expected, self.reporter.messages)
+
     def test_code_with_IndentationError(self):
         checker = PythonChecker(
             'bogus', bad_indentation_python, self.reporter)
