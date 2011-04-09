@@ -18,6 +18,7 @@ import sys
 
 from optparse import OptionParser
 from StringIO import StringIO
+from tokenize import TokenError
 from xml.etree import ElementTree
 try:
     from xml.etree.ElementTree import ParseError
@@ -441,7 +442,11 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
             pep8.Checker.report_error = pep8_report_error
             pep8.process_options([self.file_path])
-            pep8.Checker(self.file_path).check_all()
+            try:
+                pep8.Checker(self.file_path).check_all()
+            except TokenError, er:
+                message, location = er.args
+                self.message(location[0], message, icon='error')
         finally:
             Checker.report_error = original_report_error
 

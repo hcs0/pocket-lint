@@ -21,6 +21,12 @@ class Test():
         pass
 """
 
+bad_syntax2_python = """\
+class Test(
+    def __init__(self, val):
+        pass
+"""
+
 bad_indentation_python = """\
 class Test:
     def __init__(self):
@@ -92,6 +98,16 @@ class TestPEP8(CheckerTestCase):
             self.file.name, good_python, self.reporter)
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
+
+    def test_bad_syntax(self):
+        self.file.write(bad_syntax2_python)
+        self.file.flush()
+        checker = PythonChecker(
+            self.file.name, ugly_style_python, self.reporter)
+        checker.check_pep8()
+        self.assertEqual(
+            [(4, 'EOF in multi-line statement')],
+            self.reporter.messages)
 
     def test_code_with_issues(self):
         self.file.write(ugly_style_python)
