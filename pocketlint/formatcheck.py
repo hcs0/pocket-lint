@@ -501,7 +501,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
         if issues:
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')
-                self.message(line_no, message, icon='error')
+                self.message(int(line_no), message, icon='error')
         self.check_text()
 
     def check_text(self):

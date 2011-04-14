@@ -32,7 +32,7 @@ class TestJavascript(CheckerTestCase):
         checker = JavascriptChecker('bogus', invalid_js, self.reporter)
         checker.check()
         self.assertEqual(
-            [('2', "Expected ';' and instead saw '(end)'.")],
+            [(2, "Expected ';' and instead saw '(end)'.")],
             self.reporter.messages)
 
 
