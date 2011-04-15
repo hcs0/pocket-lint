@@ -51,6 +51,10 @@ class Test:
 class TestPyflakes(CheckerTestCase):
     """Verify pyflakes integration."""
 
+    def test_contrib_integration(self):
+        from pocketlint.contrib.pyflakes.checker import messages
+        self.assertTrue('pocketlint/contrib/' in messages.__file__)
+
     def test_code_without_issues(self):
         checker = PythonChecker('bogus', good_python, self.reporter)
         checker.check_flakes()

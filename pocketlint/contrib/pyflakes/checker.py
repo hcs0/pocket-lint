@@ -6,7 +6,9 @@ import __builtin__
 import os.path
 from compiler import ast
 
-from pyflakes import messages
+# XXX sinzui 2011-04-15: Import the contrib version of message.
+#from pyflakes import messages
+from pocketlint.contrib.pyflakes import messages
 
 
 
