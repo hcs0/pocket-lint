@@ -86,7 +86,9 @@ class TestPyflakes(CheckerTestCase):
         checker = PythonChecker('bogus', ugly_python, self.reporter)
         checker.check_flakes()
         self.assertEqual(
-            [(3, "undefined name 'b'")], self.reporter.messages)
+            [(3, "undefined name 'b'"),
+            (3, "local variable 'a' is assigned to but never used")],
+            self.reporter.messages)
 
 
 class TestPEP8(CheckerTestCase):

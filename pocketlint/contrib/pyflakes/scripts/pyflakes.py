@@ -9,24 +9,58 @@ import os
 checker = __import__('pyflakes.checker').checker
 
 def check(codeString, filename):
-    try:
-        tree = compiler.parse(codeString)
-    except (SyntaxError, IndentationError), e:
-        msg = e.args[0]
-        value = sys.exc_info()[1]
-        try:
-            (lineno, offset, text) = value[1][1:]
-        except IndexError:
-            print >> sys.stderr, 'could not compile %r' % (filename,)
-            return 1
-        line = text.splitlines()[-1]
-        offset = offset - (len(text) - len(line))
+    """
+    Check the Python source given by C{codeString} for flakes.
 
-        print >> sys.stderr, '%s:%d: %s' % (filename, lineno, msg)
-        print >> sys.stderr, line
-        print >> sys.stderr, " " * offset, "^"
+    @param codeString: The Python source to check.
+    @type codeString: C{str}
+
+    @param filename: The name of the file the source came from, used to report
+        errors.
+    @type filename: C{str}
+
+    @return: The number of warnings emitted.
+    @rtype: C{int}
+    """
+    # Since compiler.parse does not reliably report syntax errors, use the
+    # built in compiler first to detect those.
+    try:
+        try:
+            compile(codeString, filename, "exec")
+        except MemoryError:
+            # Python 2.4 will raise MemoryError if the source can't be
+            # decoded.
+            if sys.version_info[:2] == (2, 4):
+                raise SyntaxError(None)
+            raise
+    except (SyntaxError, IndentationError), value:
+        msg = value.args[0]
+
+        (lineno, offset, text) = value.lineno, value.offset, value.text
+
+        # If there's an encoding problem with the file, the text is None.
+        if text is None:
+            # Avoid using msg, since for the only known case, it contains a
+            # bogus message that claims the encoding the file declared was
+            # unknown.
+            print >> sys.stderr, "%s: problem decoding source" % (filename, )
+        else:
+            line = text.splitlines()[-1]
+
+            if offset is not None:
+                offset = offset - (len(text) - len(line))
+
+            print >> sys.stderr, '%s:%d: %s' % (filename, lineno, msg)
+            print >> sys.stderr, line
+
+            if offset is not None:
+                print >> sys.stderr, " " * offset, "^"
+
         return 1
     else:
+        # Okay, it's syntactically valid.  Now parse it into an ast and check
+        # it.
+        tree = compiler.parse(codeString)
         w = checker.Checker(tree, filename)
         w.messages.sort(lambda a, b: cmp(a.lineno, b.lineno))
         for warning in w.messages:
@@ -40,11 +74,12 @@ def checkPath(filename):
 
     @return: the number of warnings printed
     """
-    if os.path.exists(filename):
+    try:
         return check(file(filename, 'U').read() + '\n', filename)
-    else:
-        print >> sys.stderr, '%s: no such file' % (filename,)
+    except IOError, msg:
+        print >> sys.stderr, "%s: %s" % (filename, msg.args[1])
         return 1
+
 
 def main():
     warnings = 0

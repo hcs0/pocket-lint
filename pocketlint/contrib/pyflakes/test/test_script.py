@@ -44,7 +44,7 @@ class CheckTests(TestCase):
         """
         err = StringIO()
         count = withStderrTo(err, lambda: checkPath('extremo'))
-        self.assertEquals(err.getvalue(), 'extremo: no such file\n')
+        self.assertEquals(err.getvalue(), 'extremo: No such file or directory\n')
         self.assertEquals(count, 1)
 
 
@@ -106,3 +106,80 @@ def foo(
          ^
 """ % (sourcePath.path,))
 
+
+    def test_nonDefaultFollowsDefaultSyntaxError(self):
+        """
+        Source which has a non-default argument following a default argument
+        should include the line number of the syntax error.  However these
+        exceptions do not include an offset.
+        """
+        source = """\
+def foo(bar=baz, bax):
+    pass
+"""
+        sourcePath = FilePath(self.mktemp())
+        sourcePath.setContent(source)
+        err = StringIO()
+        count = withStderrTo(err, lambda: checkPath(sourcePath.path))
+        self.assertEqual(count, 1)
+        self.assertEqual(
+            err.getvalue(),
+            """\
+%s:1: non-default argument follows default argument
+def foo(bar=baz, bax):
+""" % (sourcePath.path,))
+
+
+    def test_nonKeywordAfterKeywordSyntaxError(self):
+        """
+        Source which has a non-keyword argument after a keyword argument should
+        include the line number of the syntax error.  However these exceptions
+        do not include an offset.
+        """
+        source = """\
+foo(bar=baz, bax)
+"""
+        sourcePath = FilePath(self.mktemp())
+        sourcePath.setContent(source)
+        err = StringIO()
+        count = withStderrTo(err, lambda: checkPath(sourcePath.path))
+        self.assertEqual(count, 1)
+        self.assertEqual(
+            err.getvalue(),
+            """\
+%s:1: non-keyword arg after keyword arg
+foo(bar=baz, bax)
+""" % (sourcePath.path,))
+
+
+    def test_permissionDenied(self):
+        """
+        If the a source file is not readable, this is reported on standard
+        error.
+        """
+        sourcePath = FilePath(self.mktemp())
+        sourcePath.setContent('')
+        sourcePath.chmod(0)
+        err = StringIO()
+        count = withStderrTo(err, lambda: checkPath(sourcePath.path))
+        self.assertEquals(count, 1)
+        self.assertEquals(
+            err.getvalue(), "%s: Permission denied\n" % (sourcePath.path,))
+
+
+    def test_misencodedFile(self):
+        """
+        If a source file contains bytes which cannot be decoded, this is
+        reported on stderr.
+        """
+        source = u"""\
+# coding: ascii
+x = "\N{SNOWMAN}"
+""".encode('utf-8')
+        sourcePath = FilePath(self.mktemp())
+        sourcePath.setContent(source)
+        err = StringIO()
+        count = withStderrTo(err, lambda: checkPath(sourcePath.path))
+        self.assertEquals(count, 1)
+        self.assertEquals(
+            err.getvalue(), "%s: problem decoding source\n" % (sourcePath.path,))
