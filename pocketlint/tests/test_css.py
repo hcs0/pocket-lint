@@ -51,12 +51,21 @@ class TestCSS(CheckerTestCase):
     def test_invalid_value(self):
         if not HAS_CSSUTILS:
             return
-        checker = CSSChecker('bogus', invalid_value, self.reporter)
+        checker = CSSChecker('ballyhoo', invalid_value, self.reporter)
         checker.check()
         message = (
             'Invalid value for "CSS Color Module Level 3/CSS Level 2.1" '
             'property: speckled: color')
         self.assertEqual([(2, message)], self.reporter.messages)
+
+    def test_multiple_files(self):
+        # The logging and handler for each instance is added and
+        # removed between each call.
+        if not HAS_CSSUTILS:
+            return
+        self.test_ill_formed_property()
+        self.reporter.messages = []
+        self.test_invalid_value()
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):

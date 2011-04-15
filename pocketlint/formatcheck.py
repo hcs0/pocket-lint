@@ -380,12 +380,13 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         """Check the syntax of the CSS code."""
         if self.text == '' or not HAS_CSSUTILS:
             return
-        # Suppress the default reports to stderr.
-        cssutils.log._log = logging.getLogger('pocket-lint')
-        cssutils.log.raiseExceptions = False
-        # Add a handler that will report data during parsing.
-        cssutils.log.addHandler(CSSReporterHandler(self))
-        cssutils.parseString(self.text)
+        handler = CSSReporterHandler(self)
+        log = logging.getLogger('pocket-lint')
+        log.addHandler(handler)
+        parser = cssutils.CSSParser(
+            log=log, loglevel=logging.INFO, raiseExceptions=False)
+        parser.parseString(self.text)
+        log.removeHandler(handler)
         self.check_text()
 
     def check_text(self):
