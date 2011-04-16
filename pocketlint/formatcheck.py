@@ -65,10 +65,12 @@ class Reporter:
             self.treestore = self.file_lines_view.get_model()
         self.piter = None
         self._last_file_name = None
+        self.call_count = 0
 
     def __call__(self, line_no, message, icon=None,
                  base_dir=None, file_name=None):
         """Report a message."""
+        self.call_count += 1
         if self.report_type == self.FILE_LINES:
             self._message_file_lines(
                 line_no, message, icon=icon,
@@ -312,7 +314,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
                 start, end = match.span(0)
                 text = text[:start] + self.xhtml_doctype + text[end:]
         try:
-            root = ElementTree.parse(StringIO(text), parser)
+            ElementTree.parse(StringIO(text), parser)
         except (ExpatError, ParseError), error:
             if hasattr(error, 'code'):
                 error_message = ErrorString(error.code)
@@ -421,7 +423,6 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             tree = compiler.parse(self.text)
         except (SyntaxError, IndentationError), exc:
             line_no = exc.lineno or 0
-            offset = exc.offset or 0
             line = exc.text or ''
             explanation = 'Could not compile; %s' % exc.msg
             message = '%s: %s' % (explanation, line.strip())
@@ -476,7 +477,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         if self.is_utf8:
             return
         try:
-            ascii_line = line.encode('ascii')
+            line.encode('ascii')
         except UnicodeEncodeError, error:
             self.message(
                 line_no, 'Non-ascii characer at position %s.' % error.end,
@@ -530,6 +531,7 @@ def get_option_parser():
 def check_sources(sources, reporter=None):
     if reporter is None:
         reporter = Reporter(Reporter.CONSOLE)
+    reporter.call_count = 0
     for source in sources:
         file_path = os.path.normpath(source)
         if os.path.isdir(source) or not Language.is_editable(source):
@@ -540,6 +542,7 @@ def check_sources(sources, reporter=None):
         checker = UniversalChecker(
             file_path, text=text, language=language, reporter=reporter)
         checker.check()
+    return reporter.call_count
 
 
 def main(argv=None):
@@ -554,7 +557,7 @@ def main(argv=None):
     if options.verbose:
         pass
     reporter = Reporter(Reporter.CONSOLE)
-    check_sources(sources, reporter)
+    return check_sources(sources, reporter)
 
 
 if __name__ == '__main__':

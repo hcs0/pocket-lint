@@ -9,10 +9,12 @@ class TestReporter:
 
     def __init__(self):
         self.messages = []
+        self.call_count = 0
 
     def __call__(self, line_no, message, icon=None,
                  base_dir=None, file_name=None):
         """Report a message."""
+        self.call_count += 1
         self._message_console(
             line_no, message, icon=icon,
             base_dir=base_dir, file_name=file_name)
