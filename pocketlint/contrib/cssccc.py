@@ -38,7 +38,7 @@ The following at-rules are supported:
 TODO:
  * add Unicode support.
  * add AtRule checks
- * add support for TAB as a separator.
+ * add support for TAB as a separator / identation.
  * add support for @media
 '''
 
@@ -53,6 +53,7 @@ COMMENT_START = r'/*'
 COMMENT_END = r'*/'
 AT_TEXT_RULES = ['import', 'charset', 'namespace']
 AT_BLOCK_RULES = ['page', 'font-face']
+IGNORED_MESSAGES = [] #['I004', 'I005']
 
 
 class CSSRule(object):
@@ -249,6 +250,8 @@ class CSSCodingConventionChecker(object):
 
     def log(self, line_number, code, message):
         '''Log the message with `code`.'''
+        if code in IGNORED_MESSAGES:
+            return
         icon = self.icons[code[0]]
         self._logger(line_number, code + ': ' + message, icon=icon)
 

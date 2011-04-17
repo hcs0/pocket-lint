@@ -101,15 +101,15 @@ class TestCSSCodingConventionChecker(TestCase):
         self.failUnlessRaises(StopIteration, lint.getNextRule)
 
     def test_getNextRule_comment(self):
-        text = '/*c\nm*/\nsel\n{\ns/*com*/\ncont1;/*com*/\ncont2;}'
+        text = '\n\n/* c\nm*/\nsel\n{\ns/*com*/\ncont1;/*com*/\ncont2;}'
         lint = CSSCodingConventionChecker(text)
         rule = lint.getNextRule()
         self.assertTrue(rule.type is CSSRuleSet.type)
-        self.assertEqual('sel\n', rule.selector.text)
+        self.assertEqual('\n\nsel\n', rule.selector.text)
         self.assertEqual(0, rule.selector.start_line)
         self.assertEqual(0, rule.selector.start_character)
         self.assertEqual('\ns\ncont1;\ncont2;', rule.declarations.text)
-        self.assertEqual(3, rule.declarations.start_line)
+        self.assertEqual(5, rule.declarations.start_line)
         self.assertEqual(1, rule.declarations.start_character)
 
     def test_get_at_import_rule(self):
@@ -286,6 +286,7 @@ class TestCSSRuleSetSelectorChecks(RuleTesterBase):
         last_log = self.last_log
         self.assertEqual('I002', last_log.code)
         self.assertEqual(6, last_log.line_number)
+
         selector = CSSStatementMember(4, 0, '\n\n\n\nsomething\n')
         rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
         rule.checkSelector()
