@@ -71,11 +71,14 @@ class TestPyflakes(CheckerTestCase):
         self.assertTrue('pocketlint/contrib/' in messages.__file__)
 
     def test_code_without_issues(self):
+        self.reporter.call_count = 0
         checker = PythonChecker('bogus', good_python, self.reporter)
         checker.check_flakes()
         self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
 
     def test_code_with_SyntaxError(self):
+        self.reporter.call_count = 0
         checker = PythonChecker(
             'bogus', bad_syntax_python, self.reporter)
         checker.check_flakes()
@@ -83,6 +86,7 @@ class TestPyflakes(CheckerTestCase):
             0, 'Could not compile; non-default argument follows '
                'default argument: ')]
         self.assertEqual(expected, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
 
     def test_code_with_very_bad_SyntaxError(self):
         checker = PythonChecker(
@@ -102,12 +106,14 @@ class TestPyflakes(CheckerTestCase):
         self.assertEqual(expected, self.reporter.messages)
 
     def test_code_with_warnings(self):
+        self.reporter.call_count = 0
         checker = PythonChecker('bogus', ugly_python, self.reporter)
         checker.check_flakes()
         self.assertEqual(
             [(3, "undefined name 'b'"),
             (3, "local variable 'a' is assigned to but never used")],
             self.reporter.messages)
+        self.assertEqual(2, self.reporter.call_count)
 
 
 class TestPEP8(CheckerTestCase):
