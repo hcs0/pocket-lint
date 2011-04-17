@@ -244,17 +244,28 @@ class TestCSSRuleSetSelectorChecks(RuleTesterBase):
     '''Test coding conventions for selector from rule sets.'''
 
     def test_valid_selector(self):
-        selector = CSSStatementMember(0, 0, '\n\nsomething\n')
+
+        selector = CSSStatementMember(0, 0, 'something\n')
         rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
         rule.checkSelector()
         self.assertEqual([], self.logs)
 
-        selector = CSSStatementMember(0, 0, '\n\nsomething,\nsomethi\n')
+        selector = CSSStatementMember(0, 0, '\nsomething\n')
         rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
         rule.checkSelector()
         self.assertEqual([], self.logs)
 
-        selector = CSSStatementMember(0, 0, '\n\nsom:some some,\n#somethi\n')
+        selector = CSSStatementMember(1, 0, '\n\nsomething\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+        selector = CSSStatementMember(2, 0, '\n\nsomething,\nsomethi\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+        selector = CSSStatementMember(3, 0, '\n\nsom:some some,\n#somethi\n')
         rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
         rule.checkSelector()
         self.assertEqual([], self.logs)
@@ -270,12 +281,12 @@ class TestCSSRuleSetSelectorChecks(RuleTesterBase):
         self.assertEqual('I002', self.last_log_code)
 
     def test_I003(self):
-        selector = CSSStatementMember(0, 0, '\nsomething\n')
+        selector = CSSStatementMember(2, 0, '\nsomething\n')
         rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
         rule.checkSelector()
         self.assertEqual('I003', self.last_log_code)
 
-        selector = CSSStatementMember(0, 0, 'something\n')
+        selector = CSSStatementMember(2, 0, 'something\n')
         rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
         rule.checkSelector()
         self.assertEqual('I003', self.last_log_code)

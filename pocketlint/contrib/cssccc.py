@@ -116,8 +116,10 @@ class CSSRuleSet(object):
             self.log(start_line, 'I002', 'To many newlines before selectors.')
         elif first_selector.startswith('\n\n'):
             pass
-        else:
+        elif start_line > 2:
             self.log(start_line, 'I003', 'To few newlines before selectors.')
+        else:
+            pass
 
         for selector in rest_selectors:
             if not selector.startswith('\n'):
