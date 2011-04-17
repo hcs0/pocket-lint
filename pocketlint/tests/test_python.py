@@ -48,6 +48,19 @@ class Test:
 """
 
 
+ugly_style_lines_python = """\
+a = 1
+# Post comment
+
+
+# Pre comment
+class Test:
+
+    def __init__(self):
+        self.a = "okay"
+"""
+
+
 class TestPyflakes(CheckerTestCase):
     """Verify pyflakes integration."""
 
@@ -132,6 +145,14 @@ class TestPEP8(CheckerTestCase):
         self.assertEqual(
             [(4, 'E222 multiple spaces after operator')],
             self.reporter.messages)
+
+    def test_code_with_comments(self):
+        self.file.write(ugly_style_lines_python)
+        self.file.flush()
+        checker = PythonChecker(
+            self.file.name, ugly_style_lines_python, self.reporter)
+        checker.check_pep8()
+        self.assertEqual([], self.reporter.messages)
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):
