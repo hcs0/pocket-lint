@@ -50,13 +50,15 @@ class Test:
 
 ugly_style_lines_python = """\
 a = 1
-# Post comment
+# Post comment.
 
 
-# Pre comment
+# Pre comment.
 class Test:
 
+    # Pre comment.
     def __init__(self):
+        # Inter comment.
         self.a = "okay"
 """
 
