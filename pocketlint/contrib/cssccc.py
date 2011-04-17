@@ -5,6 +5,10 @@ Check CSS code for some common coding conventions.
 The code must be in a valid CSS format.
 It is recommend to first parse it using cssutils.
 
+If a comment is on the whole line, it will 'eat' the whole line like it
+was not there.
+If a comment is inside a line it will only 'eat' its own content.
+
 Bases on Stoyan Stefanov's http://www.phpied.com/css-coding-conventions/
 
 '@media' rule is not supported.
@@ -27,38 +31,18 @@ The following at-rules are supported:
  * keybord / block rules
   * @page { block; }
   * @font-face { block; }
+
+
+TODO:
+ * add support for TAB as a separator.
+ * add support for @media
 '''
 
-from unittest import TestCase, main as unittest_main
-#import re
+__version__ = '0.1.0'
 
+import sys
 
-#        '''Check the text and sent messages to logger.'''
-#        for line_no, line in enumerate(self._text.splitlines()):
-#            if ' ,' in line:
-#                self.message(
-#                    line_no, 'Whitespace before \',\'', icon='info')
-
-#            if self.no_space_after_comma_pattern.search(line):
-#                self.message(
-#                    line_no, 'Missing whitespace after \',\'', icon='info')
-
-#            if ' :' in line:
-#                self.message(
-#                    line_no, 'Whitespace before \':\'', icon='info')
-
-#            if self.no_space_after_colon_pattern.search(line):
-#                self.message(
-#                    line_no, 'Missing whitespace after \':\'', icon='info')
-
-#            if ' ;' in line:
-#                self.message(
-#                    line_no, 'Whitespace before \';\'', icon='info')
-
-#            if self.no_space_before_curly_pattern.search(line):
-#                self.message(
-#                    line_no, 'No space before \'{\'', icon='info')
-
+SELECTOR_SEPARATOR = ','
 COMMENT_START = r'/*'
 COMMENT_END = r'*/'
 AT_TEXT_RULES = ['import', 'charset', 'namespace']
@@ -106,6 +90,16 @@ class CSSStatementMember(object):
         self.start_character = start_character
         self.text = text
 
+    def getStartLine(self):
+        '''Return the line number for first character in the statement.'''
+        index = 0
+        text = self.text
+        character = text[index]
+        while character == '\n':
+            index += 1
+            character = text[index]
+        return self.start_line + index + 1
+
     def __str__(self):
         return self.text
 
@@ -126,23 +120,50 @@ class CSSCodingConventionChecker(object):
         else:
             self.log = self.logDefault
 
-    def logDefault(self, line_no, message, icon='error'):
+    def logDefault(self, line_no, message, icon='info'):
         '''Log the message to STDOUT.'''
         print '    %4s:%s: %s' % (line_no, icon, message)
 
     def check(self):
-        for style in self.getStyles():
-            print style.selector
-            print style.declarations
+        '''Check all rules.'''
+        for rule in self.getRules():
+            if rule.type is CSSRuleSet.type:
+                self.checkRuleSet(rule)
+            elif rule.type is CSSAtRule.type:
+                self.checkAtRule(rule)
+            else:
+                self.log(rule.start_line, 'Unknown rule.', icon='error')
+                return
 
-    def getStyles(self):
-        '''Generates the next CSS style ignoring comments.'''
-        yield self.getNextStyle()
+    def checkRuleSet(self, rule):
+        '''Check a rule set.'''
+        start_line = rule.selector.getStartLine()
+        selectors = rule.selector.text.split(SELECTOR_SEPARATOR)
+        last_selector = selectors[-1]
+        first_selector = selectors[0]
+        middle_selectors = selectors[1:-1]
 
-    def getNextStyle(self):
-        '''Return the next parsed style.
+        if first_selector.startswith('\n\n\n'):
+            self.log(start_line, 'To many newlines before selectors.')
 
-        Return none if we are at the last style.
+        for selector in middle_selectors:
+            if not selector.startswith(' '):
+                self.log(start_line, 'No whitespace after ","')
+        if not last_selector.endswith('\n'):
+            self.log(start_line, 'No newline after rule selectors.')
+
+    def checkAtRule(self, rule):
+        '''Check an at rule.'''
+
+    def getRules(self):
+        '''Generates the next CSS rule ignoring comments.'''
+        while True:
+            yield self.getNextRule()
+
+    def getNextRule(self):
+        '''Return the next parsed rule.
+
+        Raise `StopIteration` if we are at the last rule.
         '''
         if self._nextStatementIsAtRule():
             text = None
@@ -215,8 +236,8 @@ class CSSCodingConventionChecker(object):
                 break
 
             # Look for comment start/end and update comment level .
-            before_comment = ''
-            after_comment = ''
+            before_comment = None
+            after_comment = None
             comment_start = data.find(COMMENT_START)
             if comment_start != -1:
                 comment_started = True
@@ -225,12 +246,19 @@ class CSSCodingConventionChecker(object):
             comment_end = data.find(COMMENT_END)
             if comment_end != -1:
                 comment_started = False
-                after_comment = data[comment_end+2:]
+                # Comment end after the lenght of the actual comment end
+                # marker.
+                comment_end += len(COMMENT_END)
+                if before_comment == '' and data[comment_end] == '\n':
+                    # Consume the new line if it next to the comment end and
+                    # the comment in on the whole line.
+                    comment_end += 1
+                after_comment = data[comment_end:]
 
             if comment_started:
                 # We are inside a comment.
                 # Add the data before the comment and go to next line.
-                if before_comment != '':
+                if before_comment is not None:
                     result.append(before_comment)
                 self.character_number = 0
                 self.line_number += 1
@@ -238,7 +266,7 @@ class CSSCodingConventionChecker(object):
 
             initial_position = data.find(stop_character)
 
-            if before_comment != '' or after_comment != '':
+            if before_comment is not None or after_comment is not None:
                 data = before_comment + after_comment
 
             if initial_position == -1:
@@ -260,211 +288,35 @@ class CSSCodingConventionChecker(object):
             text=''.join(result))
 
 
-class TestCSSCodingConventionChecker(TestCase):
-    '''Test for CSS lint.'''
+def show_usage():
+    '''Print the command usage.'''
+    print 'Usage: cssccc OPTIONS'
+    print '  -h, --help\t\tShow this help.'
+    print '  -v, --version\t\tShow version.'
+    print '  -f FILE, --file=FILE\tCheck FILE'
 
-    def test_getNextStyle_start(self):
-        text = 'selector{}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual('selector', style.selector.text)
-        self.assertEqual(0, style.selector.start_line)
-        self.assertEqual(0, style.selector.start_character)
 
-        text = '\nselector{}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual('\nselector', style.selector.text)
-        self.assertEqual(0, style.selector.start_line)
-        self.assertEqual(0, style.selector.start_character)
-
-        text = '\n\nselector{}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual('\n\nselector', style.selector.text)
-        self.assertEqual(0, style.selector.start_line)
-        self.assertEqual(0, style.selector.start_character)
-
-        text = 'selector\n{}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual('selector\n', style.selector.text)
-        self.assertEqual(0, style.selector.start_line)
-        self.assertEqual(0, style.selector.start_character)
-
-        text = 'selector, {}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual('selector, ', style.selector.text)
-        self.assertEqual(0, style.selector.start_line)
-        self.assertEqual(0, style.selector.start_character)
-
-    def test_getNextStyle_content(self):
-        text = 'selector { content; }'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual(' content; ', style.declarations.text)
-        self.assertEqual(0, style.declarations.start_line)
-        self.assertEqual(10, style.declarations.start_character)
-
-        text = 'selector \n{\n content; }'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual('\n content; ', style.declarations.text)
-        self.assertEqual(1, style.declarations.start_line)
-        self.assertEqual(1, style.declarations.start_character)
-
-    def test_getNextStyle_continue(self):
-        text = 'selector1\n { content1; }\n\nselector2\n{content2}\n'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual('selector1\n ', style.selector.text)
-        self.assertEqual(0, style.selector.start_line)
-        self.assertEqual(0, style.selector.start_character)
-        self.assertEqual(' content1; ', style.declarations.text)
-        self.assertEqual(1, style.declarations.start_line)
-        self.assertEqual(2, style.declarations.start_character)
-
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual('\n\nselector2\n', style.selector.text)
-        self.assertEqual(1, style.selector.start_line)
-        self.assertEqual(14, style.selector.start_character)
-        self.assertEqual('content2', style.declarations.text)
-        self.assertEqual(4, style.declarations.start_line)
-        self.assertEqual(1, style.declarations.start_character)
-
-    def test_getNextStyle_stop(self):
-        text ='rule1{st1\n}\n@font-face {\n src: url("u\n u"); \n }\nr2{st2}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSAtRule.type)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.failUnlessRaises(StopIteration, lint.getNextStyle)
-
-    def test_getNextStyle_comment(self):
-        text = '/*comment*/\nselector\n{content1;/*comment*/\ncontent2;}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.assertEqual('\nselector\n', style.selector.text)
-        self.assertEqual(0, style.selector.start_line)
-        self.assertEqual(0, style.selector.start_character)
-        self.assertEqual('content1;\ncontent2;', style.declarations.text)
-        self.assertEqual(2, style.declarations.start_line)
-        self.assertEqual(1, style.declarations.start_character)
-
-    def test_get_at_import_rule(self):
-        '''Test for @import url(/css/screen.css) screen, projection;'''
-        text ='rule1{st1\n}\n@import  url(somet) print, soment ;rule2{st2}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSAtRule.type)
-        self.assertTrue(style.block is None)
-        self.assertEqual('import', style.identifier)
-        self.assertEqual('\n@import ', style.keyword.text)
-        self.assertEqual(1, style.keyword.start_line)
-        self.assertEqual(1, style.keyword.start_character)
-        self.assertEqual(' url(somet) print, soment ', style.text.text)
-        self.assertEqual(2, style.text.start_line)
-        self.assertEqual(8, style.text.start_character)
-
-    def test_get_at_charset_rule(self):
-        '''Test for @charset "ISO-8859-15";'''
-        text ='rule1{st1\n}\n@charset  "utf" ;rule2{st2}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSAtRule.type)
-        self.assertTrue(style.block is None)
-        self.assertEqual('charset', style.identifier)
-        self.assertEqual('\n@charset ', style.keyword.text)
-        self.assertEqual(1, style.keyword.start_line)
-        self.assertEqual(1, style.keyword.start_character)
-        self.assertEqual(' "utf" ', style.text.text)
-        self.assertEqual(2, style.text.start_line)
-        self.assertEqual(9, style.text.start_character)
-
-    def test_get_at_namespace_rule(self):
-        '''Test for @namespace  foo  "http://foo" ;'''
-        text ='rule1{st1\n}@namespace  foo  "http://foo" ;rule2{st2}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSAtRule.type)
-        self.assertTrue(style.block is None)
-        self.assertEqual('namespace', style.identifier)
-        self.assertEqual('@namespace ', style.keyword.text)
-        self.assertEqual(1, style.keyword.start_line)
-        self.assertEqual(1, style.keyword.start_character)
-        self.assertEqual(' foo  "http://foo" ', style.text.text)
-        self.assertEqual(1, style.text.start_line)
-        self.assertEqual(12, style.text.start_character)
-
-    def test_get_at_page_rule(self):
-        '''Test for @page
-
-        @page :left {
-          margin-left: 5cm; /* left pages only */
-        }
-        '''
-        text ='rule1{st1\n}\n@page :left {\n  mar; /*com*/\n }\nrule2{st2}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSAtRule.type)
-        self.assertTrue(style.text is None)
-        self.assertEqual('page', style.identifier)
-        self.assertEqual('\n@page :left ', style.keyword.text)
-        self.assertEqual(1, style.keyword.start_line)
-        self.assertEqual(1, style.keyword.start_character)
-        self.assertEqual('\n  mar; \n ', style.block.text)
-        self.assertEqual(2, style.block.start_line)
-        self.assertEqual(13, style.block.start_character)
-
-    def test_get_at_font_face_rule(self):
-        '''Test for @font-face
-
-        @font-face {
-          font-family: "Example Font";
-          src: url("http://www.example.com
-              /fonts/example");
-        }
-        '''
-        text ='rule1{st1\n}\n@font-face {\n src: url("u\n u"); \n }\nr2{st2}'
-        lint = CSSCodingConventionChecker(text)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSAtRule.type)
-        self.assertTrue(style.text is None)
-        self.assertEqual('font-face', style.identifier)
-        self.assertEqual('\n@font-face ', style.keyword.text)
-        self.assertEqual(1, style.keyword.start_line)
-        self.assertEqual(1, style.keyword.start_character)
-        self.assertEqual('\n src: url("u\n u"); \n ', style.block.text)
-        self.assertEqual(2, style.block.start_line)
-        self.assertEqual(12, style.block.start_character)
-        style = lint.getNextStyle()
-        self.assertTrue(style.type is CSSRuleSet.type)
-        self.failUnlessRaises(StopIteration, lint.getNextStyle)
+def read_file(filename):
+    '''Return the content of filename.'''
+    text = ''
+    with open(filename, 'r') as f:
+        text = f.read()
+    return text
 
 
 if __name__ == '__main__':
-    unittest_main()
+    if len(sys.argv) < 2:
+        show_usage()
+    elif sys.argv[1] in ['-v', '--version']:
+        print 'CSS Code Convention Checker %s' % (__version__)
+        sys.exit(0)
+    elif sys.argv[1] == '-f':
+        text = read_file(sys.argv[2])
+        checker = CSSCodingConventionChecker(text)
+        sys.exit(checker.check())
+    elif sys.argv[1] == '--file=':
+        text = read_file(sys.argv[1][len('--file='):])
+        checker = CSSCodingConventionChecker(text)
+        sys.exit(checker.check())
+    else:
+        show_usage()
