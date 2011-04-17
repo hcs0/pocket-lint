@@ -4,10 +4,12 @@ This code is in the public domain.
 Check CSS code for some common coding conventions.
 The code must be in a valid CSS format.
 It is recommend to first parse it using cssutils.
+It is also recommend to check it with pocket-lint for things like trailing
+spaces or tab characters.
 
-If a comment is on the whole line, it will 'eat' the whole line like it
+If a comment is on the whole line, it will consume the whole line like it
 was not there.
-If a comment is inside a line it will only 'eat' its own content.
+If a comment is inside a line it will only consume its own content.
 
 Bases on Stoyan Stefanov's http://www.phpied.com/css-coding-conventions/
 
@@ -34,6 +36,8 @@ The following at-rules are supported:
 
 
 TODO:
+ * add Unicode support.
+ * add AtRule checks
  * add support for TAB as a separator.
  * add support for @media
 '''
@@ -43,10 +47,20 @@ __version__ = '0.1.0'
 import sys
 
 SELECTOR_SEPARATOR = ','
+DECLARATION_SEPARATOR = ';'
+PROPERTY_SEPARATOR = ':'
 COMMENT_START = r'/*'
 COMMENT_END = r'*/'
 AT_TEXT_RULES = ['import', 'charset', 'namespace']
 AT_BLOCK_RULES = ['page', 'font-face']
+
+
+class CSSRule(object):
+    '''A CSS rule.'''
+
+    def check(self):
+        '''Check the rule.'''
+        raise AssertionError('Method not implemtned.')
 
 
 class CSSAtRule(object):
@@ -54,11 +68,15 @@ class CSSAtRule(object):
 
     type = object()
 
-    def __init__(self, identifier, keyword, text=None, block=None):
+    def __init__(self, identifier, keyword, log, text=None, block=None):
         self.identifier = identifier
         self.keyword = keyword
         self.text = text
         self.block = block
+        self.log = log
+
+    def check(self):
+        '''Check the rule.'''
 
 
 class CSSRuleSet(object):
@@ -66,20 +84,105 @@ class CSSRuleSet(object):
 
     type = object()
 
-    def __init__(self, selector, declarations):
+    def __init__(self, selector, declarations, log):
         self.selector = selector
         self.declarations = declarations
+        self.log = log
 
     def __str__(self):
         return '%s{%s}' % (str(self.selector), str(self.declarations))
 
     def __repr__(self):
-        return '%d:%d:%s{%s}' % (
+        return '%d:%s{%s}' % (
             self.selector.start_line,
-            self.selector.start_character,
             str(self.selector),
             str(self.declarations),
             )
+
+    def check(self):
+        '''Check the rule set.'''
+        self.checkSelector()
+        self.checkDeclarations()
+
+    def checkSelector(self):
+        '''Check rule-set selector.'''
+        start_line = self.selector.getStartLine()
+        selectors = self.selector.text.split(SELECTOR_SEPARATOR)
+        last_selector = selectors[-1]
+        first_selector = selectors[0]
+        rest_selectors = selectors[1:]
+
+        if first_selector.startswith('\n\n\n'):
+            self.log(start_line, 'I002', 'To many newlines before selectors.')
+        elif first_selector.startswith('\n\n'):
+            pass
+        else:
+            self.log(start_line, 'I003', 'To few newlines before selectors.')
+
+        for selector in rest_selectors:
+            if not selector.startswith('\n'):
+                self.log(
+                    start_line, 'I004', 'Selector must be on a new line.')
+        if not last_selector.endswith('\n'):
+            # No new line after the last selector.
+            self.log(start_line, 'I005', 'No newline after last selector.')
+
+    def checkDeclarations(self):
+        '''Check rule-set declarations.'''
+        start_line = self.declarations.getStartLine()
+        declarations = self.declarations.text.split(DECLARATION_SEPARATOR)
+
+        last_declaration = declarations[-1]
+        if last_declaration != '\n':
+            self.log(
+                start_line,
+                'I006',
+                'Rule declarations should end with a single new line.',
+                )
+
+        # Check all declarations except last as this is the new line.
+        for declaration in declarations[:-1]:
+            if not declaration.startswith('\n'):
+                self.log(
+                    start_line,
+                    'I007',
+                    'Each declarations should start on a new line.',
+                    )
+            elif (not declaration.startswith('\n    ') or
+                declaration[5] == ' '):
+                self.log(
+                    start_line,
+                    'I008',
+                    'Each declaration must be indented with 4 spaces.',
+                    )
+
+            parts = declaration.split(PROPERTY_SEPARATOR)
+            if len(parts) != 2:
+                self.log(
+                    start_line,
+                    'I009',
+                    'Wrong separator on property: value pair.',
+                    )
+            else:
+                prop, value = parts
+                if prop.endswith(' '):
+                    self.log(
+                        start_line,
+                        'I010',
+                        'Whitespace before ":".',
+                        )
+                if not value.startswith(' '):
+                    self.log(
+                        start_line,
+                        'I011',
+                        'Missing whitespace after ":".',
+                        )
+                elif value.startswith('  '):
+                    self.log(
+                        start_line,
+                        'I012',
+                        'Multiple whitespaces after ":".',
+                        )
 
 
 class CSSStatementMember(object):
@@ -111,49 +214,33 @@ class CSSStatementMember(object):
 class CSSCodingConventionChecker(object):
     '''CSS coding convention checker.'''
 
+    icons = {
+        'E': 'error',
+        'I': 'info',
+        }
+
     def __init__(self, text, logger=None):
         self._text = text.splitlines(True)
         self.line_number = 0
         self.character_number = 0
         if logger:
-            self.log = logger
+            self._logger = logger
         else:
-            self.log = self.logDefault
+            self._logger = self.logDefault
 
-    def logDefault(self, line_no, message, icon='info'):
+    def log(self, line_number, code, message):
+        '''Log the message with `code`.'''
+        icon = self.icons[code[0]]
+        self._logger(line_number, message, icon=icon)
+
+    def logDefault(self, line_number, message, icon='info'):
         '''Log the message to STDOUT.'''
-        print '    %4s:%s: %s' % (line_no, icon, message)
+        print '    %4s:%s: %s' % (line_number, icon, message)
 
     def check(self):
         '''Check all rules.'''
         for rule in self.getRules():
-            if rule.type is CSSRuleSet.type:
-                self.checkRuleSet(rule)
-            elif rule.type is CSSAtRule.type:
-                self.checkAtRule(rule)
-            else:
-                self.log(rule.start_line, 'Unknown rule.', icon='error')
-                return
-
-    def checkRuleSet(self, rule):
-        '''Check a rule set.'''
-        start_line = rule.selector.getStartLine()
-        selectors = rule.selector.text.split(SELECTOR_SEPARATOR)
-        last_selector = selectors[-1]
-        first_selector = selectors[0]
-        middle_selectors = selectors[1:-1]
-
-        if first_selector.startswith('\n\n\n'):
-            self.log(start_line, 'To many newlines before selectors.')
-
-        for selector in middle_selectors:
-            if not selector.startswith(' '):
-                self.log(start_line, 'No whitespace after ","')
-        if not last_selector.endswith('\n'):
-            self.log(start_line, 'No newline after rule selectors.')
-
-    def checkAtRule(self, rule):
-        '''Check an at rule.'''
+            rule.check()
 
     def getRules(self):
         '''Generates the next CSS rule ignoring comments.'''
@@ -188,13 +275,15 @@ class CSSCodingConventionChecker(object):
                 identifier=keyword_name,
                 keyword=keyword,
                 text=text,
-                block=block)
+                block=block,
+                log=self.log)
         else:
             selector = self._parse('{')
             declarations = self._parse('}')
             return CSSRuleSet(
                 selector=selector,
-                declarations=declarations)
+                declarations=declarations,
+                log=self.log)
 
     def _nextStatementIsAtRule(self):
         '''Return True if next statement in the buffer is an at-rule.
@@ -253,17 +342,16 @@ class CSSCodingConventionChecker(object):
                 self.line_number += 1
                 continue
 
-            # Strip the comment from the data.
+            # If we have a comment, strip it from the data.
             # Remember the initial cursor position to know where to
             # continue.
             initial_position = data.find(stop_character)
-            if before_comment is not None:
-                data = before_comment
-            if after_comment is not None:
-                if before_comment is not None:
-                    data = before_comment + after_comment
-                else:
-                    data = after_comment
+            if before_comment is not None or after_comment is not None:
+                if before_comment is None:
+                    before_comment = ''
+                if after_comment is None:
+                    after_comment = ''
+                data = before_comment + after_comment
 
             if initial_position == -1 or newline_consumed:
                 # We are not at the end.

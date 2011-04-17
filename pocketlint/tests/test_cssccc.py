@@ -8,7 +8,7 @@ from pocketlint.contrib.cssccc import (
 
 
 class TestCSSCodingConventionChecker(TestCase):
-    '''Test for CSS code convention checker.'''
+    '''Test for parsing the CSS text.'''
 
     def test_getNextRule_start(self):
         text = 'selector{}'
@@ -223,6 +223,146 @@ class TestCSSStatementMember(TestCase):
         self.assertEqual(4, statement.getStartLine())
         statement = CSSStatementMember(3, 4, '\n\nsome')
         self.assertEqual(6, statement.getStartLine())
+
+
+class RuleTesterBase(TestCase):
+    '''Base class for rule checkers.'''
+
+    def setUp(self):
+        self.logs = []
+
+    def log(self, line_number, code, message):
+        self.logs.append((line_number, code, message))
+
+    @property
+    def last_log_code(self):
+        (line_number, code, message) = self.logs.pop()
+        return code
+
+
+class TestCSSRuleSetSelectorChecks(RuleTesterBase):
+    '''Test coding conventions for selector from rule sets.'''
+
+    def test_valid_selector(self):
+        selector = CSSStatementMember(0, 0, '\n\nsomething\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+        selector = CSSStatementMember(0, 0, '\n\nsomething,\nsomethi\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+        selector = CSSStatementMember(0, 0, '\n\nsom:some some,\n#somethi\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+    def test_I002(self):
+        selector = CSSStatementMember(0, 0, '\n\n\nsomething\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual('I002', self.last_log_code)
+        selector = CSSStatementMember(0, 0, '\n\n\n\nsomething\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual('I002', self.last_log_code)
+
+    def test_I003(self):
+        selector = CSSStatementMember(0, 0, '\nsomething\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual('I003', self.last_log_code)
+
+        selector = CSSStatementMember(0, 0, 'something\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual('I003', self.last_log_code)
+
+    def test_I004(self):
+        selector = CSSStatementMember(0, 0, '\nsomething, something\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual('I004', self.last_log_code)
+
+    def test_I005(self):
+        selector = CSSStatementMember(0, 0, '\nsomething,\nsomething')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual('I005', self.last_log_code)
+
+
+class TestCSSRuleSetDeclarationsChecks(RuleTesterBase):
+    '''Test coding conventions for declarations from rule sets.'''
+
+    def test_valid_declarations(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some: 3px;\n    other: url();\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual([], self.logs)
+
+    def test_I006(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some: 3px;\n    other: url();')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I006', self.last_log_code)
+
+    def test_I007(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some: 3px; other: url();\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I007', self.last_log_code)
+
+    def test_I008(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some: 3px;\n  other: url();\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I008', self.last_log_code)
+
+        stmt = CSSStatementMember(
+            0, 0, '\n    some: 3px;\n     other: url();\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I008', self.last_log_code)
+
+    def test_I009(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some 3px;\n    other: url();\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I009', self.last_log_code)
+
+        stmt = CSSStatementMember(
+            0, 0, '\n    some: 3:px;\n    other: url();\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I009', self.last_log_code)
+
+    def test_I010(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some : 3px;\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I010', self.last_log_code)
+
+    def test_I011(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some:3px;\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I011', self.last_log_code)
+
+    def test_I012(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some:  3px;\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I012', self.last_log_code)
 
 
 if __name__ == '__main__':
