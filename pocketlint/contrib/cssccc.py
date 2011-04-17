@@ -235,25 +235,14 @@ class CSSCodingConventionChecker(object):
             except IndexError:
                 break
 
-            # Look for comment start/end and update comment level .
-            before_comment = None
-            after_comment = None
-            comment_start = data.find(COMMENT_START)
-            if comment_start != -1:
-                comment_started = True
-                before_comment = data[:comment_start]
-
-            comment_end = data.find(COMMENT_END)
-            if comment_end != -1:
-                comment_started = False
-                # Comment end after the lenght of the actual comment end
-                # marker.
-                comment_end += len(COMMENT_END)
-                if before_comment == '' and data[comment_end] == '\n':
-                    # Consume the new line if it next to the comment end and
-                    # the comment in on the whole line.
-                    comment_end += 1
-                after_comment = data[comment_end:]
+            # Look for comment start/end.
+            comment_check = _check_comment(data)
+            (comment_update,
+            before_comment,
+            after_comment,
+            newline_consumed) = comment_check
+            if comment_update is not None:
+                comment_started = comment_update
 
             if comment_started:
                 # We are inside a comment.
@@ -264,19 +253,30 @@ class CSSCodingConventionChecker(object):
                 self.line_number += 1
                 continue
 
+            # Strip the comment from the data.
+            # Remember the initial cursor position to know where to
+            # continue.
             initial_position = data.find(stop_character)
+            if before_comment is not None:
+                data = before_comment
+            if after_comment is not None:
+                if before_comment is not None:
+                    data = before_comment + after_comment
+                else:
+                    data = after_comment
 
-            if before_comment is not None or after_comment is not None:
-                data = before_comment + after_comment
-
-            if initial_position == -1:
+            if initial_position == -1 or newline_consumed:
+                # We are not at the end.
                 # Go to next line and append the data.
                 result.append(data)
                 self.character_number = 0
                 self.line_number += 1
                 continue
             else:
-                # Go to next character and append data until marker.
+                # Delimiter found.
+                # Find it again in the text that now has no comments.
+                # Append data until the delimiter.
+                # Move cursor to next character and stop searching for it.
                 new_position = data.find(stop_character)
                 result.append(data[:new_position])
                 self.character_number += initial_position + 1
@@ -286,6 +286,33 @@ class CSSCodingConventionChecker(object):
             start_line=start_line,
             start_character=start_character,
             text=''.join(result))
+
+
+def _check_comment(data):
+    '''Check the data for comment markers.'''
+
+    comment_started = None
+    before_comment = None
+    after_comment = None
+    newline_consumed = False
+    comment_start = data.find(COMMENT_START)
+    if comment_start != -1:
+        comment_started = True
+        before_comment = data[:comment_start]
+
+    comment_end = data.find(COMMENT_END)
+    if comment_end != -1:
+        comment_started = False
+        # Comment end after the lenght of the actual comment end
+        # marker.
+        comment_end += len(COMMENT_END)
+        if before_comment is None and data[comment_end] == '\n':
+            # Consume the new line if it next to the comment end and
+            # the comment in on the whole line.
+            comment_end += 1
+            newline_consumed = True
+        after_comment = data[comment_end:]
+    return (comment_started, before_comment, after_comment, newline_consumed)
 
 
 def show_usage():
