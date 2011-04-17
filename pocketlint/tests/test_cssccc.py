@@ -237,10 +237,14 @@ class TestLog(object):
 class RuleTesterBase(TestCase):
     '''Base class for rule checkers.'''
 
+    ignored_messaged = []
+
     def setUp(self):
         self.logs = []
 
     def log(self, line_number, code, message):
+        if code in self.ignored_messaged:
+            return
         self.logs.append((line_number, code, message))
 
     @property
@@ -249,7 +253,34 @@ class RuleTesterBase(TestCase):
         return TestLog(line_number, code, message)
 
 
-class TestCSSRuleSetSelectorChecks(RuleTesterBase):
+class RuleTesterConventionA(RuleTesterBase):
+    '''Class for convention A.
+
+    selector1,
+    selecter2
+    {
+        property1: value1;
+        property2: value2;
+    }
+    '''
+
+    ignored_messaged = ['I013']
+
+
+class RuleTesterConventionB(RuleTesterBase):
+    '''Class for convention B.
+
+    selector1,
+    selecter2 {
+        property1: value1;
+        property2: value2;
+    }
+    '''
+
+    ignored_messaged = ['I005']
+
+
+class TestCSSRuleSetSelectorChecksA(RuleTesterConventionA):
     '''Test coding conventions for selector from rule sets.'''
 
     def test_valid_selector(self):
@@ -326,7 +357,7 @@ class TestCSSRuleSetSelectorChecks(RuleTesterBase):
         self.assertEqual(7, last_log.line_number)
 
 
-class TestCSSRuleSetDeclarationsChecks(RuleTesterBase):
+class TestCSSRuleSetDeclarationsChecksA(RuleTesterConventionA):
     '''Test coding conventions for declarations from rule sets.'''
 
     def test_valid_declarations(self):
@@ -416,6 +447,45 @@ class TestCSSRuleSetDeclarationsChecks(RuleTesterBase):
         rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
         rule.checkDeclarations()
         self.assertEqual('I012', self.last_log.code)
+
+
+class TestCSSRuleSetSelectorChecksB(RuleTesterConventionB):
+    '''Test coding conventions for selector from rule sets.'''
+
+    def test_valid_selector(self):
+
+        selector = CSSStatementMember(0, 0, 'something ')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+        selector = CSSStatementMember(0, 0, '\nsomething ')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+        selector = CSSStatementMember(1, 0, '\n\nsomething ')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+        selector = CSSStatementMember(2, 0, '\n\nsomething,\nsomethi ')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+        selector = CSSStatementMember(3, 0, '\n\nsom:some some,\n#somethi ')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        self.assertEqual([], self.logs)
+
+    def test_I013(self):
+        selector = CSSStatementMember(2, 0, '\n\nsomething\n')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.checkSelector()
+        last_log = self.last_log
+        self.assertEqual('I013', last_log.code)
+        self.assertEqual(5, last_log.line_number)
 
 
 if __name__ == '__main__':
