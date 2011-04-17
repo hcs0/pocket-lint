@@ -108,6 +108,7 @@ class CSSRuleSet(object):
         '''Check rule-set selector.'''
         start_line = self.selector.getStartLine()
         selectors = self.selector.text.split(SELECTOR_SEPARATOR)
+        offset = 0
         last_selector = selectors[-1]
         first_selector = selectors[0]
         rest_selectors = selectors[1:]
@@ -124,36 +125,37 @@ class CSSRuleSet(object):
         for selector in rest_selectors:
             if not selector.startswith('\n'):
                 self.log(
-                    start_line, 'I004', 'Selector must be on a new line.')
+                    start_line + offset,
+                    'I004',
+                    'Selector must be on a new line.')
+            offset += selector.count('\n')
+
         if not last_selector.endswith('\n'):
             # No new line after the last selector.
-            self.log(start_line, 'I005', 'No newline after last selector.')
+            self.log(
+                start_line + offset,
+                'I005',
+                'No newline after last selector.')
 
     def checkDeclarations(self):
         '''Check rule-set declarations.'''
         start_line = self.declarations.getStartLine()
         declarations = self.declarations.text.split(DECLARATION_SEPARATOR)
-
-        last_declaration = declarations[-1]
-        if last_declaration != '\n':
-            self.log(
-                start_line,
-                'I006',
-                'Rule declarations should end with a single new line.',
-                )
+        offset = 0
 
         # Check all declarations except last as this is the new line.
+        first_declaration = True
         for declaration in declarations[:-1]:
             if not declaration.startswith('\n'):
                 self.log(
-                    start_line,
+                    start_line + offset,
                     'I007',
                     'Each declarations should start on a new line.',
                     )
             elif (not declaration.startswith('\n    ') or
                 declaration[5] == ' '):
                 self.log(
-                    start_line,
+                    start_line + offset,
                     'I008',
                     'Each declaration must be indented with 4 spaces.',
                     )
@@ -161,7 +163,7 @@ class CSSRuleSet(object):
             parts = declaration.split(PROPERTY_SEPARATOR)
             if len(parts) != 2:
                 self.log(
-                    start_line,
+                    start_line + offset,
                     'I009',
                     'Wrong separator on property: value pair.',
                     )
@@ -169,22 +171,35 @@ class CSSRuleSet(object):
                 prop, value = parts
                 if prop.endswith(' '):
                     self.log(
-                        start_line,
+                        start_line + offset,
                         'I010',
                         'Whitespace before ":".',
                         )
                 if not (value.startswith(' ') or value.startswith('\n')):
                     self.log(
-                        start_line,
+                        start_line + offset,
                         'I011',
                         'Missing whitespace after ":".',
                         )
                 elif value.startswith('  '):
                     self.log(
-                        start_line,
+                        start_line + offset,
                         'I012',
                         'Multiple whitespaces after ":".',
                         )
+            if first_declaration:
+                first_declaration = False
+            else:
+                offset += declaration.count('\n')
+
+        last_declaration = declarations[-1]
+        offset += last_declaration.count('\n')
+        if last_declaration != '\n':
+            self.log(
+                start_line + offset,
+                'I006',
+                'Rule declarations should end with a single new line.',
+                )
 
 
 class CSSStatementMember(object):
@@ -196,13 +211,15 @@ class CSSStatementMember(object):
         self.text = text
 
     def getStartLine(self):
-        '''Return the line number for first character in the statement.'''
+        '''Return the line number for first character in the statement and
+        the number of new lines untilg the first character.'''
         index = 0
         text = self.text
         character = text[index]
         while character == '\n':
             index += 1
             character = text[index]
+
         return self.start_line + index + 1
 
     def __str__(self):
@@ -228,16 +245,12 @@ class CSSCodingConventionChecker(object):
         if logger:
             self._logger = logger
         else:
-            self._logger = self.logDefault
+            self._logger = self._defaultLog
 
     def log(self, line_number, code, message):
         '''Log the message with `code`.'''
         icon = self.icons[code[0]]
-        self._logger(line_number, message, icon=icon)
-
-    def logDefault(self, line_number, message, icon='info'):
-        '''Log the message to STDOUT.'''
-        print '    %4s:%s: %s' % (line_number, icon, message)
+        self._logger(line_number, code + ': ' + message, icon=icon)
 
     def check(self):
         '''Check all rules.'''
@@ -286,6 +299,10 @@ class CSSCodingConventionChecker(object):
                 selector=selector,
                 declarations=declarations,
                 log=self.log)
+
+    def _defaultLog(self, line_number, message, icon='info'):
+        '''Log the message to STDOUT.'''
+        print '    %4s:%s' % (line_number, message)
 
     def _nextStatementIsAtRule(self):
         '''Return True if next statement in the buffer is an at-rule.
