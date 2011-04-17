@@ -171,7 +171,7 @@ class CSSRuleSet(object):
                         'I010',
                         'Whitespace before ":".',
                         )
-                if not value.startswith(' '):
+                if not (value.startswith(' ') or value.startswith('\n')):
                     self.log(
                         start_line,
                         'I011',

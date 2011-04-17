@@ -298,7 +298,7 @@ class TestCSSRuleSetDeclarationsChecks(RuleTesterBase):
 
     def test_valid_declarations(self):
         stmt = CSSStatementMember(
-            0, 0, '\n    some: 3px;\n    other: url();\n')
+            0, 0, '\n    some: 3px;\n    other:\n        url();\n')
         rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
         rule.checkDeclarations()
         self.assertEqual([], self.logs)
