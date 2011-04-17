@@ -36,6 +36,7 @@ The following at-rules are supported:
 
 
 TODO:
+ * add warning for using px for fonts.
  * add Unicode support.
  * add AtRule checks
  * add support for TAB as a separator / identation.
@@ -53,7 +54,18 @@ COMMENT_START = r'/*'
 COMMENT_END = r'*/'
 AT_TEXT_RULES = ['import', 'charset', 'namespace']
 AT_BLOCK_RULES = ['page', 'font-face']
-IGNORED_MESSAGES = [] #['I004', 'I005']
+# If you want
+# selector
+# {
+#     property:
+# }
+#IGNORED_MESSAGES = ['I013']
+
+# If you want
+# selector {
+#     property:
+# }
+IGNORED_MESSAGES = ['I005']
 
 
 class CSSRule(object):
@@ -132,11 +144,16 @@ class CSSRuleSet(object):
             offset += selector.count('\n')
 
         if not last_selector.endswith('\n'):
-            # No new line after the last selector.
             self.log(
                 start_line + offset,
                 'I005',
                 'No newline after last selector.')
+
+        if not (last_selector[-2] != ' ' and last_selector[-1] == (' ')):
+            self.log(
+                start_line + offset,
+                'I013',
+                'Last selector must be followed by " {".')
 
     def checkDeclarations(self):
         '''Check rule-set declarations.'''
