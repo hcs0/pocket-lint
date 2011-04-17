@@ -117,6 +117,7 @@ class Language:
     ZCML = object()
     DOCBOOK = object()
     LOG = object()
+    SQL = object()
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
@@ -130,6 +131,7 @@ class Language:
         'text/css': CSS,
         'text/html': HTML,
         'text/plain': TEXT,
+        'text/x-sql': SQL,
         'text/x-log': LOG,
         'application/javascript': JAVASCRIPT,
         'application/xml': XML,
@@ -285,6 +287,20 @@ class AnyTextChecker(BaseChecker, AnyTextMixin):
             self.check_conflicts(line_no, line)
 
 
+class SQLChecker(BaseChecker, AnyTextMixin):
+    """Verify SQL style."""
+
+    def check(self):
+        """Call each line_method for each line in text."""
+        # Consider http://code.google.com/p/python-sqlparse/ to verify
+        # keywords and reformatting.
+        for line_no, line in enumerate(self.text.splitlines()):
+            line_no += 1
+            self.check_trailing_whitespace(line_no, line)
+            self.check_tab(line_no, line)
+            self.check_conflicts(line_no, line)
+
+
 class XMLChecker(BaseChecker, AnyTextMixin):
     """Check XML documents."""
 
@@ -312,7 +328,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
                 start, end = match.span(0)
                 text = text[:start] + self.xhtml_doctype + text[end:]
         try:
-            root = ElementTree.parse(StringIO(text), parser)
+            ElementTree.parse(StringIO(text), parser)
         except (ExpatError, ParseError), error:
             if hasattr(error, 'code'):
                 error_message = ErrorString(error.code)
@@ -421,7 +437,6 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             tree = compiler.parse(self.text)
         except (SyntaxError, IndentationError), exc:
             line_no = exc.lineno or 0
-            offset = exc.offset or 0
             line = exc.text or ''
             explanation = 'Could not compile; %s' % exc.msg
             message = '%s: %s' % (explanation, line.strip())
@@ -476,7 +491,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         if self.is_utf8:
             return
         try:
-            ascii_line = line.encode('ascii')
+            line.encode('ascii')
         except UnicodeEncodeError, error:
             self.message(
                 line_no, 'Non-ascii characer at position %s.' % error.end,
