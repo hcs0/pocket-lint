@@ -31,7 +31,7 @@ from xml.parsers.expat import ErrorString, ExpatError
 from formatdoctest import DoctestReviewer
 
 import contrib.pep8 as pep8
-from contrib.csslint import CSSLint
+from contrib.cssccc import CSSCodingConventionChecker
 from contrib.pyflakes.checker import Checker
 try:
     import cssutils
@@ -392,7 +392,7 @@ class CSSChecker(BaseChecker, AnyTextMixin):
             log.removeHandler(handler)
 
         self.check_text()
-        CSSLint(self.text, logger=self.message).check()
+        CSSCodingConventionChecker(self.text, logger=self.message).check()
 
     def check_text(self):
         """Call each line_method for each line in text."""
