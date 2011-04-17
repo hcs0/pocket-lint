@@ -31,6 +31,7 @@ from xml.parsers.expat import ErrorString, ExpatError
 from formatdoctest import DoctestReviewer
 
 import contrib.pep8 as pep8
+from contrib.csslint import CSSLint
 from contrib.pyflakes.checker import Checker
 try:
     import cssutils
@@ -312,7 +313,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
                 start, end = match.span(0)
                 text = text[:start] + self.xhtml_doctype + text[end:]
         try:
-            root = ElementTree.parse(StringIO(text), parser)
+            ElementTree.parse(StringIO(text), parser)
         except (ExpatError, ParseError), error:
             if hasattr(error, 'code'):
                 error_message = ErrorString(error.code)
@@ -378,16 +379,20 @@ class CSSChecker(BaseChecker, AnyTextMixin):
 
     def check(self):
         """Check the syntax of the CSS code."""
-        if self.text == '' or not HAS_CSSUTILS:
+        if self.text == '':
             return
-        handler = CSSReporterHandler(self)
-        log = logging.getLogger('pocket-lint')
-        log.addHandler(handler)
-        parser = cssutils.CSSParser(
-            log=log, loglevel=logging.INFO, raiseExceptions=False)
-        parser.parseString(self.text)
-        log.removeHandler(handler)
+
+        if HAS_CSSUTILS:
+            handler = CSSReporterHandler(self)
+            log = logging.getLogger('pocket-lint')
+            log.addHandler(handler)
+            parser = cssutils.CSSParser(
+                log=log, loglevel=logging.INFO, raiseExceptions=False)
+            parser.parseString(self.text)
+            log.removeHandler(handler)
+
         self.check_text()
+        CSSLint(self.text, logger=self.message).check()
 
     def check_text(self):
         """Call each line_method for each line in text."""
@@ -421,7 +426,6 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             tree = compiler.parse(self.text)
         except (SyntaxError, IndentationError), exc:
             line_no = exc.lineno or 0
-            offset = exc.offset or 0
             line = exc.text or ''
             explanation = 'Could not compile; %s' % exc.msg
             message = '%s: %s' % (explanation, line.strip())
@@ -476,7 +480,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         if self.is_utf8:
             return
         try:
-            ascii_line = line.encode('ascii')
+            line.encode('ascii')
         except UnicodeEncodeError, error:
             self.message(
                 line_no, 'Non-ascii characer at position %s.' % error.end,
