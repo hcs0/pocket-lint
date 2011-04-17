@@ -1,4 +1,5 @@
 PYTHON = python
+VERSION = $(shell $(PYTHON) setup.py -V)
 
 build:
 	$(PYTHON) setup.py build
@@ -20,6 +21,7 @@ manifest: changelog
 
 dist: build manifest
 	$(PYTHON) setup.py sdist
+	gpg --armor --sign --detach-sig dist/pocketlint-$(VERSION).tar.gz
 
 install:
 	$(PYTHON) setup.py install
