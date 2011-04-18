@@ -12,7 +12,10 @@ good_python = """\
 class example:
 
     def __init__(self, value):
-        print "Good night."
+        try:
+            print "Good night."
+        except WindowsError:
+            pass
 """
 
 bad_syntax_python = """\
