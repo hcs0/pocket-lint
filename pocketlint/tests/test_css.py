@@ -41,7 +41,7 @@ class TestCSS(CheckerTestCase):
         if not HAS_CSSUTILS:
             return
         checker = CSSChecker('bogus', ill_formed_property, self.reporter)
-        checker.check()
+        checker.check_cssutils()
         messages = [
             (3, "CSSValue: No match: 'CHAR', u':'"),
             (0, 'CSSStyleDeclaration: Syntax Error in Property: '
@@ -52,7 +52,7 @@ class TestCSS(CheckerTestCase):
         if not HAS_CSSUTILS:
             return
         checker = CSSChecker('ballyhoo', invalid_value, self.reporter)
-        checker.check()
+        checker.check_cssutils()
         message = (
             'Invalid value for "CSS Color Module Level 3/CSS Level 2.1" '
             'property: speckled: color')
