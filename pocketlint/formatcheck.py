@@ -494,7 +494,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 message, location = er.args
                 self.message(location[0], message, icon='error')
         finally:
-            PocketLintPyFlakesChecker.report_error = original_report_error
+            pep8.Checker.report_error = original_report_error
 
     def check_text(self):
         """Call each line_method for each line in text."""
