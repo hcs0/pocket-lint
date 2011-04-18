@@ -42,6 +42,7 @@ TODO:
  * add support for TAB as a separator / identation.
  * add support for @media
 '''
+from __future__ import with_statement
 
 __version__ = '0.1.0'
 
@@ -55,17 +56,26 @@ COMMENT_END = r'*/'
 AT_TEXT_RULES = ['import', 'charset', 'namespace']
 AT_BLOCK_RULES = ['page', 'font-face']
 # If you want
-# selector
+# selector,
+# selector2
 # {
 #     property:
 # }
-#IGNORED_MESSAGES = ['I013']
+#IGNORED_MESSAGES = ['I013', 'I014']
 
 # If you want
+# selector,
 # selector {
 #     property:
 # }
-IGNORED_MESSAGES = ['I005']
+#IGNORED_MESSAGES = ['I005', 'I014']
+
+# If you want
+# selector,
+# selector2 {
+#     property:
+#     }
+IGNORED_MESSAGES = ['I005', 'I006']
 
 
 class CSSRule(object):
@@ -217,6 +227,12 @@ class CSSRuleSet(object):
                 start_line + offset,
                 'I006',
                 'Rule declarations should end with a single new line.',
+                )
+        if last_declaration != '\n    ':
+            self.log(
+                start_line + offset,
+                'I014',
+                'Rule declarations should end indented on a single new line.',
                 )
 
 

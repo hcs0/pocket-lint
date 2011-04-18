@@ -382,17 +382,23 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         if self.text == '':
             return
 
-        if HAS_CSSUTILS:
-            handler = CSSReporterHandler(self)
-            log = logging.getLogger('pocket-lint')
-            log.addHandler(handler)
-            parser = cssutils.CSSParser(
-                log=log, loglevel=logging.INFO, raiseExceptions=False)
-            parser.parseString(self.text)
-            log.removeHandler(handler)
-
+        self.check_cssutils()
         self.check_text()
-        CSSCodingConventionChecker(self.text, logger=self.message).check()
+        # CSS coding conventoins checks should go last since they rely
+        # on previous checks.
+        self.check_css_coding_conventions()
+
+    def check_cssutils(self):
+        """Check the CSS code by parsing it using CSSUtils module."""
+        if not HAS_CSSUTILS:
+            return
+        handler = CSSReporterHandler(self)
+        log = logging.getLogger('pocket-lint')
+        log.addHandler(handler)
+        parser = cssutils.CSSParser(
+            log=log, loglevel=logging.INFO, raiseExceptions=False)
+        parser.parseString(self.text)
+        log.removeHandler(handler)
 
     def check_text(self):
         """Call each line_method for each line in text."""
@@ -402,6 +408,10 @@ class CSSChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_tab(line_no, line)
+
+    def check_css_coding_conventions(self):
+        """Check the input using CSS Coding Convention checker."""
+        CSSCodingConventionChecker(self.text, logger=self.message).check()
 
 
 class PythonChecker(BaseChecker, AnyTextMixin):

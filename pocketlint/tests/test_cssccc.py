@@ -264,20 +264,7 @@ class RuleTesterConventionA(RuleTesterBase):
     }
     '''
 
-    ignored_messaged = ['I013']
-
-
-class RuleTesterConventionB(RuleTesterBase):
-    '''Class for convention B.
-
-    selector1,
-    selecter2 {
-        property1: value1;
-        property2: value2;
-    }
-    '''
-
-    ignored_messaged = ['I005']
+    ignored_messaged = ['I013', 'I014']
 
 
 class TestCSSRuleSetSelectorChecksA(RuleTesterConventionA):
@@ -449,6 +436,19 @@ class TestCSSRuleSetDeclarationsChecksA(RuleTesterConventionA):
         self.assertEqual('I012', self.last_log.code)
 
 
+class RuleTesterConventionB(RuleTesterBase):
+    '''Class for convention B.
+
+    selector1,
+    selecter2 {
+        property1: value1;
+        property2: value2;
+    }
+    '''
+
+    ignored_messaged = ['I005', 'I014']
+
+
 class TestCSSRuleSetSelectorChecksB(RuleTesterConventionB):
     '''Test coding conventions for selector from rule sets.'''
 
@@ -486,6 +486,43 @@ class TestCSSRuleSetSelectorChecksB(RuleTesterConventionB):
         last_log = self.last_log
         self.assertEqual('I013', last_log.code)
         self.assertEqual(5, last_log.line_number)
+
+
+class RuleTesterConventionC(RuleTesterBase):
+    '''Class for convention C.
+
+    selector1,
+    selecter2 {
+        property1: value1;
+        property2: value2;
+        }
+    '''
+
+    ignored_messaged = ['I005', 'I006']
+
+
+class TestCSSRuleSetDeclarationsChecksC(RuleTesterConventionC):
+    '''Test coding conventions for declarations from rule sets.'''
+
+    def test_valid_declarations(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some: 3px;\n    other:\n        url();\n    ')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual([], self.logs)
+
+    def test_I014(self):
+        stmt = CSSStatementMember(
+            0, 0, '\n    some:  3px;\n')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I014', self.last_log.code)
+
+        stmt = CSSStatementMember(
+            0, 0, '\n    some:  3px;\n   ')
+        rule = CSSRuleSet(selector=None, declarations=stmt, log=self.log)
+        rule.checkDeclarations()
+        self.assertEqual('I014', self.last_log.code)
 
 
 if __name__ == '__main__':
