@@ -12,8 +12,15 @@ good_python = """\
 class example:
 
     def __init__(self, value):
+        print "Good night."
+"""
+
+good_python_on_windows = """\
+class example:
+
+    def __init__(self, value):
         try:
-            print "Good night."
+            f = open("some.file")
         except WindowsError:
             pass
 """
@@ -76,6 +83,14 @@ class TestPyflakes(CheckerTestCase):
     def test_code_without_issues(self):
         self.reporter.call_count = 0
         checker = PythonChecker('bogus', good_python, self.reporter)
+        checker.check_flakes()
+        self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
+
+    def test_windows_code_without_issues(self):
+        self.reporter.call_count = 0
+        checker = PythonChecker(
+            'bogus', good_python_on_windows, self.reporter)
         checker.check_flakes()
         self.assertEqual([], self.reporter.messages)
         self.assertEqual(0, self.reporter.call_count)
