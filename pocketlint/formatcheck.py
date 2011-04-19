@@ -32,7 +32,7 @@ from formatdoctest import DoctestReviewer
 
 import contrib.pep8 as pep8
 from contrib.cssccc import CSSCodingConventionChecker
-from contrib.pyflakes.checker import Checker
+from contrib.pyflakes.checker import Checker as PyFlakesChecker
 try:
     import cssutils
     HAS_CSSUTILS = True
@@ -52,6 +52,19 @@ __all__ = [
     'Reporter',
     'UniversalChecker',
     ]
+
+
+class PocketLintPyFlakesChecker(PyFlakesChecker):
+    '''PocketLint checker for pyflakes.
+
+    This is here to work around some of the pyflakes problems.
+    '''
+
+    def NAME(self, node):
+        '''Locate name. Ignore WindowsErrors.'''
+        if node.name == 'WindowsError':
+            return
+        return super(PocketLintPyFlakesChecker, self).NAME(node)
 
 
 class Reporter:
@@ -345,7 +358,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
                     error_lineno = 0
             else:
                 error_message, location = str(error).rsplit(':')
-                error_lineno = int(location.split(',')[0].split()[1])- offset
+                error_lineno = int(location.split(',')[0].split()[1]) - offset
             self.message(error_lineno, error_message, icon='error')
         self.check_text()
 
@@ -459,7 +472,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             message = '%s: %s' % (explanation, line.strip())
             self.message(line_no, message, icon='error')
         else:
-            warnings = Checker(tree)
+            warnings = PocketLintPyFlakesChecker(tree)
             for warning in warnings.messages:
                 dummy, line_no, message = str(warning).split(':')
                 self.message(int(line_no), message.strip(), icon='error')
@@ -481,7 +494,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 message, location = er.args
                 self.message(location[0], message, icon='error')
         finally:
-            Checker.report_error = original_report_error
+            pep8.Checker.report_error = original_report_error
 
     def check_text(self):
         """Call each line_method for each line in text."""
