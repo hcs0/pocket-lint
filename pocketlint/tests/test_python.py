@@ -20,7 +20,7 @@ class example:
 
     def __init__(self, value):
         try:
-            f = open("some.file")
+            open("some.file")
         except WindowsError:
             pass
 """
