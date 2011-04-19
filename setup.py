@@ -1,4 +1,21 @@
+import subprocess
+
 from distutils.core import setup
+from distutils.command.sdist import sdist
+
+
+class SignedSDistCommand(sdist):
+    """Sign the source archive with a detached signature."""
+
+    description = "Sign the source archive after it is generated."
+
+    def run(self):
+        sdist.run(self)
+        gpg_args = [
+            'gpg', '--armor', '--sign', '--detach-sig', self.archive_files[0]]
+        gpg = subprocess.Popen(
+            gpg_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        gpg.communicate()
 
 setup(
     name="pocketlint",
@@ -17,4 +34,7 @@ setup(
         'pocketlint/contrib': ['fulljslint.js'],
         },
     scripts=['scripts/pocketlint'],
+    cmdclass={
+        'signed_sdist': SignedSDistCommand,
+        },
     )

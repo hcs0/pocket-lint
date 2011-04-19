@@ -20,8 +20,7 @@ manifest: changelog
 	$(PYTHON) setup.py sdist --manifest-only
 
 dist: build manifest
-	$(PYTHON) setup.py sdist
-	gpg --armor --sign --detach-sig dist/pocketlint-$(VERSION).tar.gz
+	$(PYTHON) setup.py signed_sdist
 
 install:
 	$(PYTHON) setup.py install
