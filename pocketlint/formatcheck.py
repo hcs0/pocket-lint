@@ -496,6 +496,10 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             except TokenError, er:
                 message, location = er.args
                 self.message(location[0], message, icon='error')
+            except IndentationError, er:
+                message, location = er.args
+                message = "%s: %s" % (message, location[3].strip())
+                self.message(location[1], message, icon='error')
         finally:
             pep8.Checker.report_error = original_report_error
 

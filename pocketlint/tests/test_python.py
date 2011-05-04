@@ -162,6 +162,16 @@ class TestPEP8(CheckerTestCase):
             [(4, 'EOF in multi-line statement')],
             self.reporter.messages)
 
+    def test_code_with_IndentationError(self):
+        self.file.write(bad_indentation_python)
+        self.file.flush()
+        checker = PythonChecker(
+            self.file.name, bad_indentation_python, self.reporter)
+        checker.check_pep8()
+        expected = [(
+            4, 'unindent does not match any outer indentation level: b = 1')]
+        self.assertEqual(expected, self.reporter.messages)
+
     def test_code_with_issues(self):
         self.file.write(ugly_style_python)
         self.file.flush()
