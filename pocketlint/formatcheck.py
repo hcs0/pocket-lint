@@ -448,10 +448,11 @@ class CSSChecker(BaseChecker, AnyTextMixin):
 class PythonChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
 
+    encoding_pattern = re.compile("coding[:=]\s*([-\w.]+)")
+
     def __init__(self, file_path, text, reporter=None):
         super(PythonChecker, self).__init__(
             file_path, text, reporter=reporter)
-        self.is_utf8 = False
         self.encoding = 'ascii'
 
     def check(self):
@@ -501,8 +502,10 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         """Call each line_method for each line in text."""
         for line_no, line in enumerate(self.text.splitlines()):
             line_no += 1
-            if line_no in (1, 2) and '# -*- coding: utf-8 -*-' in line:
-                self.is_utf8 = True
+            if line_no in (1, 2):
+                match = self.encoding_pattern.search(line)
+                if match:
+                    self.encoding = match.group(1).lower()
             self.check_pdb(line_no, line)
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
@@ -519,7 +522,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
     def check_ascii(self, line_no, line):
         """Check that the line is ascii."""
-        if self.is_utf8:
+        if self.encoding != 'ascii':
             return
         try:
             line.encode('ascii')
