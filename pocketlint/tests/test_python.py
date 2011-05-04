@@ -184,6 +184,14 @@ class TestPEP8(CheckerTestCase):
 class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
 
+    def test_with_tabs(self):
+        # pep8 checks this.
+        pass
+
+    def test_trailing_whitespace(self):
+        # pep8 checks this.
+        pass
+
     def create_and_check(self, file_name, text):
         """Used by the TestAnyTextMixin tests."""
         checker = PythonChecker(file_name, text, self.reporter)
