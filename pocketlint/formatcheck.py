@@ -460,9 +460,9 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         """Check the syntax of the python code."""
         if self.text == '':
             return
+        self.check_text()
         self.check_flakes()
         self.check_pep8()
-        self.check_text()
 
     def check_flakes(self):
         """Check compilation and syntax."""
