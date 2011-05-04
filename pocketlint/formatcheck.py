@@ -452,6 +452,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         super(PythonChecker, self).__init__(
             file_path, text, reporter=reporter)
         self.is_utf8 = False
+        self.encoding = 'ascii'
 
     def check(self):
         """Check the syntax of the python code."""
