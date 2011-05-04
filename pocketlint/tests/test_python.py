@@ -201,6 +201,30 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self.assertEqual(
             [(1, 'Line contains a call to pdb.')], self.reporter.messages)
 
+    def _test_encoding(self, python, expected_encoding='foo-encoding'):
+        checker = PythonChecker(
+           'bogus', python % dict(encoding=expected_encoding), self.reporter)
+        checker.check_text()
+        self.assertEqual(expected_encoding, checker.encoding)
+    
+    def test_pep0263_no_encoding(self):
+        self._test_encoding("# First line\n# Second line\n\n", 'ascii')
+        
+    def test_pep0263_encoding_standard_coding(self):
+        self._test_encoding("# coding=%(encoding)s\n")
+        
+    def test_pep0263_encoding_standard_encoding(self):
+        self._test_encoding("# encoding=%(encoding)s\n")
+
+    def test_pep0263_encoding_emacs(self):
+        self._test_encoding("# -*- coding: %(encoding)s -*-\n")
+        
+    def test_pep0263_encoding_vim(self):
+        self._test_encoding("# vim: set fileencoding=%(encoding)s :\n")
+        
+    def test_pep0263_encoding_2nd_line(self):
+        self._test_encoding("# First line\n# coding=%(encoding)s\n\n")
+        
     def test_code_is_utf8(self):
         utf8_python = u"a = 'this is utf-8 [\u272a]'"
         checker = PythonChecker('bogus', utf8_python, self.reporter)
