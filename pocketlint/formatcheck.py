@@ -448,6 +448,7 @@ class CSSChecker(BaseChecker, AnyTextMixin):
 class PythonChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
 
+    # This regex is taken from PEP 0263.
     encoding_pattern = re.compile("coding[:=]\s*([-\w.]+)")
 
     def __init__(self, file_path, text, reporter=None):
