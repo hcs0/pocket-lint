@@ -44,7 +44,7 @@ TODO:
 '''
 from __future__ import with_statement
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 import sys
 
@@ -380,11 +380,10 @@ class CSSCodingConventionChecker(object):
                 break
 
             # Look for comment start/end.
-            comment_check = _check_comment(data)
             (comment_update,
             before_comment,
             after_comment,
-            newline_consumed) = comment_check
+            newline_consumed) = _check_comment(data)
             if comment_update is not None:
                 comment_started = comment_update
 
@@ -438,15 +437,19 @@ def _check_comment(data):
     before_comment = None
     after_comment = None
     newline_consumed = False
+
     comment_start = data.find(COMMENT_START)
     if comment_start != -1:
         comment_started = True
         before_comment = data[:comment_start]
+        # Only use `None` to signal that there is no text before the comment.
+        if before_comment == '':
+            before_comment = None
 
     comment_end = data.find(COMMENT_END)
     if comment_end != -1:
         comment_started = False
-        # Comment end after the lenght of the actual comment end
+        # Set comment end after the lenght of the actual comment end
         # marker.
         comment_end += len(COMMENT_END)
         if before_comment is None and data[comment_end] == '\n':
