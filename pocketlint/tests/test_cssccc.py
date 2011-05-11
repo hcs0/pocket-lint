@@ -90,7 +90,7 @@ class TestCSSCodingConventionChecker(TestCase):
         self.assertEqual(1, rule.declarations.start_character)
 
     def test_getNextRule_stop(self):
-        text ='rule1{st1\n}\n@font-face {\n src: url("u\n u"); \n }\nr2{st2}'
+        text = 'rule1{st1\n}\n@font-face {\n src: url("u\n u"); \n }\nr2{st2}'
         lint = CSSCodingConventionChecker(text)
         rule = lint.getNextRule()
         self.assertTrue(rule.type is CSSRuleSet.type)
@@ -100,21 +100,64 @@ class TestCSSCodingConventionChecker(TestCase):
         self.assertTrue(rule.type is CSSRuleSet.type)
         self.failUnlessRaises(StopIteration, lint.getNextRule)
 
-    def test_getNextRule_comment(self):
-        text = '\n\n/* c\nm*/\nsel\n{\ns/*com*/\ncont1;/*com*/\ncont2;}'
+    def test_getNextRule_comment_multiline(self):
+        text = (
+            '\n'
+            '\n'
+            '/* multi line\n'
+            ' * comment \n'
+            ' */\n'
+            'selector {\n'
+            'cont2;\n'
+            '}')
         lint = CSSCodingConventionChecker(text)
         rule = lint.getNextRule()
         self.assertTrue(rule.type is CSSRuleSet.type)
-        self.assertEqual('\n\nsel\n', rule.selector.text)
+        self.assertEqual('\n\nselector ', rule.selector.text)
         self.assertEqual(0, rule.selector.start_line)
         self.assertEqual(0, rule.selector.start_character)
-        self.assertEqual('\ns\ncont1;\ncont2;', rule.declarations.text)
-        self.assertEqual(5, rule.declarations.start_line)
-        self.assertEqual(1, rule.declarations.start_character)
+
+    def test_getNextRule_comment_inline(self):
+        text = (
+            'selector {\n'
+            'so/* inline comment*/me\n'
+            '}\n')
+        lint = CSSCodingConventionChecker(text)
+        rule = lint.getNextRule()
+        self.assertTrue(rule.type is CSSRuleSet.type)
+        self.assertEqual('\nsome\n', rule.declarations.text)
+        self.assertEqual(0, rule.declarations.start_line)
+        self.assertEqual(10, rule.declarations.start_character)
+
+    def test_getNextRule_comment_end_of_line(self):
+        text = (
+            'selector {\n'
+            'cont1;  /*end of line comment*/\n'
+            '}')
+        lint = CSSCodingConventionChecker(text)
+        rule = lint.getNextRule()
+        self.assertTrue(rule.type is CSSRuleSet.type)
+        self.assertEqual('\ncont1;  \n', rule.declarations.text)
+        self.assertEqual(0, rule.declarations.start_line)
+        self.assertEqual(10, rule.declarations.start_character)
+
+    def test_getNextRule_comment_single_line(self):
+        text = (
+            '\n'
+            '/* single line comment */\n'
+            'selector2 {\n'
+            'cont1;\n'
+            '}')
+        lint = CSSCodingConventionChecker(text)
+        rule = lint.getNextRule()
+        self.assertTrue(rule.type is CSSRuleSet.type)
+        self.assertEqual('\nselector2 ', rule.selector.text)
+        self.assertEqual(0, rule.selector.start_line)
+        self.assertEqual(0, rule.selector.start_character)
 
     def test_get_at_import_rule(self):
         '''Test for @import url(/css/screen.css) screen, projection;'''
-        text ='rule1{st1\n}\n@import  url(somet) print, soment ;rule2{st2}'
+        text = 'rule1{st1\n}\n@import  url(somet) print, soment ;rule2{st2}'
         lint = CSSCodingConventionChecker(text)
         rule = lint.getNextRule()
         self.assertTrue(rule.type is CSSRuleSet.type)
@@ -131,7 +174,7 @@ class TestCSSCodingConventionChecker(TestCase):
 
     def test_get_at_charset_rule(self):
         '''Test for @charset "ISO-8859-15";'''
-        text ='rule1{st1\n}\n@charset  "utf" ;rule2{st2}'
+        text = 'rule1{st1\n}\n@charset  "utf" ;rule2{st2}'
         lint = CSSCodingConventionChecker(text)
         rule = lint.getNextRule()
         self.assertTrue(rule.type is CSSRuleSet.type)
@@ -148,7 +191,7 @@ class TestCSSCodingConventionChecker(TestCase):
 
     def test_get_at_namespace_rule(self):
         '''Test for @namespace  foo  "http://foo" ;'''
-        text ='rule1{st1\n}@namespace  foo  "http://foo" ;rule2{st2}'
+        text = 'rule1{st1\n}@namespace  foo  "http://foo" ;rule2{st2}'
         lint = CSSCodingConventionChecker(text)
         rule = lint.getNextRule()
         self.assertTrue(rule.type is CSSRuleSet.type)
@@ -170,7 +213,7 @@ class TestCSSCodingConventionChecker(TestCase):
           margin-left: 5cm; /* left pages only */
         }
         '''
-        text ='rule1{st1\n}\n@page :left {\n  mar; /*com*/\n }\nrule2{st2}'
+        text = 'rule1{st1\n}\n@page :left {\n  mar; /*com*/\n }\nrule2{st2}'
         lint = CSSCodingConventionChecker(text)
         rule = lint.getNextRule()
         self.assertTrue(rule.type is CSSRuleSet.type)
@@ -194,7 +237,7 @@ class TestCSSCodingConventionChecker(TestCase):
               /fonts/example");
         }
         '''
-        text ='rule1{st1\n}\n@font-face {\n src: url("u\n u"); \n }\nr2{st2}'
+        text = 'rule1{st1\n}\n@font-face {\n src: url("u\n u"); \n }\nr2{st2}'
         lint = CSSCodingConventionChecker(text)
         rule = lint.getNextRule()
         self.assertTrue(rule.type is CSSRuleSet.type)
