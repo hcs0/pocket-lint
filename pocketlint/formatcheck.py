@@ -13,7 +13,6 @@ import logging
 import mimetypes
 import os
 import re
-#import subprocess
 import sys
 
 from optparse import OptionParser
@@ -40,15 +39,6 @@ except ImportError:
     HAS_CSSUTILS = False
 
 from html5browser import HTML5Browser
-
-# Javascript checking is available if spider money's js is available.
-#js = subprocess.Popen(
-#    ['which', 'js'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#js_exec, ignore = js.communicate()
-#if js.returncode != 0:
-#    JS = None
-#else:
-#    JS = js_exec.strip()
 
 __all__ = [
     'Reporter',
@@ -580,7 +570,8 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     def escape_script(text):
         """Escape the script so that it can be interpolated in to JS."""
         return text.replace(
-            '\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+            '\\', '\\\\').replace('"', '\\"').replace("'", "\\'").replace(
+            '\n', '\\n')
 
 
 def get_option_parser():

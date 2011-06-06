@@ -3,7 +3,6 @@
 
 from pocketlint.formatcheck import(
      JavascriptChecker,
-     JS,
     )
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
@@ -27,8 +26,6 @@ class TestJavascript(CheckerTestCase):
         self.assertEqual([], self.reporter.messages)
 
     def test_invalid_value(self):
-        if JS is None:
-            return
         checker = JavascriptChecker('bogus', invalid_js, self.reporter)
         checker.check()
         self.assertEqual(
