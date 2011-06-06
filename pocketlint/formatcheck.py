@@ -535,12 +535,6 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 icon='error')
 
 
-def get_file_content(path):
-    with open(path) as file_:
-        content = file_.read()
-    return content
-
-
 class JavascriptChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
 
@@ -573,13 +567,6 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_tab(line_no, line)
-
-    @staticmethod
-    def escape_script(text):
-        """Escape the script so that it can be interpolated in to JS."""
-        return text.replace(
-            '\\', '\\\\').replace('"', '\\"').replace("'", "\\'").replace(
-            '\n', '\\n')
 
 
 def get_option_parser():
