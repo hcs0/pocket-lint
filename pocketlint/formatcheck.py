@@ -13,6 +13,7 @@ import logging
 import mimetypes
 import os
 import re
+import subprocess
 import sys
 
 from optparse import OptionParser
@@ -38,7 +39,14 @@ try:
 except ImportError:
     HAS_CSSUTILS = False
 
-from html5browser import HTML5Browser
+# Javascript checking is available if seed is available.
+js = subprocess.Popen(
+    ['which', 'seed'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+js_exec, ignore = js.communicate()
+if js.returncode != 0:
+    JS = None
+else:
+    JS = js_exec.strip()
 
 __all__ = [
     'Reporter',
@@ -537,18 +545,18 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
 
     HERE = os.path.dirname(__file__)
-    FULLJSLINT = get_file_content(os.path.join(HERE, 'contrib/fulljslint.js'))
-    JSREPORTER = get_file_content(os.path.join(HERE, 'jsreporter.js'))
+    FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
+    JSREPORTER = os.path.join(HERE, 'jsreporter.js')
 
     def check(self):
         """Check the syntax of the javascript code."""
-        if self.text == '':
+        if JS is None or self.text == '':
             return
-        linter = 'lint_script("%s");' % self.escape_script(self.text)
-        script = '\n'.join([self.FULLJSLINT, self.JSREPORTER, linter])
-        browser = HTML5Browser(show_window=False)
-        response = browser.run_script(script)
-        issues = response.content
+        args = [JS, self.JSREPORTER, self.FULLJSLINT, self.file_path]
+        jslint = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        issues, errors = jslint.communicate()
+        issues = issues.strip()
         if issues:
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')

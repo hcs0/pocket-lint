@@ -1,5 +1,18 @@
-// Copyright (C) 2009-2010 - Curtis Hovey <sinzui.is at verizon.net>
+// Copyright (C) 2009-2011 - Curtis Hovey <sinzui.is at verizon.net>
 // This software is licensed under the MIT license (see the file COPYING).
+
+function get_file_content(file_path) {
+    // Return the content of the file.
+    var Gio = imports.gi.Gio;
+    var file = Gio.file_new_for_path(file_path);
+    var dstream = new Gio.DataInputStream.c_new(file.read());
+    return dstream.read_until("", 0);
+    }
+
+
+// This is an evil way to import JSLINT.
+eval(get_file_content(Seed.argv[2]));
+
 
 function report_implied_names() {
     // Report about implied global names.
@@ -40,10 +53,10 @@ function report_lint_errors() {
     return errors.join('\n');
     }
 
-
-function lint_script(source_script) {
+function lint_script() {
     // Lint the source and report errors.
-    var result = JSLINT(source_script);
+    var script = get_file_content(Seed.argv[3]);
+    var result = JSLINT(script);
     if (! result) {
         var issues = [];
         errors = report_lint_errors();
@@ -54,6 +67,8 @@ function lint_script(source_script) {
         if (implied) {
             issues.push(implied);
             }
-        window.status = '::::' + issues.join('\n');
+        Seed.print(issues.join('\n'));
         }
     }
+
+lint_script();

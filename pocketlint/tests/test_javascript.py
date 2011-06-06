@@ -1,8 +1,11 @@
 # Copyright (C) 2011 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
+from tempfile import NamedTemporaryFile
+
 from pocketlint.formatcheck import(
      JavascriptChecker,
+     JS
     )
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
@@ -20,13 +23,26 @@ a = 1
 class TestJavascript(CheckerTestCase):
     """Verify Javascript integration."""
 
+    def setUp(self):
+        super(TestJavascript, self).setUp()
+        self.file = NamedTemporaryFile(prefix='pocketlint_')
+
+    def tearDown(self):
+        self.file.close()
+
     def test_good_js(self):
-        checker = JavascriptChecker('bogus', good_js, self.reporter)
+        self.file.write(good_js)
+        self.file.flush()
+        checker = JavascriptChecker(self.file.name, good_js, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
 
     def test_invalid_value(self):
-        checker = JavascriptChecker('bogus', invalid_js, self.reporter)
+        if JS is None:
+            return
+        self.file.write(invalid_js)
+        self.file.flush()
+        checker = JavascriptChecker(self.file.name, invalid_js, self.reporter)
         checker.check()
         self.assertEqual(
             [(1, "Expected ';' and instead saw '(end)'.")],
