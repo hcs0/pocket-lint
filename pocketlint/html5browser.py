@@ -34,7 +34,7 @@ class HTML5Browser(Webkit.WebView):
         self.show_window = show_window
         self.browser_window = None
         self.script = None
-        self.page = None
+        self.command = None
         self.listeners = {}
 
     def load_page(self, uri, timeout=5000):
@@ -42,7 +42,7 @@ class HTML5Browser(Webkit.WebView):
         self._setup_listening_operation(timeout)
         self.open(uri)
         Gtk.main()
-        return self.page
+        return self.command
 
     def run_script(self, script, timeout=5000):
         """Run a script and return the result."""
@@ -52,12 +52,12 @@ class HTML5Browser(Webkit.WebView):
         self.load_html_string(
             '<html><head></head><body></body></html>', 'file:///')
         Gtk.main()
-        return self.page
+        return self.command
 
     def _setup_listening_operation(self, timeout):
         """Setup a one-time listening operation for command's completion."""
         self._create_window()
-        self.page = HTML5Command()
+        self.command = HTML5Command()
         self._connect(
             'status-bar-text-changed', self._on_status_bar_text_changed)
         GLib.timeout_add(timeout, self._on_timeout)
@@ -82,9 +82,9 @@ class HTML5Browser(Webkit.WebView):
         if text.startswith('::::'):
             self._disconnect('status-bar-text-changed')
             self.execute_script('window.status = "";')
-            self.page.status = HTML5Command.STATUS_COMPLETE
-            self.page.return_code = HTML5Command.CODE_SUCCESS
-            self.page.content = text[4:]
+            self.command.status = HTML5Command.STATUS_COMPLETE
+            self.command.return_code = HTML5Command.CODE_SUCCESS
+            self.command.content = text[4:]
             self._on_quit()
 
     def _on_script_load_finished(self, view, script):
@@ -93,10 +93,10 @@ class HTML5Browser(Webkit.WebView):
         self.script = None
 
     def _on_timeout(self):
-        if self.page.status is not HTML5Command.STATUS_COMPLETE:
+        if self.command.status is not HTML5Command.STATUS_COMPLETE:
             self._disconnect()
-            self.page.status = HTML5Command.STATUS_COMPLETE
-            self.page.return_code = HTML5Command.CODE_FAIL
+            self.command.status = HTML5Command.STATUS_COMPLETE
+            self.command.return_code = HTML5Command.CODE_FAIL
             self._on_quit()
         return False
 
