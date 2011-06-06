@@ -4,41 +4,56 @@
 function report_implied_names() {
     // Report about implied global names.
     var implied_names = [];
-    for (var name in JSLINT.implied) {
-        if (JSLINT.implied.hasOwnPropery(name)) {
-            implied_names.push(name);
+    var prop;
+    for (prop in JSLINT.implied) {
+        if (JSLINT.implied.hasOwnProperty(prop)) {
+            implied_names.push(prop);
             }
         }
     if (implied_names.length > 0) {
         implied_names.sort();
-        print('0::0::Implied globals:' + implied_names.join(', '));
+        return '0::0::Implied globals:' + implied_names.join(', ');
         }
+    return '';
     }
 
 
 function report_lint_errors() {
     // Report about lint errors.
-    for (var i = 0; i < JSLINT.errors.length; i++) {
+    var errors = [];
+    var i;
+    for (i = 0; i < JSLINT.errors.length; i++) {
         var error = JSLINT.errors[i];
         if (error === null) {
-            print('0::0::JSLINT had a fatal error.');
+            error = {
+                'line': -1,
+                'character': -1,
+                'reason': 'JSLINT had a fatal error.'
+                };
             }
         // Fix the line and character offset for editors.
         error.line += 1;
         error.character += 1;
-        print(error.line + '::' + error.character + '::' + error.reason);
+        errors.push(
+            [error.line, error.character, error.reason].join('::'));
         }
+    return errors.join('\n');
     }
 
 
-function main(source_script) {
+function lint_script(source_script) {
     // Lint the source and report errors.
     var result = JSLINT(source_script);
     if (! result) {
-        report_lint_errors();
-        report_implied_names();
+        var issues = [];
+        errors = report_lint_errors();
+        if (errors) {
+            issues.push(errors);
+            }
+        implied = report_implied_names();
+        if (implied) {
+            issues.push(implied);
+            }
+        window.status = '::::' + issues.join('\n');
         }
     }
-
-
-main(arguments[0]);

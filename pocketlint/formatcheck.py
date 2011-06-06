@@ -13,7 +13,7 @@ import logging
 import mimetypes
 import os
 import re
-import subprocess
+#import subprocess
 import sys
 
 from optparse import OptionParser
@@ -39,14 +39,16 @@ try:
 except ImportError:
     HAS_CSSUTILS = False
 
+from html5browser import HTML5Browser
+
 # Javascript checking is available if spider money's js is available.
-js = subprocess.Popen(
-    ['which', 'js'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-js_exec, ignore = js.communicate()
-if js.returncode != 0:
-    JS = None
-else:
-    JS = js_exec.strip()
+#js = subprocess.Popen(
+#    ['which', 'js'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#js_exec, ignore = js.communicate()
+#if js.returncode != 0:
+#    JS = None
+#else:
+#    JS = js_exec.strip()
 
 __all__ = [
     'Reporter',
@@ -535,22 +537,32 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 icon='error')
 
 
+def get_file_content(path):
+    with open(path) as file_:
+        content = file_.read()
+    return content
+
+
 class JavascriptChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
 
     HERE = os.path.dirname(__file__)
-    FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
-    JSREPORTER = os.path.join(HERE, 'jsreporter.js')
+    FULLJSLINT = get_file_content(os.path.join(HERE, 'contrib/fulljslint.js'))
+    JSREPORTER = get_file_content(os.path.join(HERE, 'jsreporter.js'))
+
+    def __init__(self, file_path, text, reporter=None):
+        super(JavascriptChecker, self).__init__(
+            file_path, text, reporter=reporter)
+        self.browser = HTML5Browser(show_window=False)
 
     def check(self):
         """Check the syntax of the javascript code."""
-        if JS is None or self.text == '':
+        if self.text == '':
             return
-        args = [JS, '-f', self.FULLJSLINT, self.JSREPORTER, self.text]
-        jslint = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        issues, errors = jslint.communicate()
-        issues = issues.strip()
+        linter = 'lint_script("%s");' % self.escape_script(self.text)
+        script = '\n'.join([self.FULLJSLINT, self.JSREPORTER, linter])
+        response = self.browser.run_script(script)
+        issues = response.content
         if issues:
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')
@@ -567,6 +579,12 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_tab(line_no, line)
+
+    @staticmethod
+    def escape_script(text):
+        """Escape the script so that it can be interpolated in to JS."""
+        return text.replace(
+            '\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
 
 
 def get_option_parser():
