@@ -2,7 +2,7 @@
 
 __metaclass__ = type
 __all__ = [
-    'HTML5Page',
+    'HTML5Command',
     'HTML5Browser',
     ]
 
@@ -11,8 +11,8 @@ import gtk as Gtk
 import webkit as Webkit
 
 
-class HTML5Page:
-
+class HTML5Command:
+    """A representation of the status and result of a command."""
     STATUS_RUNNING = object()
     STATUS_COMPLETE = object()
     CODE_UNKNOWN = -1
@@ -27,6 +27,7 @@ class HTML5Page:
 
 
 class HTML5Browser(Webkit.WebView):
+    """A browser that can be driven by an application."""
 
     def __init__(self, show_window=False):
         super(HTML5Browser, self).__init__()
@@ -37,51 +38,54 @@ class HTML5Browser(Webkit.WebView):
         self.listeners = {}
 
     def load_page(self, uri, timeout=5000):
-        self.create_window()
-        self.page = HTML5Page()
-        self._connect(
-            'status-bar-text-changed', self._on_status_bar_text_changed)
+        """Load a page and return the content."""
+        self._setup_listening_operation(timeout)
         self.open(uri)
-        GLib.timeout_add(timeout, self._on_timeout)
         Gtk.main()
         return self.page
 
     def run_script(self, script, timeout=5000):
-        self.create_window()
-        self.page = HTML5Page()
-        self._connect(
-            'status-bar-text-changed', self._on_status_bar_text_changed)
+        """Run a script and return the result."""
+        self._setup_listening_operation(timeout)
         self.script = script
         self._connect('load-finished', self._on_script_load_finished)
-        GLib.timeout_add(timeout, self._on_timeout)
         self.load_html_string(
             '<html><head></head><body></body></html>', 'file:///')
         Gtk.main()
         return self.page
 
-    def create_window(self):
+    def _setup_listening_operation(self, timeout):
+        """Setup a one-time listening operation for command's completion."""
+        self._create_window()
+        self.page = HTML5Command()
+        self._connect(
+            'status-bar-text-changed', self._on_status_bar_text_changed)
+        GLib.timeout_add(timeout, self._on_timeout)
+
+    def _create_window(self):
+        """Create a window needed to render pages."""
         if self.browser_window is not None:
             return
         self.browser_window = Gtk.Window()
         self.browser_window.set_default_size(800, 600)
-        self.browser_window.connect("destroy", self.on_quit)
+        self.browser_window.connect("destroy", self._on_quit)
         scrolled = Gtk.ScrolledWindow()
         scrolled.add(self)
         self.browser_window.add(scrolled)
         if self.show_window:
             self.browser_window.show_all()
 
-    def on_quit(self, widget=None):
+    def _on_quit(self, widget=None):
         Gtk.main_quit()
 
     def _on_status_bar_text_changed(self, view, text):
         if text.startswith('::::'):
             self._disconnect('status-bar-text-changed')
             self.execute_script('window.status = "";')
-            self.page.status = HTML5Page.STATUS_COMPLETE
-            self.page.return_code = HTML5Page.CODE_SUCCESS
+            self.page.status = HTML5Command.STATUS_COMPLETE
+            self.page.return_code = HTML5Command.CODE_SUCCESS
             self.page.content = text[4:]
-            self.on_quit()
+            self._on_quit()
 
     def _on_script_load_finished(self, view, script):
         self._disconnect('load-finished')
@@ -89,11 +93,11 @@ class HTML5Browser(Webkit.WebView):
         self.script = None
 
     def _on_timeout(self):
-        if self.page.status is not HTML5Page.STATUS_COMPLETE:
+        if self.page.status is not HTML5Command.STATUS_COMPLETE:
             self._disconnect()
-            self.page.status = HTML5Page.STATUS_COMPLETE
-            self.page.return_code = HTML5Page.CODE_FAIL
-            self.on_quit()
+            self.page.status = HTML5Command.STATUS_COMPLETE
+            self.page.return_code = HTML5Command.CODE_FAIL
+            self._on_quit()
         return False
 
     def _connect(self, signal, callback):
