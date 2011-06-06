@@ -46,23 +46,18 @@ class HTML5Browser(Webkit.WebView):
         Gtk.main()
         return self.page
 
-    def run_script(self, source, timeout=5000):
+    def run_script(self, script, timeout=5000):
         self.create_window()
         self.page = HTML5Page()
         self._connect(
             'status-bar-text-changed', self._on_status_bar_text_changed)
-        self.script = source
-        self._connect('load-finished', self.on_script_load_finished)
+        self.script = script
+        self._connect('load-finished', self._on_script_load_finished)
         GLib.timeout_add(timeout, self._on_timeout)
         self.load_html_string(
             '<html><head></head><body></body></html>', 'file:///')
         Gtk.main()
         return self.page
-
-    def on_script_load_finished(self, view, script):
-        self._disconnect('load-finished')
-        self.execute_script(self.script)
-        self.script = None
 
     def create_window(self):
         if self.browser_window is not None:
@@ -88,6 +83,11 @@ class HTML5Browser(Webkit.WebView):
             self.page.content = text[4:]
             self.on_quit()
 
+    def _on_script_load_finished(self, view, script):
+        self._disconnect('load-finished')
+        self.execute_script(self.script)
+        self.script = None
+
     def _on_timeout(self):
         if self.page.status is not HTML5Page.STATUS_COMPLETE:
             self._disconnect()
@@ -96,8 +96,8 @@ class HTML5Browser(Webkit.WebView):
             self.on_quit()
         return False
 
-    def _connect(self, signal, callback, *args):
-        self.listeners[signal] = self.connect(signal, callback, *args)
+    def _connect(self, signal, callback):
+        self.listeners[signal] = self.connect(signal, callback)
 
     def _disconnect(self, signal=None):
         if signal is None:
@@ -112,7 +112,7 @@ class HTML5Browser(Webkit.WebView):
 if __name__ == '__main__':
     browser = HTML5Browser(show_window=False)
     uri = (
-        'file:///home/curtis/Work/launchpad/webkit-yuitest-love-0/lib'
+        'file:///home/curtis/Work/launchpad/webkit-yuitest-love-1/lib'
         '/lp/app/javascript/tests/test_picker.html')
     page = browser.load_page(uri)
     print page.content

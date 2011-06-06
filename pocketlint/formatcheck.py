@@ -550,18 +550,14 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     FULLJSLINT = get_file_content(os.path.join(HERE, 'contrib/fulljslint.js'))
     JSREPORTER = get_file_content(os.path.join(HERE, 'jsreporter.js'))
 
-    def __init__(self, file_path, text, reporter=None):
-        super(JavascriptChecker, self).__init__(
-            file_path, text, reporter=reporter)
-        self.browser = HTML5Browser(show_window=False)
-
     def check(self):
         """Check the syntax of the javascript code."""
         if self.text == '':
             return
         linter = 'lint_script("%s");' % self.escape_script(self.text)
         script = '\n'.join([self.FULLJSLINT, self.JSREPORTER, linter])
-        response = self.browser.run_script(script)
+        browser = HTML5Browser(show_window=False)
+        response = browser.run_script(script)
         issues = response.content
         if issues:
             for issue in issues.splitlines():
