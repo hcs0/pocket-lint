@@ -1,6 +1,10 @@
 // Copyright (C) 2009-2011 - Curtis Hovey <sinzui.is at verizon.net>
 // This software is licensed under the MIT license (see the file COPYING).
 
+// Run like:
+// seed jsreporter.js <path/to/fulljslint.js> <path/file/to/lint.js>
+
+
 function get_file_content(file_path) {
     // Return the content of the file.
     var Gio = imports.gi.Gio;
