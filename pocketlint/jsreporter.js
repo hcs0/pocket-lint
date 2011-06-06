@@ -10,7 +10,9 @@ function get_file_content(file_path) {
     var Gio = imports.gi.Gio;
     var file = Gio.file_new_for_path(file_path);
     var dstream = new Gio.DataInputStream.c_new(file.read());
-    return dstream.read_until("", 0);
+    var content = dstream.read_until("", 0);
+    dstream = null;
+    return content;
     }
 
 
