@@ -43,7 +43,9 @@ class TestCSS(CheckerTestCase):
         checker = CSSChecker('bogus', ill_formed_property, self.reporter)
         checker.check_cssutils()
         messages = [
-            (3, "CSSValue: No match: 'CHAR', u':'"),
+            (3, "PropertyValue: No match: 'CHAR', u':'"),
+            (0, "PropertyValue: Unknown syntax or no value: "
+                "u' Ubuntu\\n    color: #333'."),
             (0, 'CSSStyleDeclaration: Syntax Error in Property: '
                 'font-family: Ubuntu\n    color: #333')]
         self.assertEqual(messages, self.reporter.messages)
