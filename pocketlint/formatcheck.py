@@ -3,9 +3,14 @@
 # This software is licensed under the MIT license (see the file COPYING).
 """Check for syntax and style problems."""
 
-from __future__ import with_statement
-
 __metaclass__ = type
+
+
+__all__ = [
+    'Reporter',
+    'UniversalChecker',
+    ]
+
 
 import compiler
 import htmlentitydefs
@@ -39,19 +44,18 @@ try:
 except ImportError:
     HAS_CSSUTILS = False
 
-# Javascript checking is available if seed is available.
-js = subprocess.Popen(
-    ['which', 'seed'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-js_exec, ignore = js.communicate()
-if js.returncode != 0:
-    JS = None
-else:
-    JS = js_exec.strip()
 
-__all__ = [
-    'Reporter',
-    'UniversalChecker',
-    ]
+def find_exec(names):
+    """Return the name of a GI enabled JS interpreter."""
+    for name in names:
+        js = subprocess.Popen(
+            ['which', name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        js_exec, ignore = js.communicate()
+        if js.returncode == 0:
+            return js_exec.strip()
+
+
+JS = find_exec(['gjs', 'seed'])
 
 
 class PocketLintPyFlakesChecker(PyFlakesChecker):
