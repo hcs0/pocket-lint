@@ -1,0 +1,162 @@
+pocket-lint (0.5.19-0gdp) natty; urgency=low
+
+  * New upstream release fixes LP:793664
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Mon, 06 Jun 2011 13:43:08 -0400
+
+pocket-lint (0.5.18-0gdp) natty; urgency=low
+
+  * New upstream release fixes LP:780723
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Tue, 10 May 2011 20:43:55 -0400
+
+pocket-lint (0.5.17-0gdp) natty; urgency=low
+
+  * New upstream release fixes LP:776389
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Wed, 04 May 2011 11:50:06 -0400
+
+pocket-lint (0.5.16-0ppa) maverick; urgency=low
+
+  * New upstream release fixes LP:764627
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Tue, 19 Apr 2011 13:32:10 -0400
+
+pocket-lint (0.5.15-0ppa) maverick; urgency=low
+
+  * New upstream release that fixes LP:764084, adding CSS style checking.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sun, 17 Apr 2011 22:09:53 -0400
+
+pocket-lint (0.5.14-0ppa) maverick; urgency=low
+
+  * New upstream release that fixes
+    LP:736713, LP:#741968, LP:761572, LP:763038.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sun, 17 Apr 2011 12:34:43 -0400
+
+pocket-lint (0.5.13-0ppa) maverick; urgency=low
+
+  * New upstream release that fixes LP:762146.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Fri, 15 Apr 2011 16:07:45 -0400
+
+pocket-lint (0.5.12-0ppa) maverick; urgency=low
+
+  * New upstream release that updates pyflakes version.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Thu, 14 Apr 2011 23:16:26 -0400
+
+pocket-lint (0.5.11-0ppa) maverick; urgency=low
+
+  * New upstream release that fixes js line_no casting.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Thu, 14 Apr 2011 17:20:58 -0400
+
+pocket-lint (0.5.10-0ppa) maverick; urgency=low
+
+  * New upstream release that fixes pep9 TokenError handling.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sat, 09 Apr 2011 12:19:29 -0400
+
+pocket-lint (0.5.9-0ppa) maverick; urgency=low
+
+  * New upstream release that installed the js files in the correct place.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Thu, 31 Mar 2011 09:35:11 -0400
+
+pocket-lint (0.5.8-0ppa) maverick; urgency=low
+
+  * New upstream release to support Python 2.6- (again).
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Tue, 29 Mar 2011 11:30:57 -0400
+
+pocket-lint (0.5.7-1ppa) maverick; urgency=low
+
+  * New upstream release to support Python 2.6-.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Tue, 29 Mar 2011 09:42:05 -0400
+
+pocket-lint (0.5.6-1ppa) maverick; urgency=low
+
+  * Packaging metadata fix.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sun, 27 Mar 2011 20:23:18 -0400
+
+pocket-lint (0.5.6-0ppa0) lucid; urgency=low
+
+  * New version that fixes doctest linter errors.
+  * Package includes missing js linting files.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sun, 27 Mar 2011 18:30:48 -0400
+
+pocket-lint (0.5.5-0ubuntu1) UNRELASED; urgency=low
+
+  * initial natty upload
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Nov 2010 15:46:54 +0100
+
+pocket-lint (0.5.5-0ppa0) lucid; urgency=low
+
+  * Do not report singleton tuples as missing trailing space.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Fri, 01 Oct 2010 09:13:19 -0400
+
+pocket-lint (0.5.4-0ppa0) lucid; urgency=low
+
+  * New version that fixes doctest linter errors.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Wed, 04 Aug 2010 13:25:41 -0400
+
+pocket-lint (0.5.3-0ppa0) lucid; urgency=low
+
+  * New version that changes local import of pyflakes.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Tue, 03 Aug 2010 09:22:37 -0400
+
+pocket-lint (0.5.1-0ppa1) UNRELEASED; urgency=low
+
+  * Bump standards version to 3.9.1.
+  * Remove leading space in description.
+  * Add Vcs-Bzr header.
+  * Change architecture to all. Fixes installation for all system-
+    provided Pythons.
+
+ -- Jelmer Vernooij <jelmer@debian.org>  Mon, 02 Aug 2010 23:27:33 +0200
+
+pocket-lint (0.5.1-0ppa0) lucid; urgency=low
+
+  * New uptream release that fixes a local import.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sun, 01 Aug 2010 17:48:03 -0400
+
+pocket-lint (0.5.0-0ppa0) lucid; urgency=low
+
+  * New uptream release that improves type checking and fixes reporting
+    issues
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Thu, 29 Jul 2010 12:10:26 -0400
+
+pocket-lint (0.4.0-0ppa0) lucid; urgency=low
+
+  * Check for tabs, and non-ascii. Let python2.5 use the with statement.
+
+ -- Curtis Hovey <sinzui.is@verizon.net>  Tue, 06 Jul 2010 13:01:30 -0400
+
+pocket-lint (0.3.0-0ppa0) lucid; urgency=low
+
+  * Fixed Zope zcml and pt mime-types.
+
+ -- Curtis Hovey <sinzui.is@verizon.net>  Fri, 02 Jul 2010 15:17:00 -0400
+
+pocket-lint (0.2.0-0ppa0) lucid; urgency=low
+
+  * New javascript lintings
+
+ -- Curtis Hovey <sinzui.is@verizon.net>  Tue, 30 Jun 2010 10:35:00 -0400
+
+pocket-lint (0.1.0-0ppa0) lucid; urgency=low
+
+  * First packaging of pocket-lint
+
+ -- Curtis Hovey <sinzui.is@verizon.net>  Tue, 29 Jun 2010 13:34:00 -0400

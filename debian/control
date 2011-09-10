@@ -1,0 +1,31 @@
+Source: pocket-lint
+Section: python
+Priority: optional
+Maintainer: Curtis C. Hovey <sinzui.is@verizon.net>
+Homepage: https://launchpad.net/pocket-lint
+Build-Depends: debhelper (>= 5.0.37.2), cdbs (>= 0.4.43), python-all, python-support (>= 0.5.3)
+Vcs-Bzr: http://bazaar.launchpad.net/~sinzui/pocket-lint/packaging
+Standards-Version: 3.9.1
+
+Package: python-pocket-lint
+Architecture: all
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}
+Recommends: python-cssutils, seed
+Description: a composite linter and style checker
+ Pocket-lint has several notable features:
+ .
+ * Provides a consistent report of issues raised by the subordinate
+   checkers.
+ * Alternate Reports can be written to change the report, or integrate
+   the report into another application.
+ * Supports checking of multiple source types:
+  * Python syntax and style
+  * Python doctest style
+  * XML/HTML style and entities
+  * CSS style
+  * JavaScript syntax and style
+  * Plain text
+ * Supports reporting:
+  * Python doctests
+  * CSS
+  * XML/HTML.
