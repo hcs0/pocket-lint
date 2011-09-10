@@ -1,3 +1,9 @@
+pocket-lint (0.5.20-0gdp) natty; urgency=low
+
+  * New upstream release fixes LP:846463
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sat, 10 Sep 2011 11:00:26 -0400
+
 pocket-lint (0.5.19-0gdp) natty; urgency=low
 
   * New upstream release fixes LP:793664
