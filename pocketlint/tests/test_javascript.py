@@ -17,6 +17,7 @@ var a = 1;
 
 invalid_js = """\
 a = 1
+
 """
 
 
