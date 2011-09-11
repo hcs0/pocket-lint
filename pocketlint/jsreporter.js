@@ -5,19 +5,21 @@
 // <seed|gjs> jsreporter.js <path/to/fulljslint.js> <path/file/to/lint.js>
 
 
-if (! Seed) {
+function get_seed() {
     // Define a common global object like seed.
     var argv = ['gjs', 'jsreporter.js'];
     var i;
     for (i = 0; i < ARGV.length; i++) {
         argv.push(ARGV[i]);
         }
-
-    var Seed = {
+    return {
         'print': print,
         'argv': argv
         };
     }
+
+
+var Seed = Seed || get_seed();
 
 
 jslint_path = Seed.argv[2].substring(0, Seed.argv[2].lastIndexOf('/'));
