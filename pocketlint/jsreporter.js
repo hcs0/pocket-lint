@@ -2,22 +2,40 @@
 // This software is licensed under the MIT license (see the file COPYING).
 
 // Run like:
-// seed jsreporter.js <path/to/fulljslint.js> <path/file/to/lint.js>
+// <seed|gjs> jsreporter.js <path/to/fulljslint.js> <path/file/to/lint.js>
+
+
+if (! Seed) {
+    // Define a common global object like seed.
+    var argv = ['gjs', 'jsreporter.js'];
+    var i;
+    for (i = 0; i < ARGV.length; i++) {
+        argv.push(ARGV[i]);
+        }
+
+    var Seed = {
+        'print': print,
+        'argv': argv
+        };
+    }
+
+
+jslint_path = Seed.argv[2].substring(0, Seed.argv[2].lastIndexOf('/'));
+imports.searchPath.push(jslint_path);
+var JSLINT = imports.fulljslint.JSLINT;
 
 
 function get_file_content(file_path) {
     // Return the content of the file.
     var Gio = imports.gi.Gio;
     var file = Gio.file_new_for_path(file_path);
-    var dstream = new Gio.DataInputStream.c_new(file.read());
-    var content = dstream.read_until("", 0);
+    var istream = file.read(null);
+    var dstream = new Gio.DataInputStream({base_stream: istream});
+    var content_and_count = dstream.read_upto("", -1, null);
+    istream.close(null);
     dstream = null;
-    return content;
+    return content_and_count[0];
     }
-
-
-// This is an evil way to import JSLINT.
-eval(get_file_content(Seed.argv[2]));
 
 
 function report_implied_names() {
@@ -58,6 +76,7 @@ function report_lint_errors() {
         }
     return errors.join('\n');
     }
+
 
 function lint_script() {
     // Lint the source and report errors.
