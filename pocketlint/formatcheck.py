@@ -528,6 +528,15 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self.message(
                 line_no, 'Line contains a call to pdb.', icon='error')
 
+    def check_length(self, line_no, line):
+        # isinstance is checked since 'test_code_utf8' is passing an unicode
+        # text to PythonChecker, but check_sources always opens the file in
+        # ascii mode, so PythonChecker alwasy received the text as ascii
+        # encoded.
+        if self.encoding == 'utf-8' and not isinstance(line, unicode):
+            line = line.decode('utf-8')
+        super(PythonChecker, self).check_length(line_no, line)
+
     def check_ascii(self, line_no, line):
         """Check that the line is ascii."""
         if self.encoding != 'ascii':

@@ -256,3 +256,26 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self.assertEqual(
             [(1, 'Non-ascii characer at position 21.')],
             self.reporter.messages)
+
+    def test_length_unicode_ok(self):
+        encoding_line = '# -*- coding: utf-8 -*-\n'
+        unicode_4_chars = 'mi\xc8\x9bi'
+        line_78_chars = 'pa' + unicode_4_chars * 19 + '\n'
+        full_text =  encoding_line + line_78_chars
+
+        checker = PythonChecker('bogus',full_text, self.reporter)
+        checker.check_text()
+
+        self.assertEqual([], self.reporter.messages)
+
+    def test_length_unicode_bad(self):
+        encoding_line = '# -*- coding: utf-8 -*-\n'
+        unicode_4_chars = 'mi\xc8\x9bi'
+        line_79_chars = 'pap' + unicode_4_chars * 19 + '\n'
+        full_text =  encoding_line + line_79_chars
+
+        checker = PythonChecker('bogus',full_text, self.reporter)
+        checker.check_text()
+
+        self.assertEqual(
+            [(2, 'Line exceeds 78 characters.')], self.reporter.messages)
