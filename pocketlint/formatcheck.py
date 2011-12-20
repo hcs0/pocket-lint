@@ -145,9 +145,11 @@ class Language:
     mimetypes.add_type('application/x-zope-configuation', '.zcml')
     mimetypes.add_type('application/x-zope-page-template', '.pt')
     mimetypes.add_type('text/x-python-doctest', '.doctest')
+    mimetypes.add_type('text/x-twisted-application', '.tac')
     mimetypes.add_type('text/x-log', '.log')
     mime_type_language = {
         'text/x-python': PYTHON,
+        'text/x-twisted-application': PYTHON,
         'text/x-python-doctest': DOCTEST,
         'text/css': CSS,
         'text/html': HTML,
