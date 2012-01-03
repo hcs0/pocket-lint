@@ -190,6 +190,17 @@ class TestPEP8(CheckerTestCase):
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
+    def test_long_length(self):
+        long_line = '1234 56189' * 8 + '\n'
+        self.file.write(long_line)
+        self.file.flush()
+        checker = PythonChecker(
+            self.file.name, ugly_style_lines_python, self.reporter)
+        checker.check_pep8()
+        self.assertEqual(
+            [(1, 'E501 line too long (80 characters)')],
+            self.reporter.messages)
+
 
 class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
