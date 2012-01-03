@@ -47,3 +47,14 @@ class TestDoctest(CheckerTestCase):
             doctest, self.file.name, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
+
+    def test_doctest_with_python_compilation_error(self):
+        doctest = "    >>> if (True\n    pong text"
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        checker.check()
+        self.assertEqual(
+            [(1, 'Could not compile:\n          if (True')],
+            self.reporter.messages)
