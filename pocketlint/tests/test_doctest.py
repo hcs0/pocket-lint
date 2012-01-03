@@ -15,7 +15,14 @@ You can work with file paths using os.path
 
     >>> import os.path
     >>> os.path.join('.', 'pocketlint', 'formatcheck.py')
-    ./pocketlint/formatcheck.pu
+    ./pocketlint/formatcheck.py
+"""
+
+malformed_doctest = """\
+You can work with file paths using os.path
+    >>> import os.path
+    >>> os.path.join('.', 'pocketlint', 'formatcheck.py')
+Narrative without WANT section.
 """
 
 
@@ -37,6 +44,18 @@ class TestDoctest(CheckerTestCase):
         checker.check()
         self.assertEqual([], self.reporter.messages)
 
+    def test_doctest_malformed_doctest(self):
+        self.file.write(malformed_doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            malformed_doctest, self.file.name, self.reporter)
+        checker.check()
+        expected = (
+            "line 4 of the docstring for %s has inconsistent leading "
+            "whitespace: 'Narrative without WANT section.'" % self.file.name)
+        self.assertEqual(
+            [(0, expected)], self.reporter.messages)
+
     def test_doctest_with_globs(self):
         # Doctest runners often setup global identifiers that are not python
         # execution issues
@@ -57,4 +76,26 @@ class TestDoctest(CheckerTestCase):
         checker.check()
         self.assertEqual(
             [(1, 'Could not compile:\n          if (True')],
+            self.reporter.messages)
+
+    def test_moin_header(self):
+        doctest = "= Heading =\n\nnarrative"
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        checker.check()
+        self.assertEqual(
+            [(1, 'narrative uses a moin header.')],
+            self.reporter.messages)
+
+    def test_bad_indentation(self):
+        doctest = "narrative\n>>> print 'done'\n>"
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        checker.check()
+        self.assertEqual(
+            [(2, 'source has bad indentation.')],
             self.reporter.messages)
