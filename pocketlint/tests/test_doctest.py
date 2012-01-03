@@ -36,3 +36,14 @@ class TestDoctest(CheckerTestCase):
             good_doctest, self.file.name, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
+
+    def test_doctest_with_globs(self):
+        # Doctest runners often setup global identifiers that are not python
+        # execution issues
+        doctest = "    >>> ping('text')\n    pong text"
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        checker.check()
+        self.assertEqual([], self.reporter.messages)
