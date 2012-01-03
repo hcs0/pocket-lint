@@ -5,7 +5,7 @@
 
 __metaclass__ = type
 
-import compiler
+import _ast
 import os
 import re
 import sys
@@ -293,7 +293,8 @@ class DoctestReviewer:
         if code == '':
             return
         try:
-            tree = compiler.parse(code)
+            tree = compile(
+                code, self.file_path, "exec", _ast.PyCF_ONLY_AST)
         except (SyntaxError, IndentationError), exc:
             (lineno, offset_, line) = exc[1][1:]
             if line.endswith("\n"):
