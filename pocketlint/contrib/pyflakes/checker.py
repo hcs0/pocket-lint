@@ -6,7 +6,9 @@ import __builtin__
 import os.path
 import _ast
 
-from pyflakes import messages
+# XXX sinzui 2012-01-03: Import the contrib version of message.
+#from pyflakes import messages
+from pocketlint.contrib.pyflakes import messages
 
 
 # utility function to iterate over an AST node's children, adapted

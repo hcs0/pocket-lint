@@ -101,7 +101,7 @@ class TestPyflakes(CheckerTestCase):
             'bogus', bad_syntax_python, self.reporter)
         checker.check_flakes()
         expected = [(
-            0, 'Could not compile; non-default argument follows '
+            2, 'Could not compile; non-default argument follows '
                'default argument: ')]
         self.assertEqual(expected, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)

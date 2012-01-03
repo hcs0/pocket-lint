@@ -13,7 +13,7 @@ __all__ = [
     ]
 
 
-import compiler
+import _ast
 import htmlentitydefs
 import logging
 import mimetypes
@@ -70,7 +70,7 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
 
     def NAME(self, node):
         '''Locate name. Ignore WindowsErrors.'''
-        if node.name == 'WindowsError':
+        if node.id == 'WindowsError':
             return
         return super(PocketLintPyFlakesChecker, self).NAME(node)
 
@@ -477,7 +477,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
     def check_flakes(self):
         """Check compilation and syntax."""
         try:
-            tree = compiler.parse(self.text)
+            tree = compile(
+                self.text, self.file_path, "exec", _ast.PyCF_ONLY_AST)
         except (SyntaxError, IndentationError), exc:
             line_no = exc.lineno or 0
             line = exc.text or ''
@@ -485,7 +486,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             message = '%s: %s' % (explanation, line.strip())
             self.message(line_no, message, icon='error')
         else:
-            warnings = PocketLintPyFlakesChecker(tree)
+            warnings = PocketLintPyFlakesChecker(tree, self.file_path)
             for warning in warnings.messages:
                 dummy, line_no, message = str(warning).split(':')
                 self.message(int(line_no), message.strip(), icon='error')
