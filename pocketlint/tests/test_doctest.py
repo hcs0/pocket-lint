@@ -110,3 +110,16 @@ class TestDoctest(CheckerTestCase):
         self.assertEqual(
             [(1, 'narrative has trailing whitespace.')],
             self.reporter.messages)
+
+    def test_long_line(self):
+        doctest = (
+            "narrative  is a line that exceeds 78 characters which causes "
+            "scrolling in consoles and wraps poorly in email\n")
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        checker.check()
+        self.assertEqual(
+            [(1, 'narrative exceeds 78 characters.')],
+            self.reporter.messages)
