@@ -48,6 +48,9 @@ except ImportError:
 
 def find_exec(names):
     """Return the name of a GI enabled JS interpreter."""
+    if os.name != 'posix':
+        return None
+
     for name in names:
         js = subprocess.Popen(
             ['which', name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
