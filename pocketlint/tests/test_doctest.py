@@ -90,7 +90,7 @@ class TestDoctest(CheckerTestCase):
             self.reporter.messages)
 
     def test_bad_indentation(self):
-        doctest = "narrative\n>>> print 'done'\n>"
+        doctest = "narrative\n>>> print 'done'\n"
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
@@ -98,4 +98,15 @@ class TestDoctest(CheckerTestCase):
         checker.check()
         self.assertEqual(
             [(2, 'source has bad indentation.')],
+            self.reporter.messages)
+
+    def test_trailing_whitespace(self):
+        doctest = "narrative  \n    >>> print 'done'\n"
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        checker.check()
+        self.assertEqual(
+            [(1, 'narrative has trailing whitespace.')],
             self.reporter.messages)
