@@ -238,9 +238,8 @@ class TestDoctest(CheckerTestCase):
         self.file.seek(0)
         text = self.file.read()
         self.assertEqual(expected, text)
+        self.assertEqual(expected, checker.doctest)
         # Source code issues cannot be fixed by the formatter.
-        checker = DoctestReviewer(
-            text, self.file.name, self.reporter)
         checker.check()
         self.assertEqual(
             [(6, 'source exceeds 78 characters.')],
