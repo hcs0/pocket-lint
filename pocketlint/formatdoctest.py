@@ -300,7 +300,7 @@ class DoctestReviewer:
             if line.endswith("\n"):
                 line = line[:-1]
             self._print_message(
-                'Could not compile:\n          %s' % line, lineno)
+                'Could not compile:\n    %s' % line, lineno)
         else:
             warnings = Checker(tree)
             for warning in warnings.messages:

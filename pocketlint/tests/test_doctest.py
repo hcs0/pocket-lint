@@ -75,7 +75,7 @@ class TestDoctest(CheckerTestCase):
             doctest, self.file.name, self.reporter)
         checker.check()
         self.assertEqual(
-            [(1, 'Could not compile:\n          if (True')],
+            [(1, 'Could not compile:\n    if (True')],
             self.reporter.messages)
 
     def test_moin_header(self):
