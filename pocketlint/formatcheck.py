@@ -591,7 +591,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
 
 def get_option_parser():
     """Return the option parser for this program."""
-    usage = "usage: %prog [options] arg1"
+    usage = "usage: %prog [options] file1 file2"
     parser = OptionParser(usage=usage)
     parser.add_option(
         "-v", "--verbose", action="store_true", dest="verbose")
