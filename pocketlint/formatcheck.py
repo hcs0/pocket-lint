@@ -597,11 +597,21 @@ def get_option_parser():
         "-v", "--verbose", action="store_true", dest="verbose")
     parser.add_option(
         "-q", "--quiet", action="store_false", dest="verbose")
-    parser.set_defaults(verbose=True)
+    parser.add_option(
+        "-f", "--format", dest="do_format", action="store_true",
+        help="Reformat the doctest.")
+    parser.add_option(
+        "-i", "--interactive", dest="is_interactive", action="store_true",
+        help="Approve each change.")
+    parser.set_defaults(
+        verbose=True,
+        do_format=False,
+        is_interactive=False)
     return parser
 
 
-def check_sources(sources, reporter=None):
+def check_sources(sources, reporter=None,
+                  do_format=False, is_interactive=False):
     if reporter is None:
         reporter = Reporter(Reporter.CONSOLE)
     reporter.call_count = 0
@@ -612,6 +622,9 @@ def check_sources(sources, reporter=None):
         language = Language.get_language(file_path)
         with open(file_path) as file_:
             text = file_.read()
+        if language is Language.DOCTEST and do_format:
+            formatter = DoctestReviewer(text, file_path, reporter)
+            formatter.format_and_save(is_interactive)
         checker = UniversalChecker(
             file_path, text=text, language=language, reporter=reporter)
         checker.check()
@@ -630,7 +643,8 @@ def main(argv=None):
     if options.verbose:
         pass
     reporter = Reporter(Reporter.CONSOLE)
-    return check_sources(sources, reporter)
+    return check_sources(
+        sources, reporter, options.do_format, options.is_interactive)
 
 
 if __name__ == '__main__':
