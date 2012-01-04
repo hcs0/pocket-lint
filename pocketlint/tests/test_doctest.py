@@ -111,6 +111,15 @@ class TestDoctest(CheckerTestCase):
             [(1, 'narrative has trailing whitespace.')],
             self.reporter.messages)
 
+    def test_fix_trailing_whitespace(self):
+        doctest = "narrative  \n    >>> print 'done' \n"
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        text = checker.format()
+        self.assertEqual("narrative\n\n    >>> print 'done'\n\n", text)
+
     def test_long_line(self):
         doctest = (
             "narrative is a line that exceeds 78 characters which causes "
