@@ -359,6 +359,22 @@ class DoctestReviewer:
             self._store_block(previous_kind)
         return line
 
+    def format_and_save(self, is_interactive=False):
+        new_doctest = self.format()
+        if new_doctest != self.doctest:
+            if is_interactive:
+                diff = unified_diff(
+                    self.doctest.splitlines(), new_doctest.splitlines())
+                print '\n'.join(diff)
+                print '\n'
+                do_save = raw_input(
+                    'Do you wish to save the changes? S(ave) or C(ancel)?')
+            else:
+                do_save = 'S'
+            if do_save.upper() == 'S':
+                with open(self.file_path, 'w') as doctest_file:
+                    doctest_file.write(new_doctest)
+
 
 def get_option_parser():
     """Return the option parser for this program."""

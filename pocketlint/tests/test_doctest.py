@@ -214,3 +214,34 @@ class TestDoctest(CheckerTestCase):
             "scrolling in\nconsoles and wraps poorly in email\n\n"
             "  * item\n\n")
         self.assertEqual(expected, text)
+
+    def test_format_and_save(self):
+        doctest = (
+            "narrative is a line that exceeds 78 characters which causes "
+            "scrolling in consoles and wraps poorly in email\n"
+            "  * item\n\n"
+            "    >>> very_very_very_very_very.long_long_long_long("
+            "method_method_method_method)\n"
+            "    True\n\n")
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        checker.format_and_save()
+        expected = (
+            "narrative is a line that exceeds 78 characters which causes "
+            "scrolling in\nconsoles and wraps poorly in email\n\n"
+            "  * item\n\n"
+            "    >>> very_very_very_very_very.long_long_long_long("
+            "method_method_method_method)\n"
+            "    True\n\n\n")
+        self.file.seek(0)
+        text = self.file.read()
+        self.assertEqual(expected, text)
+        # Source code issues cannot be fixed by the formatter.
+        checker = DoctestReviewer(
+            text, self.file.name, self.reporter)
+        checker.check()
+        self.assertEqual(
+            [(6, 'source exceeds 78 characters.')],
+            self.reporter.messages)
