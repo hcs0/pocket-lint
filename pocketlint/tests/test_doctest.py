@@ -89,6 +89,16 @@ class TestDoctest(CheckerTestCase):
             [(1, 'narrative uses a moin header.')],
             self.reporter.messages)
 
+    def test_fix_moin_header(self):
+        doctest = "= Heading =\n\nnarrative"
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        text = checker.format()
+        self.assertEqual(
+            "Heading\n=======\n\nnarrative", text)
+
     def test_bad_indentation(self):
         doctest = "narrative\n>>> print 'done'\n"
         self.file.write(doctest)
