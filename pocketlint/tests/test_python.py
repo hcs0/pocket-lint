@@ -101,7 +101,7 @@ class TestPyflakes(CheckerTestCase):
             'bogus', bad_syntax_python, self.reporter)
         checker.check_flakes()
         expected = [(
-            0, 'Could not compile; non-default argument follows '
+            2, 'Could not compile; non-default argument follows '
                'default argument: ')]
         self.assertEqual(expected, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
@@ -190,6 +190,17 @@ class TestPEP8(CheckerTestCase):
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
+    def test_long_length(self):
+        long_line = '1234 56189' * 8 + '\n'
+        self.file.write(long_line)
+        self.file.flush()
+        checker = PythonChecker(
+            self.file.name, ugly_style_lines_python, self.reporter)
+        checker.check_pep8()
+        self.assertEqual(
+            [(1, 'E501 line too long (80 characters)')],
+            self.reporter.messages)
+
 
 class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
@@ -256,3 +267,26 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self.assertEqual(
             [(1, 'Non-ascii characer at position 21.')],
             self.reporter.messages)
+
+    def test_length_unicode_ok(self):
+        encoding_line = '# -*- coding: utf-8 -*-\n'
+        unicode_4_chars = 'mi\xc8\x9bi'
+        line_78_chars = 'pa' + unicode_4_chars * 19 + '\n'
+        full_text = encoding_line + line_78_chars
+
+        checker = PythonChecker('bogus', full_text, self.reporter)
+        checker.check_text()
+
+        self.assertEqual([], self.reporter.messages)
+
+    def test_length_unicode_bad(self):
+        encoding_line = '# -*- coding: utf-8 -*-\n'
+        unicode_4_chars = 'mi\xc8\x9bi'
+        line_79_chars = 'pap' + unicode_4_chars * 19 + '\n'
+        full_text = encoding_line + line_79_chars
+
+        checker = PythonChecker('bogus', full_text, self.reporter)
+        checker.check_text()
+
+        self.assertEqual(
+            [(2, 'Line exceeds 78 characters.')], self.reporter.messages)

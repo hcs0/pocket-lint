@@ -1,3 +1,10 @@
+pocket-lint (0.5.22-0gdp) oneirc; urgency=low
+
+  * New upstream release fixes LP:601736, LP:889648, LP:890101
+    LP:907732, LP:911441, LP:889642, LP:906811, LP:911051
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Wed, 04 Jan 2012 09:32:54 -0500
+
 pocket-lint (0.5.20-0gdp) natty; urgency=low
 
   * New upstream release *really* fixes LP:846463

@@ -2,6 +2,7 @@
 # Copyright (C) 2009-2011 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 """Check for syntax and style problems."""
+from __future__ import with_statement
 
 __metaclass__ = type
 
@@ -12,7 +13,7 @@ __all__ = [
     ]
 
 
-import compiler
+import _ast
 import htmlentitydefs
 import logging
 import mimetypes
@@ -47,6 +48,9 @@ except ImportError:
 
 def find_exec(names):
     """Return the name of a GI enabled JS interpreter."""
+    if os.name != 'posix':
+        return None
+
     for name in names:
         js = subprocess.Popen(
             ['which', name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -66,7 +70,7 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
 
     def NAME(self, node):
         '''Locate name. Ignore WindowsErrors.'''
-        if node.name == 'WindowsError':
+        if node.id == 'WindowsError':
             return
         return super(PocketLintPyFlakesChecker, self).NAME(node)
 
@@ -144,9 +148,11 @@ class Language:
     mimetypes.add_type('application/x-zope-configuation', '.zcml')
     mimetypes.add_type('application/x-zope-page-template', '.pt')
     mimetypes.add_type('text/x-python-doctest', '.doctest')
+    mimetypes.add_type('text/x-twisted-application', '.tac')
     mimetypes.add_type('text/x-log', '.log')
     mime_type_language = {
         'text/x-python': PYTHON,
+        'text/x-twisted-application': PYTHON,
         'text/x-python-doctest': DOCTEST,
         'text/css': CSS,
         'text/html': HTML,
@@ -471,7 +477,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
     def check_flakes(self):
         """Check compilation and syntax."""
         try:
-            tree = compiler.parse(self.text)
+            tree = compile(
+                self.text, self.file_path, "exec", _ast.PyCF_ONLY_AST)
         except (SyntaxError, IndentationError), exc:
             line_no = exc.lineno or 0
             line = exc.text or ''
@@ -479,7 +486,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             message = '%s: %s' % (explanation, line.strip())
             self.message(line_no, message, icon='error')
         else:
-            warnings = PocketLintPyFlakesChecker(tree)
+            warnings = PocketLintPyFlakesChecker(tree, self.file_path)
             for warning in warnings.messages:
                 dummy, line_no, message = str(warning).split(':')
                 self.message(int(line_no), message.strip(), icon='error')
@@ -526,6 +533,15 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         if pdb_call in line:
             self.message(
                 line_no, 'Line contains a call to pdb.', icon='error')
+
+    def check_length(self, line_no, line):
+        # isinstance is checked since 'test_code_utf8' is passing an unicode
+        # text to PythonChecker, but check_sources always opens the file in
+        # ascii mode, so PythonChecker alwasy received the text as ascii
+        # encoded.
+        if self.encoding == 'utf-8' and not isinstance(line, unicode):
+            line = line.decode('utf-8')
+        super(PythonChecker, self).check_length(line_no, line)
 
     def check_ascii(self, line_no, line):
         """Check that the line is ascii."""
@@ -575,17 +591,27 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
 
 def get_option_parser():
     """Return the option parser for this program."""
-    usage = "usage: %prog [options] arg1"
+    usage = "usage: %prog [options] file1 file2"
     parser = OptionParser(usage=usage)
     parser.add_option(
         "-v", "--verbose", action="store_true", dest="verbose")
     parser.add_option(
         "-q", "--quiet", action="store_false", dest="verbose")
-    parser.set_defaults(verbose=True)
+    parser.add_option(
+        "-f", "--format", dest="do_format", action="store_true",
+        help="Reformat the doctest.")
+    parser.add_option(
+        "-i", "--interactive", dest="is_interactive", action="store_true",
+        help="Approve each change.")
+    parser.set_defaults(
+        verbose=True,
+        do_format=False,
+        is_interactive=False)
     return parser
 
 
-def check_sources(sources, reporter=None):
+def check_sources(sources, reporter=None,
+                  do_format=False, is_interactive=False):
     if reporter is None:
         reporter = Reporter(Reporter.CONSOLE)
     reporter.call_count = 0
@@ -596,6 +622,9 @@ def check_sources(sources, reporter=None):
         language = Language.get_language(file_path)
         with open(file_path) as file_:
             text = file_.read()
+        if language is Language.DOCTEST and do_format:
+            formatter = DoctestReviewer(text, file_path, reporter)
+            formatter.format_and_save(is_interactive)
         checker = UniversalChecker(
             file_path, text=text, language=language, reporter=reporter)
         checker.check()
@@ -614,7 +643,8 @@ def main(argv=None):
     if options.verbose:
         pass
     reporter = Reporter(Reporter.CONSOLE)
-    return check_sources(sources, reporter)
+    return check_sources(
+        sources, reporter, options.do_format, options.is_interactive)
 
 
 if __name__ == '__main__':

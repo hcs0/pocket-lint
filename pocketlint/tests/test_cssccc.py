@@ -267,6 +267,18 @@ class TestCSSStatementMember(TestCase):
         statement = CSSStatementMember(3, 4, '\n\nsome')
         self.assertEqual(6, statement.getStartLine())
 
+    def test_getStartLine_empty_selector(self):
+        statement = CSSStatementMember(0, 1, '')
+        self.assertEqual(1, statement.getStartLine())
+
+    def test_getStartLine_newlines_only(self):
+        statement = CSSStatementMember(0, 1, '\n')
+        self.assertEqual(2, statement.getStartLine())
+
+    def test_getStartLine_spaces_only(self):
+        statement = CSSStatementMember(0, 1, ' ')
+        self.assertEqual(1, statement.getStartLine())
+
 
 class TestLog(object):
     '''Container for a test log.'''

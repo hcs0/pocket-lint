@@ -5,7 +5,7 @@
 
 __metaclass__ = type
 
-import compiler
+import _ast
 import os
 import re
 import sys
@@ -293,13 +293,14 @@ class DoctestReviewer:
         if code == '':
             return
         try:
-            tree = compiler.parse(code)
+            tree = compile(
+                code, self.file_path, "exec", _ast.PyCF_ONLY_AST)
         except (SyntaxError, IndentationError), exc:
             (lineno, offset_, line) = exc[1][1:]
             if line.endswith("\n"):
                 line = line[:-1]
             self._print_message(
-                'Could not compile:\n          %s' % line, lineno)
+                'Could not compile:\n    %s' % line, lineno)
         else:
             warnings = Checker(tree)
             for warning in warnings.messages:
@@ -358,6 +359,30 @@ class DoctestReviewer:
             self._store_block(previous_kind)
         return line
 
+    def format_and_save(self, is_interactive=False):
+        new_doctest = self.format()
+        if new_doctest != self.doctest:
+            if is_interactive:
+                diff = unified_diff(
+                    self.doctest.splitlines(), new_doctest.splitlines())
+                print '\n'.join(diff)
+                print '\n'
+                do_save = raw_input(
+                    'Do you wish to save the changes? S(ave) or C(ancel)?')
+            else:
+                do_save = 'S'
+            if do_save.upper() == 'S':
+                with open(self.file_path, 'w') as doctest_file:
+                    doctest_file.write(new_doctest)
+            self.doctest = new_doctest
+        self.blocks = []
+        self.block = []
+        self.block_method = self.preserve_block
+        self.code_lines = []
+        self.example = None
+        self.last_bad_indent = 0
+        self.has_printed_filename = False
+
 
 def get_option_parser():
     """Return the option parser for this program."""
@@ -385,37 +410,12 @@ def main(argv=None):
         parser.error("A doctest must be specified.")
 
     for file_path in args:
-        try:
-            doctest_file = open(file_path)
-            old_doctest = doctest_file.read()
-        finally:
-            doctest_file.close()
-        reviewer = DoctestReviewer(old_doctest, file_path)
-
-        if not options.is_format:
-            reviewer.check()
-            continue
-
-        new_doctest = reviewer.format()
-        if new_doctest != old_doctest:
-            if options.is_interactive:
-                diff = unified_diff(
-                    old_doctest.splitlines(), new_doctest.splitlines())
-                print '\n'.join(diff)
-                print '\n'
-                do_save = raw_input(
-                    'Do you wish to save the changes? S(ave) or C(ancel)?')
-            else:
-                do_save = 'S'
-
-            if do_save.upper() == 'S':
-                try:
-                    doctest_file = open(file_path, 'w')
-                    doctest_file.write(new_doctest)
-                finally:
-                    doctest_file.close()
-            reviewer = DoctestReviewer(new_doctest, file_path)
-            reviewer.check()
+        with open(file_path) as doctest_file:
+            doctest_data = doctest_file.read()
+        reviewer = DoctestReviewer(doctest_data, file_path)
+        if options.is_format:
+            reviewer.format_and_save()
+        reviewer.check()
 
 
 if __name__ == '__main__':

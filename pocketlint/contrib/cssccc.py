@@ -249,10 +249,14 @@ class CSSStatementMember(object):
         the number of new lines untilg the first character.'''
         index = 0
         text = self.text
-        character = text[index]
-        while character == '\n':
-            index += 1
+        try:
             character = text[index]
+            while character == '\n':
+                index += 1
+                character = text[index]
+        except IndexError:
+            # The end of string was reached without finding a statement.
+            pass
 
         return self.start_line + index + 1
 
