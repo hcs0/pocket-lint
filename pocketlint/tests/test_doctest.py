@@ -120,15 +120,15 @@ class TestDoctest(CheckerTestCase):
         self.assertEqual(
             "narrative\n\n    >>> print 'done'\n\n", text)
 
-    def test_fix_bad_indentation_with_formatted_narrative(self):
-        doctest = "narrative\n  * item\n\n >>> print 'done'\n"
+    def test_fix_bad_indentation_with_source_and_want(self):
+        doctest = "narrative\n\n>>> print (\n...     'done')"
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
             doctest, self.file.name, self.reporter)
         text = checker.format()
         self.assertEqual(
-            "narrative\n\n  * item\n\n    >>> print 'done'\n\n", text)
+            "narrative\n\n    >>> print (\n    ...     'done')\n\n", text)
 
     def test_trailing_whitespace(self):
         doctest = "narrative  \n    >>> print 'done'\n"
@@ -166,7 +166,8 @@ class TestDoctest(CheckerTestCase):
     def test_fix_long_line(self):
         doctest = (
             "narrative is a line that exceeds 78 characters which causes "
-            "scrolling in consoles and wraps poorly in email\n")
+            "scrolling in consoles and wraps poorly in email\n"
+            "  * item")
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
@@ -174,5 +175,6 @@ class TestDoctest(CheckerTestCase):
         text = checker.format()
         expected = (
             "narrative is a line that exceeds 78 characters which causes "
-            "scrolling in\nconsoles and wraps poorly in email")
+            "scrolling in\nconsoles and wraps poorly in email\n\n"
+            "  * item\n\n")
         self.assertEqual(expected, text)
