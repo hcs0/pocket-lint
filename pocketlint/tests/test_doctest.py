@@ -170,7 +170,23 @@ class TestDoctest(CheckerTestCase):
         text = checker.format()
         self.assertEqual("narrative\n\n    >>> print 'done'\n\n", text)
 
-    def test_long_line(self):
+    def test_long_line_source_and_want(self):
+        doctest = (
+            "    >>> very_very_very_very_very.long_long_long_long("
+            "method_method_method_method,\n"
+            "    ...   call_call_call_call_call_call_call_call_call_call,"
+            "bad_bad_bad_bad_bad)\n")
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        checker.check()
+        self.assertEqual(
+            [(1, 'source exceeds 78 characters.'),
+             (2, 'source exceeds 78 characters.')],
+            self.reporter.messages)
+
+    def test_long_line_narrative(self):
         doctest = (
             "narrative is a line that exceeds 78 characters which causes "
             "scrolling in consoles and wraps poorly in email\n")
