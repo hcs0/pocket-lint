@@ -113,7 +113,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_long_line(self):
         doctest = (
-            "narrative  is a line that exceeds 78 characters which causes "
+            "narrative is a line that exceeds 78 characters which causes "
             "scrolling in consoles and wraps poorly in email\n")
         self.file.write(doctest)
         self.file.flush()
@@ -123,3 +123,17 @@ class TestDoctest(CheckerTestCase):
         self.assertEqual(
             [(1, 'narrative exceeds 78 characters.')],
             self.reporter.messages)
+
+    def test_fix_long_line(self):
+        doctest = (
+            "narrative is a line that exceeds 78 characters which causes "
+            "scrolling in consoles and wraps poorly in email\n")
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        text = checker.format()
+        expected = (
+            "narrative is a line that exceeds 78 characters which causes "
+            "scrolling in\nconsoles and wraps poorly in email")
+        self.assertEqual(expected, text)
