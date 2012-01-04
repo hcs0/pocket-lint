@@ -100,6 +100,16 @@ class TestDoctest(CheckerTestCase):
             [(2, 'source has bad indentation.')],
             self.reporter.messages)
 
+    def test_fix_bad_indentation(self):
+        doctest = "narrative\n>>> print 'done'\n"
+        self.file.write(doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            doctest, self.file.name, self.reporter)
+        text = checker.format()
+        self.assertEqual(
+            "narrative\n\n    >>> print 'done'\n\n", text)
+
     def test_trailing_whitespace(self):
         doctest = "narrative  \n    >>> print 'done'\n"
         self.file.write(doctest)
