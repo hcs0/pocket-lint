@@ -79,6 +79,7 @@ class Reporter:
     """Common rules for checkers."""
     CONSOLE = object()
     FILE_LINES = object()
+    COLLECTOR = object()
 
     def __init__(self, report_type, treeview=None):
         self.report_type = report_type
@@ -88,6 +89,7 @@ class Reporter:
         self.piter = None
         self._last_file_name = None
         self.call_count = 0
+        self.messages = []
 
     def __call__(self, line_no, message, icon=None,
                  base_dir=None, file_name=None):
@@ -95,6 +97,10 @@ class Reporter:
         self.call_count += 1
         if self.report_type == self.FILE_LINES:
             self._message_file_lines(
+                line_no, message, icon=icon,
+                base_dir=base_dir, file_name=file_name)
+        elif self.report_type == self.COLLECTOR:
+            self._message_collector(
                 line_no, message, icon=icon,
                 base_dir=base_dir, file_name=file_name)
         else:
@@ -124,6 +130,10 @@ class Reporter:
                 None, (file_name, mime_type, 0, None, base_dir))
         self.treestore.append(
             self.piter, (file_name, icon, line_no, message, base_dir))
+
+    def _message_collector(self, line_no, message, icon=None,
+                         base_dir=None, file_name=None):
+        self.messages.append((line_no, message))
 
 
 class Language:
