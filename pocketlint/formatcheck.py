@@ -95,18 +95,13 @@ class Reporter:
                  base_dir=None, file_name=None):
         """Report a message."""
         self.call_count += 1
+        args = (line_no, message, icon, base_dir, file_name)
         if self.report_type == self.FILE_LINES:
-            self._message_file_lines(
-                line_no, message, icon=icon,
-                base_dir=base_dir, file_name=file_name)
+            self._message_file_lines(*args)
         elif self.report_type == self.COLLECTOR:
-            self._message_collector(
-                line_no, message, icon=icon,
-                base_dir=base_dir, file_name=file_name)
+            self._message_collector(*args)
         else:
-            self._message_console(
-                line_no, message, icon=icon,
-                base_dir=base_dir, file_name=file_name)
+            self._message_console(*args)
 
     def _message_console(self, line_no, message, icon=None,
                          base_dir=None, file_name=None):
