@@ -603,9 +603,11 @@ def get_option_parser():
     usage = "usage: %prog [options] file1 file2"
     parser = OptionParser(usage=usage)
     parser.add_option(
-        "-v", "--verbose", action="store_true", dest="verbose")
+        "-v", "--verbose", action="store_true", dest="verbose",
+        help="show errors and warngings.")
     parser.add_option(
-        "-q", "--quiet", action="store_false", dest="verbose")
+        "-q", "--quiet", action="store_false", dest="verbose",
+        help="Show errors only.")
     parser.add_option(
         "-f", "--format", dest="do_format", action="store_true",
         help="Reformat the doctest.")
@@ -649,9 +651,8 @@ def main(argv=None):
     # Handle standard args.
     if len(sources) == 0:
         parser.error("Expected file paths.")
-    if options.verbose:
-        pass
     reporter = Reporter(Reporter.CONSOLE)
+    reporter.error_only = not options.verbose
     return check_sources(
         sources, reporter, options.do_format, options.is_interactive)
 
