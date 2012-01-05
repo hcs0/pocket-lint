@@ -160,6 +160,10 @@ class DoctestReviewer:
         4. Check trailing whitespace.
         """
         self.code_lines = []
+        self.last_bad_indent = 0
+        self.block_method = self.preserve_block
+        self.example = None
+        self.has_printed_filename = False
         line_checkers = [
             self.check_length,
             self.check_heading,
@@ -183,6 +187,7 @@ class DoctestReviewer:
 
         SOURCE and WANT long lines are not fixed--this is a human operation.
         """
+        self.code_lines = []
         line_checkers = [
             self.fix_trailing_whitespace,
             self.fix_indentation,
@@ -375,13 +380,6 @@ class DoctestReviewer:
                 with open(self.file_path, 'w') as doctest_file:
                     doctest_file.write(new_doctest)
             self.doctest = new_doctest
-        self.blocks = []
-        self.block = []
-        self.block_method = self.preserve_block
-        self.code_lines = []
-        self.example = None
-        self.last_bad_indent = 0
-        self.has_printed_filename = False
 
 
 def get_option_parser():
