@@ -89,11 +89,14 @@ class Reporter:
         self.piter = None
         self._last_file_name = None
         self.call_count = 0
+        self.error_only = False
         self.messages = []
 
     def __call__(self, line_no, message, icon=None,
                  base_dir=None, file_name=None):
         """Report a message."""
+        if self.error_only and icon != 'error':
+            return
         self.call_count += 1
         args = (line_no, message, icon, base_dir, file_name)
         if self.report_type == self.FILE_LINES:
@@ -128,6 +131,7 @@ class Reporter:
 
     def _message_collector(self, line_no, message, icon=None,
                          base_dir=None, file_name=None):
+        self._last_file_name = (base_dir, file_name)
         self.messages.append((line_no, message))
 
 
