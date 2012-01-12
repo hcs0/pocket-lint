@@ -588,10 +588,18 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
                 self.message(line_no, message, icon='error')
         self.check_text()
 
+    def check_debugger(self, line_no, line):
+        """Check the length of the line."""
+        debugger_call = 'debugger;'
+        if debugger_call in line:
+            self.message(
+                line_no, 'Line contains a call to debugger.', icon='error')
+
     def check_text(self):
         """Call each line_method for each line in text."""
         for line_no, line in enumerate(self.text.splitlines()):
             line_no += 1
+            self.check_debugger(line_no, line)
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)

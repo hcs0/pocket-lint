@@ -57,3 +57,11 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         """Used by the TestAnyTextMixin tests."""
         checker = JavascriptChecker(file_name, text, self.reporter)
         checker.check_text()
+
+    def test_code_with_debugger(self):
+        script = "debugger;"
+        checker = JavascriptChecker('bogus', script, self.reporter)
+        checker.check_text()
+        self.assertEqual(
+            [(1, 'Line contains a call to debugger.')],
+            self.reporter.messages)
