@@ -117,6 +117,9 @@ class DoctestReviewer:
         previous_kind = DoctestReviewer.NARRATIVE
         for line, kind in self._walk(self.get_parts()):
             lineno += 1
+            # Some method could check if the line number is one that
+            # is skipped by doctest parser and increment the number again.
+            # line probably needs to get a \n add to it too.
             self._append_source(kind, line)
             if kind != previous_kind and kind != DoctestReviewer.WANT:
                 # The WANT block must adjoin the preceding SOURCE block.
@@ -160,6 +163,11 @@ class DoctestReviewer:
         4. Check trailing whitespace.
         """
         self.code_lines = []
+        self.last_bad_indent = 0
+        self.block_method = self.preserve_block
+        self.example = None
+        self.has_printed_filename = False
+        self.check_source_comments()
         line_checkers = [
             self.check_length,
             self.check_heading,
@@ -183,6 +191,7 @@ class DoctestReviewer:
 
         SOURCE and WANT long lines are not fixed--this is a human operation.
         """
+        self.code_lines = []
         line_checkers = [
             self.fix_trailing_whitespace,
             self.fix_indentation,
@@ -228,6 +237,13 @@ class DoctestReviewer:
             long_line = ' '.join(block).strip()
             block = wrap(long_line, 72)
         return block
+
+    def check_source_comments(self):
+        """Comments are not appropiate in source examples."""
+        for lineno, line in enumerate(self.doctest.splitlines()):
+            if '>>> #' in line or '... #' in line:
+                self._print_message(
+                    'Comment belongs in narrative.', lineno + 1)
 
     def is_code_comment(self, line):
         """Return True if the line is a code comment."""
@@ -375,13 +391,6 @@ class DoctestReviewer:
                 with open(self.file_path, 'w') as doctest_file:
                     doctest_file.write(new_doctest)
             self.doctest = new_doctest
-        self.blocks = []
-        self.block = []
-        self.block_method = self.preserve_block
-        self.code_lines = []
-        self.example = None
-        self.last_bad_indent = 0
-        self.has_printed_filename = False
 
 
 def get_option_parser():

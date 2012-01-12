@@ -79,6 +79,7 @@ class Reporter:
     """Common rules for checkers."""
     CONSOLE = object()
     FILE_LINES = object()
+    COLLECTOR = object()
 
     def __init__(self, report_type, treeview=None):
         self.report_type = report_type
@@ -88,19 +89,22 @@ class Reporter:
         self.piter = None
         self._last_file_name = None
         self.call_count = 0
+        self.error_only = False
+        self.messages = []
 
     def __call__(self, line_no, message, icon=None,
                  base_dir=None, file_name=None):
         """Report a message."""
+        if self.error_only and icon != 'error':
+            return
         self.call_count += 1
+        args = (line_no, message, icon, base_dir, file_name)
         if self.report_type == self.FILE_LINES:
-            self._message_file_lines(
-                line_no, message, icon=icon,
-                base_dir=base_dir, file_name=file_name)
+            self._message_file_lines(*args)
+        elif self.report_type == self.COLLECTOR:
+            self._message_collector(*args)
         else:
-            self._message_console(
-                line_no, message, icon=icon,
-                base_dir=base_dir, file_name=file_name)
+            self._message_console(*args)
 
     def _message_console(self, line_no, message, icon=None,
                          base_dir=None, file_name=None):
@@ -124,6 +128,11 @@ class Reporter:
                 None, (file_name, mime_type, 0, None, base_dir))
         self.treestore.append(
             self.piter, (file_name, icon, line_no, message, base_dir))
+
+    def _message_collector(self, line_no, message, icon=None,
+                         base_dir=None, file_name=None):
+        self._last_file_name = (base_dir, file_name)
+        self.messages.append((line_no, message))
 
 
 class Language:
@@ -579,10 +588,18 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
                 self.message(line_no, message, icon='error')
         self.check_text()
 
+    def check_debugger(self, line_no, line):
+        """Check the length of the line."""
+        debugger_call = 'debugger;'
+        if debugger_call in line:
+            self.message(
+                line_no, 'Line contains a call to debugger.', icon='error')
+
     def check_text(self):
         """Call each line_method for each line in text."""
         for line_no, line in enumerate(self.text.splitlines()):
             line_no += 1
+            self.check_debugger(line_no, line)
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
@@ -594,9 +611,11 @@ def get_option_parser():
     usage = "usage: %prog [options] file1 file2"
     parser = OptionParser(usage=usage)
     parser.add_option(
-        "-v", "--verbose", action="store_true", dest="verbose")
+        "-v", "--verbose", action="store_true", dest="verbose",
+        help="show errors and warngings.")
     parser.add_option(
-        "-q", "--quiet", action="store_false", dest="verbose")
+        "-q", "--quiet", action="store_false", dest="verbose",
+        help="Show errors only.")
     parser.add_option(
         "-f", "--format", dest="do_format", action="store_true",
         help="Reformat the doctest.")
@@ -640,9 +659,8 @@ def main(argv=None):
     # Handle standard args.
     if len(sources) == 0:
         parser.error("Expected file paths.")
-    if options.verbose:
-        pass
     reporter = Reporter(Reporter.CONSOLE)
+    reporter.error_only = not options.verbose
     return check_sources(
         sources, reporter, options.do_format, options.is_interactive)
 
