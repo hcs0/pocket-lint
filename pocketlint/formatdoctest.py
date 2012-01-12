@@ -167,6 +167,7 @@ class DoctestReviewer:
         self.block_method = self.preserve_block
         self.example = None
         self.has_printed_filename = False
+        self.check_source_comments()
         line_checkers = [
             self.check_length,
             self.check_heading,
@@ -236,6 +237,13 @@ class DoctestReviewer:
             long_line = ' '.join(block).strip()
             block = wrap(long_line, 72)
         return block
+
+    def check_source_comments(self):
+        """Comments are not appropiate in source examples."""
+        for lineno, line in enumerate(self.doctest.splitlines()):
+            if '>>> #' in line or '... #' in line:
+                self._print_message(
+                    'Comment belongs in narrative.', lineno + 1)
 
     def is_code_comment(self, line):
         """Return True if the line is a code comment."""

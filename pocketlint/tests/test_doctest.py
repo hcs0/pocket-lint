@@ -25,6 +25,14 @@ You can work with file paths using os.path
 Narrative without WANT section.
 """
 
+source_comments_doctest = """\
+eg
+    >>> # one
+    >>> a = (
+    ... # two
+    ... 1)
+"""
+
 
 class TestDoctest(CheckerTestCase):
     """Verify doctest checking."""
@@ -43,6 +51,16 @@ class TestDoctest(CheckerTestCase):
             good_doctest, self.file.name, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
+
+    def test_doctest_with_source_comments(self):
+        self.file.write(source_comments_doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            source_comments_doctest, self.file.name, self.reporter)
+        checker.check_source_comments()
+        self.assertEqual([
+            (2, 'Comment belongs in narrative.'),
+            (4, 'Comment belongs in narrative.')], self.reporter.messages)
 
     def test_doctest_malformed_doctest(self):
         self.file.write(malformed_doctest)
