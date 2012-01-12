@@ -117,6 +117,9 @@ class DoctestReviewer:
         previous_kind = DoctestReviewer.NARRATIVE
         for line, kind in self._walk(self.get_parts()):
             lineno += 1
+            # Some method could check if the line number is one that
+            # is skipped by doctest parser and increment the number again.
+            # line probably needs to get a \n add to it too.
             self._append_source(kind, line)
             if kind != previous_kind and kind != DoctestReviewer.WANT:
                 # The WANT block must adjoin the preceding SOURCE block.
