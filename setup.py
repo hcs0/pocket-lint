@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import subprocess
 
 from distutils.core import setup
