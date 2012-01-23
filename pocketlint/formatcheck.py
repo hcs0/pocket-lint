@@ -532,9 +532,10 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 if match:
                     self.encoding = match.group(1).lower()
             self.check_pdb(line_no, line)
-            self.check_length(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_ascii(line_no, line)
+            if '/lib/lp/' in self.file_path:
+                self.check_length(line_no, line)
 
     def check_pdb(self, line_no, line):
         """Check the length of the line."""

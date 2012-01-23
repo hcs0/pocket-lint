@@ -213,6 +213,18 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         # pep8 checks this.
         pass
 
+    def test_long_length(self):
+        long_line = '1234 56189' * 8
+        self.create_and_check('/devel/lib/not-lp/bogus.py', long_line)
+        self.assertEqual([], self.reporter.messages)
+
+    def test_long_length_launchpad(self):
+        long_line = '1234 56189' * 8
+        self.create_and_check('/devel/lib/lp/bogus.py', long_line)
+        self.assertEqual(
+            [(1, 'Line exceeds 78 characters.')],
+            self.reporter.messages)
+
     def create_and_check(self, file_name, text):
         """Used by the TestAnyTextMixin tests."""
         checker = PythonChecker(file_name, text, self.reporter)
@@ -285,7 +297,8 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         line_79_chars = 'pap' + unicode_4_chars * 19 + '\n'
         full_text = encoding_line + line_79_chars
 
-        checker = PythonChecker('bogus', full_text, self.reporter)
+        checker = PythonChecker(
+            '/devel/lib/lp/bogus.py', full_text, self.reporter)
         checker.check_text()
 
         self.assertEqual(
