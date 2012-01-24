@@ -340,7 +340,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
     """Check XML documents."""
 
     xml_decl_pattern = re.compile(r'<\?xml .*?\?>')
-    xhtml_doctype = """
+    xhtml_doctype = u"""
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
           "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         """
@@ -352,7 +352,12 @@ class XMLChecker(BaseChecker, AnyTextMixin):
         parser = ElementTree.XMLParser()
         parser.entity.update(htmlentitydefs.entitydefs)
         offset = 0
-        text = self.text
+        try:
+            # This is a sanity check to work with the true text....
+            text = unicode(self.text.decode('utf-8').encode('utf-8'))
+        except UnicodeDecodeError:
+            # ...but this fallback is okay since this check is about markup.
+            text = self.text.decode('ascii', 'ignore').encode('utf-8')
         if text.find('<!DOCTYPE') == -1:
             # Expat requires a doctype to honour parser.entity.
             offset = 3

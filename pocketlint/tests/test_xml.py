@@ -26,6 +26,27 @@ ill_formed_markup = """\
 </root>
 """
 
+utf8_xml_markup = """\
+\xa0<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<root>
+  <child>hello world</child>
+</root>
+"""
+
+utf8_html_markup = """\
+\xa0<!DOCTYPE html PUBLIC
+  "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+      <p>hello world</p>
+  </body>
+</html>
+"""
+
 
 class TestXML(CheckerTestCase):
     """Verify XML integration."""
@@ -45,6 +66,17 @@ class TestXML(CheckerTestCase):
         checker.check()
         self.assertEqual(
             [(3, 'not well-formed (invalid token)')], self.reporter.messages)
+
+    def test_utf8_xml_markup(self):
+        checker = XMLChecker('bogus', utf8_xml_markup, self.reporter)
+        checker.check()
+        self.assertEqual([], self.reporter.messages)
+
+    def test_utf8_html_markup(self):
+        checker = XMLChecker('bogus', utf8_html_markup, self.reporter)
+        checker.check()
+        self.assertEqual([], self.reporter.messages)
+
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):
