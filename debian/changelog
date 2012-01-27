@@ -1,3 +1,9 @@
+pocket-lint (0.5.26-0gdp) oneirc; urgency=low
+
+  * New upstream release fixes LP:922840
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Fri, 27 Jan 2012 16:58:02 -0500
+
 pocket-lint (0.5.25-0gdp) oneirc; urgency=low
 
   * New upstream release fixes LP:921063
