@@ -286,9 +286,14 @@ class AnyTextMixin:
 
     def check_length(self, line_no, line):
         """Check the length of the line."""
-        if len(line) > 78:
+        if '/lib/lp/' in self.file_path:
+            max_length = 78
+        else:
+            max_length = 80
+        if len(line) > max_length:
             self.message(
-                line_no, 'Line exceeds 78 characters.', icon='info')
+                line_no, 'Line exceeds %s characters.' % max_length,
+                icon='info')
 
     def check_trailing_whitespace(self, line_no, line):
         """Check for the presence of trailing whitespace in the line."""

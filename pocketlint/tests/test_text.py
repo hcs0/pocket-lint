@@ -25,10 +25,10 @@ class TestAnyTextMixin:
         self.assertEqual([], self.reporter.messages)
 
     def test_long_length(self):
-        long_line = '1234 56189' * 8
+        long_line = '1234 56189' * 9
         self.create_and_check('bogus', long_line)
         self.assertEqual(
-            [(1, 'Line exceeds 78 characters.')],
+            [(1, 'Line exceeds 80 characters.')],
             self.reporter.messages)
 
     def test_no_trailing_whitespace(self):
@@ -62,3 +62,10 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
     def test_with_tabs(self):
         """Text files may contain tabs.."""
         pass
+
+    def test_long_length_lp(self):
+        long_line = '1234 56189' * 8
+        self.create_and_check('./lib/lp/bogus', long_line)
+        self.assertEqual(
+            [(1, 'Line exceeds 78 characters.')],
+            self.reporter.messages)
