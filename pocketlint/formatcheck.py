@@ -64,6 +64,9 @@ def find_exec(names):
 JS = find_exec(['gjs', 'seed'])
 
 
+DEFAULT_MAX_LENGTH = 80
+
+
 class PocketLintPyFlakesChecker(PyFlakesChecker):
     '''PocketLint checker for pyflakes.
 
@@ -252,7 +255,7 @@ class BaseChecker:
         elif '/lib/lp/' in self.file_path:
             return 78
         else:
-            return 80
+            return DEFAULT_MAX_LENGTH
 
 
 class UniversalChecker(BaseChecker):
@@ -642,12 +645,12 @@ def get_option_parser():
         help="Approve each change.")
     parser.add_option(
         "-m", "--max-length", dest="max_line_length", type="int",
-        help="Set the max line length (default 80)")
+        help="Set the max line length (default %s)" % DEFAULT_MAX_LENGTH)
     parser.set_defaults(
         verbose=True,
         do_format=False,
         is_interactive=False,
-        max_line_length=80,
+        max_line_length=DEFAULT_MAX_LENGTH,
         )
     return parser
 
