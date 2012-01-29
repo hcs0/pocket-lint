@@ -259,7 +259,8 @@ class BaseChecker:
 class UniversalChecker(BaseChecker):
     """Check and reformat doctests."""
 
-    def __init__(self, file_path, text, language, reporter, options):
+    def __init__(self, file_path, text,
+                 language=None, reporter=None, options=None):
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
         self.file_name = os.path.basename(file_path)
