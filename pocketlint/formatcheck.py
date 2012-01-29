@@ -294,9 +294,7 @@ class AnyTextMixin:
 
     def check_length(self, line_no, line):
         """Check the length of the line."""
-
         max_length = self.check_length_filter()
-
         if max_length and len(line) > max_length:
             self.message(
                 line_no, 'Line exceeds %s characters.' % max_length,
