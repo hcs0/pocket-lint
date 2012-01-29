@@ -3,7 +3,16 @@
 # This software is licensed under the MIT license (see the file COPYING).
 """Reformat a doctest to Launchpad style."""
 
+from __future__ import with_statement
+
+
 __metaclass__ = type
+
+
+__all__ = [
+    'DoctestReviewer',
+    ]
+
 
 import _ast
 import os
@@ -15,11 +24,6 @@ from optparse import OptionParser
 from textwrap import wrap
 
 from contrib.pyflakes.checker import Checker
-
-
-__all__ = [
-    'DoctestReviewer',
-    ]
 
 
 class DoctestReviewer:
