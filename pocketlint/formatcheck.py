@@ -243,6 +243,7 @@ class BaseChecker:
         """Check the content."""
         raise NotImplementedError
 
+    @property
     def check_length_filter(self):
         '''Default filter used by default for checking line length.'''
         if '/lib/lp/' in self.file_path:
@@ -294,8 +295,8 @@ class AnyTextMixin:
 
     def check_length(self, line_no, line):
         """Check the length of the line."""
-        max_length = self.check_length_filter()
-        if max_length and len(line) > max_length:
+        max_length = self.check_length_filter
+        if len(line) > max_length:
             self.message(
                 line_no, 'Line exceeds %s characters.' % max_length,
                 icon='info')
@@ -526,7 +527,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
             pep8.Checker.report_error = pep8_report_error
             original_max_line_length = pep8.MAX_LINE_LENGTH
-            pep8.MAX_LINE_LENGTH = self.check_length_filter()
+            pep8.MAX_LINE_LENGTH = self.check_length_filter
             pep8.process_options([self.file_path])
             try:
                 pep8.Checker(self.file_path).check_all()
@@ -560,10 +561,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self.message(
                 line_no, 'Line contains a call to pdb.', icon='error')
 
-    def check_length(self, line_no, line):
-        # The pep8 lib checks length using the check_length_filter.
-        pass
-
+    @property
     def check_length_filter(self):
         if '/lib/lp/' in self.file_path:
             # The pep8 lib counts from 0.
