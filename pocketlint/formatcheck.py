@@ -525,6 +525,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 self.message(line_no, message, icon='info')
 
             pep8.Checker.report_error = pep8_report_error
+            original_max_line_length = pep8.MAX_LINE_LENGTH
+            pep8.MAX_LINE_LENGTH = self.check_length_filter()
             pep8.process_options([self.file_path])
             try:
                 pep8.Checker(self.file_path).check_all()
@@ -536,6 +538,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 message = "%s: %s" % (message, location[3].strip())
                 self.message(location[1], message, icon='error')
         finally:
+            pep8.MAX_LINE_LENGTH = original_max_line_length
             pep8.Checker.report_error = original_report_error
 
     def check_text(self):
@@ -549,7 +552,6 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self.check_pdb(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_ascii(line_no, line)
-            self.check_length(line_no, line)
 
     def check_pdb(self, line_no, line):
         """Check the length of the line."""
@@ -559,19 +561,15 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 line_no, 'Line contains a call to pdb.', icon='error')
 
     def check_length(self, line_no, line):
-        # isinstance is checked since 'test_code_utf8' is passing an unicode
-        # text to PythonChecker, but check_sources always opens the file in
-        # ascii mode, so PythonChecker alwasy received the text as ascii
-        # encoded.
-        if self.encoding == 'utf-8' and not isinstance(line, unicode):
-            line = line.decode('utf-8')
-        super(PythonChecker, self).check_length(line_no, line)
+        # The pep8 lib checks length using the check_length_filter.
+        pass
 
     def check_length_filter(self):
-        '''Default filter used by default for checking line lengt.'''
-        if '/lib/lp/' not in self.file_path:
-            return False
-        return super(PythonChecker, self).check_length_filter()
+        if '/lib/lp/' in self.file_path:
+            # The pep8 lib counts from 0.
+            return 77
+        else:
+            return pep8.MAX_LINE_LENGTH
 
     def check_ascii(self, line_no, line):
         """Check that the line is ascii."""
