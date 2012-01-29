@@ -215,12 +215,13 @@ class BaseChecker:
 
     The Decedent must provide self.file_name and self.base_dir
     """
-    def __init__(self, file_path, text, reporter=None):
+    def __init__(self, file_path, text, reporter=None, options=None):
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
         self.file_name = os.path.basename(file_path)
         self.text = text
         self.set_reporter(reporter=reporter)
+        self.options = options
 
     def set_reporter(self, reporter=None):
         """Set the reporter for messages."""
@@ -246,7 +247,9 @@ class BaseChecker:
     @property
     def check_length_filter(self):
         '''Default filter used by default for checking line length.'''
-        if '/lib/lp/' in self.file_path:
+        if self.options:
+            return self.options.max_line_length
+        elif '/lib/lp/' in self.file_path:
             return 78
         else:
             return 80
@@ -255,34 +258,37 @@ class BaseChecker:
 class UniversalChecker(BaseChecker):
     """Check and reformat doctests."""
 
-    def __init__(self, file_path, text=None, language=None, reporter=None):
+    def __init__(self, file_path, text, language, reporter, options):
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
         self.file_name = os.path.basename(file_path)
         self.text = text
         self.set_reporter(reporter=reporter)
         self.language = language
+        self.options = options
         self.file_lines_view = None
 
     def check(self):
         """Check the file syntax and style."""
         if self.language is Language.PYTHON:
-            PythonChecker(self.file_path, self.text, self._reporter).check()
+            checker_class = PythonChecker
         elif self.language is Language.DOCTEST:
-            DoctestReviewer(self.text, self.file_path, self._reporter).check()
+            checker_class = DoctestReviewer
         elif self.language is Language.CSS:
-            CSSChecker(self.file_path, self.text, self._reporter).check()
+            checker_class = CSSChecker
         elif self.language in Language.XML_LIKE:
-            XMLChecker(self.file_path, self.text, self._reporter).check()
+            checker_class = XMLChecker
         elif self.language is Language.JAVASCRIPT:
-            JavascriptChecker(
-                self.file_path, self.text, self._reporter).check()
+            checker_class = JavascriptChecker
         elif self.language is Language.LOG:
             # Log files are not source, but they are often in source code
             # trees.
             pass
         else:
-            AnyTextChecker(self.file_path, self.text, self._reporter).check()
+            checker_class = AnyTextChecker
+        checker = checker_class(
+            self.file_path, self.text, self._reporter, self.options)
+        checker.check()
 
 
 class AnyTextMixin:
@@ -316,13 +322,6 @@ class AnyTextMixin:
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
     """Verify the text of the document."""
-
-    def __init__(self, file_path, text, reporter=None):
-        self.file_path = file_path
-        self.base_dir = os.path.dirname(file_path)
-        self.file_name = os.path.basename(file_path)
-        self.text = text
-        self.set_reporter(reporter=reporter)
 
     def check(self):
         """Call each line_method for each line in text."""
@@ -486,9 +485,9 @@ class PythonChecker(BaseChecker, AnyTextMixin):
     # This regex is taken from PEP 0263.
     encoding_pattern = re.compile("coding[:=]\s*([-\w.]+)")
 
-    def __init__(self, file_path, text, reporter=None):
+    def __init__(self, file_path, text, reporter=None, options=None):
         super(PythonChecker, self).__init__(
-            file_path, text, reporter=reporter)
+            file_path, text, reporter, options)
         self.encoding = 'ascii'
 
     def check(self):
@@ -563,8 +562,10 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
     @property
     def check_length_filter(self):
-        if '/lib/lp/' in self.file_path:
-            # The pep8 lib counts from 0.
+        # The pep8 lib counts from 0.
+        if self.options:
+            return self.options.max_line_length - 1
+        elif '/lib/lp/' in self.file_path:
             return 77
         else:
             return pep8.MAX_LINE_LENGTH
@@ -639,15 +640,19 @@ def get_option_parser():
     parser.add_option(
         "-i", "--interactive", dest="is_interactive", action="store_true",
         help="Approve each change.")
+    parser.add_option(
+        "-m", "--max-length", dest="max_line_length", type="int",
+        help="Set the max line length (default 80)")
     parser.set_defaults(
         verbose=True,
         do_format=False,
-        is_interactive=False)
+        is_interactive=False,
+        max_line_length=80,
+        )
     return parser
 
 
-def check_sources(sources, reporter=None,
-                  do_format=False, is_interactive=False):
+def check_sources(sources, options, reporter=None):
     if reporter is None:
         reporter = Reporter(Reporter.CONSOLE)
     reporter.call_count = 0
@@ -658,11 +663,11 @@ def check_sources(sources, reporter=None,
         language = Language.get_language(file_path)
         with open(file_path) as file_:
             text = file_.read()
-        if language is Language.DOCTEST and do_format:
+        if language is Language.DOCTEST and options.do_format:
             formatter = DoctestReviewer(text, file_path, reporter)
-            formatter.format_and_save(is_interactive)
+            formatter.format_and_save(options.is_interactive)
         checker = UniversalChecker(
-            file_path, text=text, language=language, reporter=reporter)
+            file_path, text, language, reporter, options=options)
         checker.check()
     return reporter.call_count
 
@@ -678,8 +683,7 @@ def main(argv=None):
         parser.error("Expected file paths.")
     reporter = Reporter(Reporter.CONSOLE)
     reporter.error_only = not options.verbose
-    return check_sources(
-        sources, reporter, options.do_format, options.is_interactive)
+    return check_sources(sources, options, reporter)
 
 
 if __name__ == '__main__':

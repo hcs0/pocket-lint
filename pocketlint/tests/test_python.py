@@ -5,7 +5,10 @@ import os
 import shutil
 from tempfile import NamedTemporaryFile
 
-from pocketlint.formatcheck import PythonChecker
+from pocketlint.formatcheck import (
+    get_option_parser,
+    PythonChecker,
+    )
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
@@ -208,6 +211,19 @@ class TestPEP8(CheckerTestCase):
         checker.check_pep8()
         self.assertEqual(
             [(1, 'E501 line too long (80 characters)')],
+            self.reporter.messages)
+
+    def test_long_length_options(self):
+        long_line = '1234 56189' * 7 + '\n'
+        parser = get_option_parser()
+        (options, sources) = parser.parse_args(['-m', '60'])
+        self.file.write(long_line)
+        self.file.flush()
+        checker = PythonChecker(
+            self.file.name, long_line, self.reporter, options)
+        checker.check_pep8()
+        self.assertEqual(
+            [(1, 'E501 line too long (70 characters)')],
             self.reporter.messages)
 
     def test_long_length_launchpad_bad(self):
