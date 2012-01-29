@@ -213,7 +213,6 @@ class BaseChecker:
 
     The Decedent must provide self.file_name and self.base_dir
     """
-
     def __init__(self, file_path, text, reporter=None):
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
@@ -241,6 +240,13 @@ class BaseChecker:
     def check(self):
         """Check the content."""
         raise NotImplementedError
+
+    def check_length_filter(self):
+        '''Default filter used by default for checking line lengt.'''
+        if '/lib/lp/' in self.file_path:
+            return 78
+        else:
+            return 80
 
 
 class UniversalChecker(BaseChecker):
@@ -286,11 +292,10 @@ class AnyTextMixin:
 
     def check_length(self, line_no, line):
         """Check the length of the line."""
-        if '/lib/lp/' in self.file_path:
-            max_length = 78
-        else:
-            max_length = 80
-        if len(line) > max_length:
+
+        max_length = self.check_length_filter()
+
+        if max_length and len(line) > max_length:
             self.message(
                 line_no, 'Line exceeds %s characters.' % max_length,
                 icon='info')
@@ -544,8 +549,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self.check_pdb(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_ascii(line_no, line)
-            if '/lib/lp/' in self.file_path:
-                self.check_length(line_no, line)
+            self.check_length(line_no, line)
 
     def check_pdb(self, line_no, line):
         """Check the length of the line."""
@@ -562,6 +566,12 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         if self.encoding == 'utf-8' and not isinstance(line, unicode):
             line = line.decode('utf-8')
         super(PythonChecker, self).check_length(line_no, line)
+
+    def check_length_filter(self):
+        '''Default filter used by default for checking line lengt.'''
+        if '/lib/lp/' not in self.file_path:
+            return False
+        return super(PythonChecker, self).check_length_filter()
 
     def check_ascii(self, line_no, line):
         """Check that the line is ascii."""
