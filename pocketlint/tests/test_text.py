@@ -67,13 +67,6 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         """Text files may contain tabs.."""
         pass
 
-    def test_long_length_lp(self):
-        long_line = '1234 56189' * 8
-        self.create_and_check('./lib/lp/bogus', long_line)
-        self.assertEqual(
-            [(1, 'Line exceeds 78 characters.')],
-            self.reporter.messages)
-
     def test_long_length_options(self):
         long_line = '1234 56189' * 5
         parser = get_option_parser()

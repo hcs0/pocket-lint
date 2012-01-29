@@ -1,8 +1,6 @@
 # Copyright (C) 2011 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
-import os
-import shutil
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatcheck import (
@@ -224,22 +222,6 @@ class TestPEP8(CheckerTestCase):
         checker.check_pep8()
         self.assertEqual(
             [(1, 'E501 line too long (70 characters)')],
-            self.reporter.messages)
-
-    def test_long_length_launchpad_bad(self):
-        long_line = '1234 56189' * 7 + '12345678' + '\n'
-        lp_path = 'lib/lp/'
-        temp_path = '/tmp/%s' % lp_path
-        os.makedirs(temp_path)
-        self.addCleanup(shutil.rmtree, temp_path)
-        self.file = NamedTemporaryFile(prefix='%spocketlint_' % lp_path)
-        self.file.write(long_line)
-        self.file.flush()
-        checker = PythonChecker(self.file.name, long_line, self.reporter)
-        checker.check_pep8()
-        self.assertIn('/lib/lp/', self.file.name)
-        self.assertEqual(
-            [(1, 'E501 line too long (78 characters)')],
             self.reporter.messages)
 
 

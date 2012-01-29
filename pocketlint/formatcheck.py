@@ -252,8 +252,6 @@ class BaseChecker:
         '''Default filter used by default for checking line length.'''
         if self.options:
             return self.options.max_line_length
-        elif '/lib/lp/' in self.file_path:
-            return 78
         else:
             return DEFAULT_MAX_LENGTH
 
@@ -568,8 +566,6 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         # The pep8 lib counts from 0.
         if self.options:
             return self.options.max_line_length - 1
-        elif '/lib/lp/' in self.file_path:
-            return 77
         else:
             return pep8.MAX_LINE_LENGTH
 
