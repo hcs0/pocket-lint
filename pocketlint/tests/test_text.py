@@ -1,7 +1,10 @@
-# Copyright (C) 2011 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
-from pocketlint.formatcheck import AnyTextChecker
+from pocketlint.formatcheck import (
+    AnyTextChecker,
+    get_option_parser,
+    )
 from pocketlint.tests import CheckerTestCase
 
 
@@ -55,17 +58,20 @@ class TestAnyTextMixin:
 class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
 
-    def create_and_check(self, file_name, text):
-        checker = AnyTextChecker(file_name, text, self.reporter)
+    def create_and_check(self, file_name, text, options=None):
+        checker = AnyTextChecker(
+            file_name, text, self.reporter, options)
         checker.check()
 
     def test_with_tabs(self):
         """Text files may contain tabs.."""
         pass
 
-    def test_long_length_lp(self):
-        long_line = '1234 56189' * 8
-        self.create_and_check('./lib/lp/bogus', long_line)
+    def test_long_length_options(self):
+        long_line = '1234 56189' * 5
+        parser = get_option_parser()
+        (options, sources) = parser.parse_args(['-m', '49'])
+        self.create_and_check('bogus', long_line, options=options)
         self.assertEqual(
-            [(1, 'Line exceeds 78 characters.')],
+            [(1, 'Line exceeds 49 characters.')],
             self.reporter.messages)

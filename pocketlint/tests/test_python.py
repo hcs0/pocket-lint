@@ -1,9 +1,12 @@
-# Copyright (C) 2011 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
 from tempfile import NamedTemporaryFile
 
-from pocketlint.formatcheck import PythonChecker
+from pocketlint.formatcheck import (
+    get_option_parser,
+    PythonChecker,
+    )
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
@@ -190,15 +193,35 @@ class TestPEP8(CheckerTestCase):
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
-    def test_long_length(self):
+    def test_long_length_good(self):
+        long_line = '1234 56189' * 7 + '12345678' + '\n'
+        self.file.write(long_line)
+        self.file.flush()
+        checker = PythonChecker(self.file.name, long_line, self.reporter)
+        checker.check_pep8()
+        self.assertEqual([], self.reporter.messages)
+
+    def test_long_length_bad(self):
         long_line = '1234 56189' * 8 + '\n'
         self.file.write(long_line)
         self.file.flush()
-        checker = PythonChecker(
-            self.file.name, ugly_style_lines_python, self.reporter)
+        checker = PythonChecker(self.file.name, long_line, self.reporter)
         checker.check_pep8()
         self.assertEqual(
             [(1, 'E501 line too long (80 characters)')],
+            self.reporter.messages)
+
+    def test_long_length_options(self):
+        long_line = '1234 56189' * 7 + '\n'
+        parser = get_option_parser()
+        (options, sources) = parser.parse_args(['-m', '60'])
+        self.file.write(long_line)
+        self.file.flush()
+        checker = PythonChecker(
+            self.file.name, long_line, self.reporter, options)
+        checker.check_pep8()
+        self.assertEqual(
+            [(1, 'E501 line too long (70 characters)')],
             self.reporter.messages)
 
 
@@ -214,16 +237,8 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         pass
 
     def test_long_length(self):
-        long_line = '1234 56189' * 8
-        self.create_and_check('/devel/lib/not-lp/bogus.py', long_line)
-        self.assertEqual([], self.reporter.messages)
-
-    def test_long_length_launchpad(self):
-        long_line = '1234 56189' * 8
-        self.create_and_check('/devel/lib/lp/bogus.py', long_line)
-        self.assertEqual(
-            [(1, 'Line exceeds 78 characters.')],
-            self.reporter.messages)
+        # pep8 checks this.
+        pass
 
     def create_and_check(self, file_name, text):
         """Used by the TestAnyTextMixin tests."""
@@ -279,27 +294,3 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self.assertEqual(
             [(1, 'Non-ascii characer at position 21.')],
             self.reporter.messages)
-
-    def test_length_unicode_ok(self):
-        encoding_line = '# -*- coding: utf-8 -*-\n'
-        unicode_4_chars = 'mi\xc8\x9bi'
-        line_78_chars = 'pa' + unicode_4_chars * 19 + '\n'
-        full_text = encoding_line + line_78_chars
-
-        checker = PythonChecker('bogus', full_text, self.reporter)
-        checker.check_text()
-
-        self.assertEqual([], self.reporter.messages)
-
-    def test_length_unicode_bad(self):
-        encoding_line = '# -*- coding: utf-8 -*-\n'
-        unicode_4_chars = 'mi\xc8\x9bi'
-        line_79_chars = 'pap' + unicode_4_chars * 19 + '\n'
-        full_text = encoding_line + line_79_chars
-
-        checker = PythonChecker(
-            '/devel/lib/lp/bogus.py', full_text, self.reporter)
-        checker.check_text()
-
-        self.assertEqual(
-            [(2, 'Line exceeds 78 characters.')], self.reporter.messages)
