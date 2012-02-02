@@ -462,6 +462,7 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         handler = CSSReporterHandler(self)
         log = logging.getLogger('pocket-lint')
         log.addHandler(handler)
+        log.propagate = False
         parser = cssutils.CSSParser(
             log=log, loglevel=logging.INFO, raiseExceptions=False)
         parser.parseString(self.text)
