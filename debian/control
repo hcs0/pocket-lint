@@ -10,7 +10,7 @@ Standards-Version: 3.9.1
 Package: python-pocket-lint
 Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}
-Recommends: python-cssutils, gjs
+Recommends: python-cssutils, gjs | seed
 Description: a composite linter and style checker
  Pocket-lint has several notable features:
  .
