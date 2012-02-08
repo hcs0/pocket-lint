@@ -44,6 +44,13 @@ class TestDoctest(CheckerTestCase):
     def tearDown(self):
         self.file.close()
 
+    def test_init_with_options(self):
+        self.file.write(good_doctest)
+        self.file.flush()
+        checker = DoctestReviewer(
+            good_doctest, self.file.name, self.reporter, None)
+        self.assertIs(None, checker.options)
+
     def test_doctest_without_issues(self):
         self.file.write(good_doctest)
         self.file.flush()

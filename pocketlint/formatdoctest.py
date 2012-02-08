@@ -35,7 +35,7 @@ class DoctestReviewer:
     WANT = 'want'
     NARRATIVE = 'narrative'
 
-    def __init__(self, doctest, file_path, reporter=None):
+    def __init__(self, doctest, file_path, reporter=None, options=None):
         self.doctest = doctest
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
@@ -48,6 +48,7 @@ class DoctestReviewer:
         self.last_bad_indent = 0
         self.has_printed_filename = False
         self._reporter = reporter
+        self.options = options
 
     def get_parts(self):
         parser = DocTestParser()
