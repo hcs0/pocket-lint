@@ -1,3 +1,9 @@
+pocket-lint (0.5.29-0gdp) precise; urgency=low
+
+  * New upstream release fixes LP:928903
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Wed, 08 Feb 2012 11:10:12 -0500
+
 pocket-lint (0.5.28-0gdp) precise; urgency=low
 
   * New upstream release fixes LP:925208
