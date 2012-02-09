@@ -35,7 +35,7 @@ class DoctestReviewer:
     WANT = 'want'
     NARRATIVE = 'narrative'
 
-    def __init__(self, doctest, file_path, reporter=None, options=None):
+    def __init__(self, file_path, doctest, reporter=None, options=None):
         self.doctest = doctest
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
@@ -426,7 +426,7 @@ def main(argv=None):
     for file_path in args:
         with open(file_path) as doctest_file:
             doctest_data = doctest_file.read()
-        reviewer = DoctestReviewer(doctest_data, file_path)
+        reviewer = DoctestReviewer(file_path, doctest_data)
         if options.is_format:
             reviewer.format_and_save()
         reviewer.check()
