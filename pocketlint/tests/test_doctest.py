@@ -48,14 +48,16 @@ class TestDoctest(CheckerTestCase):
         self.file.write(good_doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            good_doctest, self.file.name, self.reporter, None)
+            self.file.name, good_doctest, self.reporter, None)
+        self.assertEqual(self.file.name, checker.file_path)
+        self.assertEqual(good_doctest, checker.doctest)
         self.assertIs(None, checker.options)
 
     def test_doctest_without_issues(self):
         self.file.write(good_doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            good_doctest, self.file.name, self.reporter)
+            self.file.name, good_doctest, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
 
@@ -63,7 +65,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(source_comments_doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            source_comments_doctest, self.file.name, self.reporter)
+           self.file.name, source_comments_doctest, self.reporter)
         checker.check_source_comments()
         self.assertEqual([
             (2, 'Comment belongs in narrative.'),
@@ -73,7 +75,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(malformed_doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            malformed_doctest, self.file.name, self.reporter)
+            self.file.name, malformed_doctest, self.reporter)
         checker.check()
         expected = (
             "line 4 of the docstring for %s has inconsistent leading "
@@ -88,7 +90,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
 
@@ -97,7 +99,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         checker.check()
         self.assertEqual(
             [(1, 'Could not compile:\n    if (True')],
@@ -108,7 +110,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         checker.check()
         self.assertEqual(
             [(1, 'narrative uses a moin header.')],
@@ -119,7 +121,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual(
             "Heading\n=======\n\nnarrative", text)
@@ -129,7 +131,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual(
             "Heading\n-------\n\nnarrative", text)
@@ -139,7 +141,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual(
             "Heading\n.......\n\nnarrative", text)
@@ -149,7 +151,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         checker.check()
         self.assertEqual(
             [(2, 'source has bad indentation.')],
@@ -160,7 +162,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual(
             "narrative\n\n    >>> print 'done'\n\n", text)
@@ -170,7 +172,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual(
             "narrative\n\n    >>> print (\n    ...     'done')\n\n", text)
@@ -180,7 +182,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         checker.check()
         self.assertEqual(
             [(1, 'narrative has trailing whitespace.')],
@@ -191,7 +193,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual("narrative\n\n    >>> print 'done'\n\n", text)
 
@@ -204,7 +206,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         checker.check()
         self.assertEqual(
             [(1, 'source exceeds 78 characters.'),
@@ -218,7 +220,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         checker.check()
         self.assertEqual(
             [(1, 'narrative exceeds 78 characters.')],
@@ -232,7 +234,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         text = checker.format()
         expected = (
             "narrative is a line that exceeds 78 characters which causes "
@@ -251,7 +253,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
-            doctest, self.file.name, self.reporter)
+            self.file.name, doctest, self.reporter)
         checker.format_and_save()
         expected = (
             "narrative is a line that exceeds 78 characters which causes "
