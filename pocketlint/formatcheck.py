@@ -73,15 +73,15 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
     This is here to work around some of the pyflakes problems.
     '''
 
-    def __init__(self, tree, file_name='(none)', text=None):
+    def __init__(self, tree, file_path='(none)', text=None):
         self.text = text
         if self.text:
             self.text = self.text.split('\n')
         super(PocketLintPyFlakesChecker, self).__init__(
-            tree=tree, filename=file_name)
+            tree=tree, filename=file_path)
 
     @property
-    def file_name(self):
+    def file_path(self):
         '''Alias for consistency with the rest of pocketlint.'''
         return self.filename
 
@@ -93,7 +93,7 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
         if self.text and self.text[line_no].find('pyflakes:ignore') >= 0:
             return
 
-        self.messages.append(messageClass(self.file_name, *args, **kwargs))
+        self.messages.append(messageClass(self.file_path, *args, **kwargs))
 
     def NAME(self, node):
         '''Locate name. Ignore WindowsErrors.'''
@@ -536,7 +536,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self.message(line_no, message, icon='error')
         else:
             warnings = PocketLintPyFlakesChecker(
-                tree, file_name=self.file_path, text=self.text)
+                tree, file_path=self.file_path, text=self.text)
             for warning in warnings.messages:
                 dummy, line_no, message = str(warning).split(':')
                 self.message(int(line_no), message.strip(), icon='error')
