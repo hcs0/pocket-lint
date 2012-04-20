@@ -78,7 +78,12 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
         if self.text:
             self.text = self.text.split('\n')
         super(PocketLintPyFlakesChecker, self).__init__(
-            tree=tree, file_name=file_name)
+            tree=tree, filename=file_name)
+
+    @property
+    def file_name(self):
+        '''Alias for consistency with the rest of pocketlint.'''
+        return self.filename
 
     def report(self, messageClass, *args, **kwargs):
         '''Filter some errors not used in our project.'''
