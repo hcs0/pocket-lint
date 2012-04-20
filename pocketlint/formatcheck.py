@@ -73,22 +73,22 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
     This is here to work around some of the pyflakes problems.
     '''
 
-    def __init__(self, tree, filename='(none)', text=None):
+    def __init__(self, tree, file_name='(none)', text=None):
         self.text = text
         if self.text:
             self.text = self.text.split('\n')
         super(PocketLintPyFlakesChecker, self).__init__(
-            tree=tree, filename=filename)
+            tree=tree, file_name=file_name)
 
     def report(self, messageClass, *args, **kwargs):
         '''Filter some errors not used in our project.'''
-        line_nr = args[0] - 1
+        line_no = args[0] - 1
 
         # Ignore explicit pyflakes:ignore requests.
-        if self.text and self.text[line_nr].find('pyflakes:ignore') >= 0:
+        if self.text and self.text[line_no].find('pyflakes:ignore') >= 0:
             return
 
-        self.messages.append(messageClass(self.filename, *args, **kwargs))
+        self.messages.append(messageClass(self.file_name, *args, **kwargs))
 
     def NAME(self, node):
         '''Locate name. Ignore WindowsErrors.'''
@@ -531,7 +531,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self.message(line_no, message, icon='error')
         else:
             warnings = PocketLintPyFlakesChecker(
-                tree, filename=self.file_path, text=self.text)
+                tree, file_name=self.file_path, text=self.text)
             for warning in warnings.messages:
                 dummy, line_no, message = str(warning).split(':')
                 self.message(int(line_no), message.strip(), icon='error')
