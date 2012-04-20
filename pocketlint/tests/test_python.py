@@ -136,6 +136,17 @@ class TestPyflakes(CheckerTestCase):
             self.reporter.messages)
         self.assertEqual(2, self.reporter.call_count)
 
+    def test_pyflakes_ignore(self):
+        pyflakes_ignore = (
+            'def something():\n'
+            '    unused_variable = 1  # pyflakes:ignore\n'
+            )
+        self.reporter.call_count = 0
+        checker = PythonChecker('bogus', pyflakes_ignore, self.reporter)
+        checker.check_flakes()
+        self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
+
 
 class TestPEP8(CheckerTestCase):
     """Verify PEP8 integration."""
