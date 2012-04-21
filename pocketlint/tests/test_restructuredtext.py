@@ -1,7 +1,7 @@
+'''Tests for ReStructuredTextChecker.'''
 from pocketlint.formatcheck import ReStructuredTextChecker
 from pocketlint.tests import CheckerTestCase
 
-#
 # This is a valid rst content.
 # This comment is here so that the content starts at line 11
 # and make it easier to identify errors in tests.
@@ -18,6 +18,8 @@ Text *for* first **section**.
 --------------
 Second section
 --------------
+
+some paragraph
 
 
 Third section
@@ -59,8 +61,6 @@ A grid table.
 +------------+------------+-----------+
 
 A simple table.
-
-Simple table:
 
 =====  =====  ======
    Inputs     Output
@@ -107,6 +107,8 @@ medical waste.
    (but, for instance, in HTML might be
    rendered as an HTML comment)
 '''
+# The last line from multi line string is a bit hard to visualize,
+# but it is there.
 
 
 class TestReStructuredTextChecker(CheckerTestCase):
@@ -155,16 +157,339 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.assertEqual(expected, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
-    def test_multiple_empty_last_lines(self):
-        self.reporter.call_count = 0
+    def test_isTransition_good(self):
         content = (
-            'Some first line\n'
-            'the second and last\n'
+            '\n'
+            '----\n'
             '\n'
             )
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker.check_empty_last_line()
-        expected = [(
-            3, 'File does not ends with an empty line.')]
-        self.assertEqual(expected, self.reporter.messages)
+        result = checker.isTransition(1)
+        self.assertTrue(result)
+
+    def test_isTransition_short_line(self):
+        content = (
+            '\n'
+            '---\n'
+            '\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        result = checker.isTransition(1)
+        self.assertFalse(result)
+
+    def test_isTransition_short_file(self):
+        content = (
+            '\n'
+            '----\n'
+            ''
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        result = checker.isTransition(1)
+        self.assertFalse(result)
+
+    def test_isTransition_false(self):
+        content = (
+            '\n'
+            '----\n'
+            'some\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        result = checker.isTransition(1)
+        self.assertFalse(result)
+
+        content = (
+            'some\n'
+            '----\n'
+            '\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        result = checker.isTransition(1)
+        self.assertFalse(result)
+
+    def test_check_transitions_good(self):
+        content = (
+            'some text\n'
+            '\n'
+            '----\n'
+            '\n'
+            'some text\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_transition(2)
+        self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
+
+    def test_check_transitions_bad_spacing_before(self):
+        content = (
+            'some text\n'
+            '\n'
+            '\n'
+            '----\n'
+            '\n'
+            'some text\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_transition(3)
+        expect = [(
+            4, 'Transition markers should be bounded by single empty lines.')]
+        self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_transitions_bad_spacing_after(self):
+        content = (
+            'some text\n'
+            '\n'
+            '----\n'
+            '\n'
+            '\n'
+            'some text\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_transition(2)
+        expect = [(
+            3, 'Transition markers should be bounded by single empty lines.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_transitions_bad_spacing_both(self):
+        content = (
+            'some text\n'
+            '\n'
+            '\n'
+            '----\n'
+            '\n'
+            '\n'
+            'some text\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_transition(3)
+        expect = [(
+            4, 'Transition markers should be bounded by single empty lines.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_isSectionDelimiter_short_file(self):
+        content = (
+            'Something'
+            '---------\n'
+            ''
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        result = checker.isSectionDelimiter(1)
+        self.assertFalse(result)
+
+    def test_isSectionDelimiter_short_line(self):
+        content = (
+            'Som'
+            '---\n'
+            ''
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        result = checker.isSectionDelimiter(1)
+        self.assertFalse(result)
+
+    def test_isSectionDelimiter_table(self):
+        content = (
+            '---- ----'
+            'Row1 Row1'
+            '---- ----\n'
+            ''
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        result = checker.isSectionDelimiter(0)
+        self.assertFalse(result)
+        result = checker.isSectionDelimiter(2)
+        self.assertFalse(result)
+
+    def test_isSectionDelimiter_good(self):
+        content = (
+            'Section\n'
+            '-------\n'
+            'some text'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        result = checker.isSectionDelimiter(1)
+        self.assertTrue(result)
+
+    def test_isSectionDelimiter_good_bounded_start_of_file(self):
+        content = (
+            '=======\n'
+            'Section\n'
+            '=======\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        result = checker.isSectionDelimiter(0)
+        self.assertTrue(result)
+        result = checker.isSectionDelimiter(2)
+        self.assertTrue(result)
+
+    def test_check_section_delimiter_bounded(self):
+        content = (
+            'some text\n'
+            '\n'
+            '\n'
+            '=======\n'
+            'Section\n'
+            '=======\n'
+            '\n'
+            'some text\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(3)
+        checker.check_section_delimiter(5)
+        self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
+
+    def test_check_section_delimiter_bad_marker_length(self):
+        content = (
+            'Section\n'
+            '------\n'
+            '\n'
+            'some text\n'
+            'other text\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(1)
+        expect = [(2, 'Section marker has wrong length.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_section_delimiter_bad_length_both_markers(self):
+        content = (
+            '---------\n'
+            'Section\n'
+            '---------\n'
+            '\n'
+            'some text\n'
+            'other text\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(0)
+        checker.check_section_delimiter(2)
+        expect = [(1, 'Section marker has wrong length.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_section_before_space_good_start_both(self):
+        content = (
+            '-------\n'
+            'Section\n'
+            '-------\n'
+            '\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(0)
+        checker.check_section_delimiter(2)
+        self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
+
+    def test_check_section_before_space_good_start_bottom(self):
+        content = (
+            'Section\n'
+            '-------\n'
+            '\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(1)
+        self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
+
+    def test_check_section_before_space_bad_only_one_line_near_start(self):
+        content = (
+            '\n'
+            'Section\n'
+            '-------\n'
+            '\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(2)
+        expect = [(3, 'Section should be divided by 2 empty lines.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_section_before_space_bad_only_one_line(self):
+        content = (
+            'end of previous section.\n'
+            '\n'
+            'Section\n'
+            '-------\n'
+            '\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(3)
+        expect = [(4, 'Section should be divided by 2 empty lines.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_section_before_space_multiple_empty_lines(self):
+        content = (
+            'end of previous section.\n'
+            '\n'
+            '\n'
+            '\n'
+            'Section\n'
+            '-------\n'
+            '\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(5)
+        expect = [(6, 'Section should be divided by 2 empty lines.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_section_after_space_last_line(self):
+        content = (
+            'Section\n'
+            '-------\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(1)
+        self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
+
+    def test_check_section_after_space_bad(self):
+        content = (
+            'Section\n'
+            '-------\n'
+            'Paragraph start.\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(1)
+        expect = [(2, 'Section title should be followed by 1 empty line.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_section_after_space_too_many_empty_lines(self):
+        content = (
+            'Section\n'
+            '-------\n'
+            '\n'
+            '\n'
+            'Paragraph start.\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(1)
+        expect = [(2, 'Section title should be followed by 1 empty line.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def disable_check_section_delimiter_both_markers_not_sync(self):
+        # When both top and bottom markers are used, and they don't have
+        # the same size, they are interpreted as separate markers.
+        content = (
+            '------\n'
+            'Section\n'
+            '--------\n'
+            '\n'
+            'some text\n'
+            'other text\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_lines()
+        expect = [
+            (1, 'Section marker has wrong length.'),
+            (1, 'Section title should be followed by 1 empty line.'),
+            (3, 'Section marker has wrong length.'),
+            ]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(3, self.reporter.call_count)

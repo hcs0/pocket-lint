@@ -96,9 +96,19 @@ def find_tests(root_dir, filter=None):
                     yield test_module
 
 
+def show_help():
+    print '''\
+python test.py [-h|--help] [test_module_regex_filter]
+'''
+
+
 def main():
     if len(sys.argv) > 1:
-        filter = sys.argv[1]
+        if (sys.argv[1] in ['-h', '--help']):
+            show_help()
+            return
+        else:
+            filter = sys.argv[1]
     else:
         filter = None
 
