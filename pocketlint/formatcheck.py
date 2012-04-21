@@ -178,6 +178,7 @@ class Language:
     DOCBOOK = object()
     LOG = object()
     SQL = object()
+    RESTRUCTUREDTEXT = object()
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
@@ -186,6 +187,7 @@ class Language:
     mimetypes.add_type('text/x-python-doctest', '.doctest')
     mimetypes.add_type('text/x-twisted-application', '.tac')
     mimetypes.add_type('text/x-log', '.log')
+    mimetypes.add_type('text/x-rst', '.rst')
     mime_type_language = {
         'text/x-python': PYTHON,
         'text/x-twisted-application': PYTHON,
@@ -195,6 +197,7 @@ class Language:
         'text/plain': TEXT,
         'text/x-sql': SQL,
         'text/x-log': LOG,
+        'text/x-rst': RESTRUCTUREDTEXT,
         'application/javascript': JAVASCRIPT,
         'application/xml': XML,
         'application/x-sh': SH,
@@ -646,6 +649,134 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_tab(line_no, line)
+
+
+class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
+    """Check reStructuredText ource code."""
+
+    # Taken from rst documentation.
+    delimiter_characters = [
+        '=', '-', '`', ':', '\'', '"', '~', '^', '_', '*', '+', '#', '<', '>',
+        ]
+
+    def __init__(self, file_path, text, reporter=None):
+        super(ReStructuredTextChecker, self).__init__(
+            file_path, text, reporter=reporter)
+        self.lines = self.text.splitlines()
+
+    def check(self):
+        """Check the syntax of the reStructuredText code."""
+        self.check_lines()
+        self.check_empty_last_line()
+
+    def check_lines(self):
+        """Call each line checker for each line in text."""
+        for line_no, line in enumerate(self.lines):
+            line_no += 1
+            self.check_length(line_no, line)
+            self.check_trailing_whitespace(line_no, line)
+            self.check_tab(line_no, line)
+            self.check_conflicts(line_no, line)
+
+            if self.isTransition(line_no):
+                self.check_transitions(line_no, line)
+            elif self.isSectionDelimiter(line_no):
+                self.check_section_delimiter(line_no, line)
+            else:
+                pass
+
+    def isTransition(self, human_line_number):
+        '''Return True if the current line is a line transition.'''
+        # The input `line_no` is the human readable number.
+        # Fix it to computer readeable.
+        line_no = human_line_number - 1
+        line = self.lines[line_no]
+        if len(line) < 4:
+            return False
+
+        if len(self.lines) < 3:
+            return False
+
+        succesive_characters = (
+            line[0] == line[1] == line[2] == line[4] and
+            line[0] in self.delimiter_characters)
+
+        emply_lines_bounded = (
+            self.lines[line_no - 1] == '' and self.lines[line_no + 1] == '')
+
+        if (succesive_characters and emply_lines_bounded):
+            return True
+
+        return False
+
+    def check_transitions(self, human_line_number, line):
+        '''Transitions should be delimited by a single emtpy line.'''
+        # The input `line_no` is the human readable number.
+        # Fix it to computer readeable.
+        line_no_hr = human_line_number
+        line_no = human_line_number - 1
+        if self.lines[line_no - 2] == '' or self.lines[line_no + 2] == '':
+            self.message(
+                line_no_hr,
+                'Transition markers should be bounded by single empty lines.',
+                icon='info')
+
+    def isSectionDelimiter(self, human_line_number):
+        '''Return true if the line is a section delimiter.'''
+        line = self.lines[human_line_number - 1]
+        if len(line) < 3:
+            return False
+
+        if (line[0] == line[1] == line[2] and line[0] in
+                self.delimiter_characters):
+            if ' ' in line:
+                # We have a table header.
+                return False
+            else:
+                return True
+
+        return False
+
+    def check_section_delimiter(self, human_line_number, content):
+        """Check section start."""
+        line_number = human_line_number - 1
+
+        # Check for bounded section delimiter
+        if (content == self.lines[line_number - 2] or
+            content == self.lines[line_number + 2]):
+            return
+
+        # Check underline length.
+        if len(content) != len(self.lines[line_number]):
+            self.message(
+                human_line_number,
+                'Section underlining has wrong length.',
+                icon='error')
+
+        # Check section delimiter spacing.
+        if (line_number > 2 and
+            not(
+                self.lines[line_number - 2] == '' and
+                self.lines[line_number - 3] == '' and
+                self.lines[line_number - 4] != '')):
+            self.message(
+                human_line_number,
+                'Section should be divided by 2 empty lines.',
+                icon='info')
+
+    def check_empty_last_line(self):
+        """Chech the files ends with an emtpy line and not with double empty
+        line.
+
+        This will avoid merge conflicts.
+        """
+        if len(self.lines) < 2:
+            return
+        if self.text[-1] != '\n' or self.text[-2:] == '\n\n':
+            self.message(
+                len(self.lines),
+                'File does not ends with an empty line.',
+                icon='info')
 
 
 def get_option_parser():

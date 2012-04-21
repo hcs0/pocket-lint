@@ -6,6 +6,7 @@ __metaclass__ = type
 
 import re
 import os
+import sys
 import unittest
 try:
     from unittest.runner import _WritelnDecorator
@@ -81,23 +82,30 @@ class XTermWritelnDecorator(_WritelnDecorator):
         self.stream.write(text)
 
 
-def find_tests(root_dir):
+def find_tests(root_dir, filter=None):
     """Generate a list of matching test modules below a directory."""
     for path, subdirs, files in os.walk(root_dir):
         subdirs[:] = [dir for dir in subdirs]
         if path.endswith('tests'):
             for file_ in files:
                 if file_.startswith('test_') and file_.endswith('.py'):
+                    if filter and not re.search(filter, file_):
+                        continue
                     file_path = os.path.join(path, file_)
                     test_module = file_path[2:-3].replace('/', '.')
                     yield test_module
 
 
 def main():
+    if len(sys.argv) > 1:
+        filter = sys.argv[1]
+    else:
+        filter = None
+
     unittest.runner._WritelnDecorator = XTermWritelnDecorator
     test_loader = unittest.defaultTestLoader
     suite = unittest.TestSuite()
-    for test_module in find_tests('.'):
+    for test_module in find_tests('.', filter=filter):
         suite.addTest(test_loader.loadTestsFromName(test_module))
     unittest.TextTestRunner(verbosity=2).run(suite)
 
