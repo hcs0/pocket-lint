@@ -11,3 +11,4 @@ class CheckerTestCase(unittest.TestCase):
 
     def setUp(self):
         self.reporter = Reporter(Reporter.COLLECTOR)
+        self.reporter.call_count = 0

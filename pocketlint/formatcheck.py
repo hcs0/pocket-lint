@@ -178,6 +178,7 @@ class Language:
     DOCBOOK = object()
     LOG = object()
     SQL = object()
+    RESTRUCTUREDTEXT = object()
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
@@ -186,6 +187,7 @@ class Language:
     mimetypes.add_type('text/x-python-doctest', '.doctest')
     mimetypes.add_type('text/x-twisted-application', '.tac')
     mimetypes.add_type('text/x-log', '.log')
+    mimetypes.add_type('text/x-rst', '.rst')
     mime_type_language = {
         'text/x-python': PYTHON,
         'text/x-twisted-application': PYTHON,
@@ -195,6 +197,7 @@ class Language:
         'text/plain': TEXT,
         'text/x-sql': SQL,
         'text/x-log': LOG,
+        'text/x-rst': RESTRUCTUREDTEXT,
         'application/javascript': JAVASCRIPT,
         'application/xml': XML,
         'application/x-sh': SH,
@@ -646,6 +649,248 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_tab(line_no, line)
+
+
+class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
+    """Check reStructuredText ource code."""
+
+    # Taken from rst documentation.
+    delimiter_characters = [
+        '=', '-', '`', ':', '\'', '"', '~', '^', '_', '*', '+', '#', '<', '>',
+        ]
+
+    def __init__(self, file_path, text, reporter=None):
+        super(ReStructuredTextChecker, self).__init__(
+            file_path, text, reporter=reporter)
+        self.lines = self.text.splitlines()
+
+    def check(self):
+        """Check the syntax of the reStructuredText code."""
+        self.check_lines()
+        self.check_empty_last_line()
+
+    def check_lines(self):
+        """Call each line checker for each line in text."""
+        for line_no, line in enumerate(self.lines):
+            line_no += 1
+            self.check_length(line_no, line)
+            self.check_trailing_whitespace(line_no, line)
+            self.check_tab(line_no, line)
+            self.check_conflicts(line_no, line)
+
+            if self.isTransition(line_no - 1):
+                self.check_transition(line_no - 1)
+            elif self.isSectionDelimiter(line_no - 1):
+                self.check_section_delimiter(line_no - 1)
+            else:
+                pass
+
+    def isTransition(self, line_number):
+        '''Return True if the current line is a line transition.'''
+        line = self.lines[line_number]
+        if len(line) < 4:
+            return False
+
+        if len(self.lines) < 3:
+            return False
+
+        succesive_characters = (
+            line[0] == line[1] == line[2] == line[3] and
+            line[0] in self.delimiter_characters)
+
+        if not succesive_characters:
+            return False
+
+        emply_lines_bounded = (
+            self.lines[line_number - 1] == '' and
+            self.lines[line_number + 1] == '')
+
+        if not emply_lines_bounded:
+            return False
+
+        return True
+
+    def check_transition(self, line_number):
+        '''Transitions should be delimited by a single emtpy line.'''
+        if (self.lines[line_number - 2] == '' or
+                self.lines[line_number + 2] == ''):
+            self.message(
+                line_number + 1,
+                'Transition markers should be bounded by single empty lines.',
+                icon='info',
+                )
+
+    def isSectionDelimiter(self, line_number):
+        '''Return true if the line is a section delimiter.'''
+        if len(self.lines) < 3:
+            return False
+
+        if line_number >= len(self.lines):
+            return False
+
+        line = self.lines[line_number]
+        if len(line) < 3:
+            return False
+
+        if (line[0] == line[1] == line[2] and line[0] in
+                self.delimiter_characters):
+            if ' ' in line:
+                # We have a table header.
+                return False
+            else:
+                return True
+
+        return False
+
+    def check_section_delimiter(self, line_number):
+        """Checks for section delimiter.
+
+        These checkes are designed for sections delimited by top and bottom
+        markers.
+
+        =======  <- top marker
+        Section  <- text_line
+        =======  <- bottom marker
+
+        If the section is delimted only by bottom marker, the section text
+        is considered the top marker.
+
+        Section  <- top marker, text_line
+        =======  <- bottom marker
+
+        If the section has a custom anchor name:
+
+        .. _link  <- top marker
+
+        =======
+        Section   <- text_line
+        =======   <- bottom marker
+
+        or:
+
+        .. _link  <- top marker
+
+        Section   <- text_line
+        =======   <- bottom marker
+
+        If we have top and bottom markers, the check will be called twice (
+        for each marker). In this case we will skip the tests for bottom
+        marker.
+        """
+        human_line_number = line_number + 1
+        current_line = self.lines[line_number]
+
+        # Skip test if we have both top and bottom markers and we are
+        # at the bottom marker.
+        if (line_number > 1 and current_line == self.lines[line_number - 2]):
+            return
+
+        if ((line_number + 2) < len(self.lines) and
+                current_line == self.lines[line_number + 2]):
+            # We have both top and bottom markers and we are currently at
+            # the top marker.
+            top_marker = line_number
+            text_line = line_number + 1
+            bottom_marker = line_number + 2
+        else:
+            # We only have bottom marker, and are at the bottom marker.
+            top_marker = line_number - 1
+            text_line = line_number - 1
+            bottom_marker = line_number
+
+        # In case we have a custom anchor, the top_marker is replaced by
+        # the custom anchor.
+        if self._sectionHasCustomAnchor(top_marker):
+            top_marker = top_marker - 2
+
+        # Check underline length for bottom marker,
+        # since top marker can be the same as text line.
+        if len(self.lines[bottom_marker]) != len(self.lines[text_line]):
+            self.message(
+                human_line_number,
+                'Section marker has wrong length.',
+                icon='error',
+                )
+
+        if not self._haveGoodSpacingBeforeSection(top_marker):
+            self.message(
+                human_line_number,
+                'Section should be divided by 2 empty lines.',
+                icon='info',
+                )
+
+        if not self._haveGoodSpacingAfterSection(bottom_marker):
+            self.message(
+                human_line_number,
+                'Section title should be followed by 1 empty line.',
+                icon='info',
+                )
+
+    def _sectionHasCustomAnchor(self, top_marker):
+        if (top_marker - 2) < 0:
+            return False
+
+        if self.lines[top_marker - 2].startswith('.. _'):
+            return True
+
+        return False
+
+    def _haveGoodSpacingBeforeSection(self, top_marker):
+        '''Return True if we have good spacing before the section.'''
+        if top_marker > 0:
+            if self.lines[top_marker - 1] != '':
+                return False
+
+        # If we are on the second line, there is no space for 2 empty lines
+        # before.
+        if top_marker == 1:
+            return False
+
+        if top_marker > 1:
+            if self.lines[top_marker - 2] != '':
+                return False
+
+        if top_marker > 2:
+            if self.lines[top_marker - 3] == '':
+                return False
+
+        return True
+
+    def _haveGoodSpacingAfterSection(self, bottom_marker):
+        '''Return True if we have good spacing after the section.'''
+        lines_count = len(self.lines)
+
+        if bottom_marker < lines_count - 1:
+            if self.lines[bottom_marker + 1] != '':
+                return False
+
+        if bottom_marker < lines_count - 2:
+            if self.lines[bottom_marker + 2] == '':
+                # If the section is followed by 2 empty spaces and then
+                # followed by a section delimiter, the section delimiter
+                # rules will take priority
+                if self.isSectionDelimiter(bottom_marker + 3):
+                    return True
+                if self.isSectionDelimiter(bottom_marker + 4):
+                    return True
+                return False
+
+        return True
+
+    def check_empty_last_line(self):
+        """Chech the files ends with an emtpy line and not with double empty
+        line.
+
+        This will avoid merge conflicts.
+        """
+        if len(self.lines) < 2:
+            return
+        if self.text[-1] != '\n' or self.text[-2:] == '\n\n':
+            self.message(
+                len(self.lines),
+                'File does not ends with an empty line.',
+                icon='info',
+                )
 
 
 def get_option_parser():
