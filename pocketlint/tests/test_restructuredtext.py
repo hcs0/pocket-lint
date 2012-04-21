@@ -15,11 +15,9 @@ First section
 Text *for* first **section**.
 
 
---------------
-Second section
---------------
-
-some paragraph
+--------------------
+Second emtpy section
+--------------------
 
 
 Third section
@@ -39,8 +37,10 @@ third section `with link<http://my.home>`_.
 | verse, and adornment-free lists.
 
 
-Another Section
----------------
+.. _section-permalink:
+
+Another Section with predefined link
+------------------------------------
 
 >>> print "This is a doctest block."
 ... with a line continuation
@@ -472,6 +472,35 @@ class TestReStructuredTextChecker(CheckerTestCase):
         expect = [(2, 'Section title should be followed by 1 empty line.')]
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_section_empty_section_next_section_only_bottom(self):
+        content = (
+            'Emtpy Section\n'
+            '=============\n'
+            '\n'
+            '\n'
+            'Another Section\n'
+            '---------------\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(1)
+        self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
+
+    def test_check_section_empty_section_next_section_both_markers(self):
+        content = (
+            'Emtpy Section\n'
+            '=============\n'
+            '\n'
+            '\n'
+            '---------------\n'
+            'Another Section\n'
+            '---------------\n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker.check_section_delimiter(1)
+        self.assertEqual([], self.reporter.messages)
+        self.assertEqual(0, self.reporter.call_count)
 
     def disable_check_section_delimiter_both_markers_not_sync(self):
         # When both top and bottom markers are used, and they don't have

@@ -725,6 +725,9 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
         if len(self.lines) < 3:
             return False
 
+        if line_number >= len(self.lines):
+            return False
+
         line = self.lines[line_number]
         if len(line) < 3:
             return False
@@ -746,14 +749,29 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
         markers.
 
         =======  <- top marker
-        Section
+        Section  <- text_line
         =======  <- bottom marker
 
         If the section is delimted only by bottom marker, the section text
         is considered the top marker.
 
-        Section  <- top marker
+        Section  <- top marker, text_line
         =======  <- bottom marker
+
+        If the section has a custom anchor name:
+
+        .. _link  <- top marker
+
+        =======
+        Section   <- text_line
+        =======   <- bottom marker
+
+        or:
+
+        .. _link  <- top marker
+
+        Section   <- text_line
+        =======   <- bottom marker
 
         If we have top and bottom markers, the check will be called twice (
         for each marker). In this case we will skip the tests for bottom
@@ -780,6 +798,11 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             text_line = line_number - 1
             bottom_marker = line_number
 
+        # In case we have a custom anchor, the top_marker is replaced by
+        # the custom anchor.
+        if self._sectionHasCustomAnchor(top_marker):
+            top_marker = top_marker - 2
+
         # Check underline length for bottom marker,
         # since top marker can be the same as text line.
         if len(self.lines[bottom_marker]) != len(self.lines[text_line]):
@@ -802,6 +825,15 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
                 'Section title should be followed by 1 empty line.',
                 icon='info',
                 )
+
+    def _sectionHasCustomAnchor(self, top_marker):
+        if (top_marker - 2) < 0:
+            return False
+
+        if self.lines[top_marker - 2].startswith('.. _'):
+            return True
+
+        return False
 
     def _haveGoodSpacingBeforeSection(self, top_marker):
         '''Return True if we have good spacing before the section.'''
@@ -834,6 +866,13 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
 
         if bottom_marker < lines_count - 2:
             if self.lines[bottom_marker + 2] == '':
+                # If the section is followed by 2 empty spaces and then
+                # followed by a section delimiter, the section delimiter
+                # rules will take priority
+                if self.isSectionDelimiter(bottom_marker + 3):
+                    return True
+                if self.isSectionDelimiter(bottom_marker + 4):
+                    return True
                 return False
 
         return True
