@@ -377,10 +377,9 @@ class XMLChecker(BaseChecker, AnyTextMixin):
     """Check XML documents."""
 
     xml_decl_pattern = re.compile(r'<\?xml .*?\?>')
-    xhtml_doctype = u"""
-        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        """
+    xhtml_doctype = (
+        u'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
+        u'"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
 
     def check(self):
         """Check the syntax of the python code."""
@@ -397,13 +396,13 @@ class XMLChecker(BaseChecker, AnyTextMixin):
             text = self.text.decode('ascii', 'ignore').encode('utf-8')
         if text.find('<!DOCTYPE') == -1:
             # Expat requires a doctype to honour parser.entity.
-            offset = 3
+            offset = 1
             match = self.xml_decl_pattern.search(text)
             if match is None:
-                text = self.xhtml_doctype + text
+                text = self.xhtml_doctype + '\n' + text
             else:
                 start, end = match.span(0)
-                text = text[:start] + self.xhtml_doctype + text[end:]
+                text = text[:start] + self.xhtml_doctype + '\n' + text[end:]
         try:
             ElementTree.parse(StringIO(text), parser)
         except (ExpatError, ParseError), error:
