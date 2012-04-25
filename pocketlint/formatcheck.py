@@ -403,6 +403,8 @@ class XMLChecker(BaseChecker, AnyTextMixin):
             else:
                 start, end = match.span(0)
                 text = text[:start] + self.xhtml_doctype + '\n' + text[end:]
+        elif text.find('<!DOCTYPE html>') != -1:
+            text = text.replace('<!DOCTYPE html>', self.xhtml_doctype)
         try:
             ElementTree.parse(StringIO(text), parser)
         except (ExpatError, ParseError), error:
