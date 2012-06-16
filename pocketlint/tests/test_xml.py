@@ -19,6 +19,13 @@ missing_dtd_and_xml = """\
 </root>
 """
 
+html5_dtd_and_entity = """\
+<!DOCTYPE html>
+<html>
+  <title>hello&nbsp;world</title>
+</html>
+"""
+
 ill_formed_markup = """\
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <root>
@@ -61,6 +68,11 @@ class TestXML(CheckerTestCase):
         checker.check()
         self.assertEqual([], self.reporter.messages)
 
+    def test_html5_dtd(self):
+        checker = XMLChecker('bogus', html5_dtd_and_entity, self.reporter)
+        checker.check()
+        self.assertEqual([], self.reporter.messages)
+
     def test_ill_formed_markup(self):
         checker = XMLChecker('bogus', ill_formed_markup, self.reporter)
         checker.check()
@@ -76,7 +88,6 @@ class TestXML(CheckerTestCase):
         checker = XMLChecker('bogus', utf8_html_markup, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
-
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):

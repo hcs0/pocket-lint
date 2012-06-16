@@ -2,7 +2,10 @@
 
 import subprocess
 
-from distutils.core import setup
+from distutils.core import (
+    Command,
+    setup,
+    )
 from distutils.command.sdist import sdist
 
 
@@ -19,10 +22,32 @@ class SignedSDistCommand(sdist):
             gpg_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         gpg.communicate()
 
+
+class Check(Command):
+    description = "Run unit tests"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def get_command_name(self):
+        pass
+
+    def run(self):
+        test_args = ['./test.py']
+        test = subprocess.Popen(
+            test_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, errput = test.communicate()
+        print errput
+
+
 setup(
     name="pocketlint",
     description="Pocket-lint a composite linter and style checker.",
-    version="0.5.30",
+    version="0.5.31",
     maintainer="Curtis C. Hovey",
     maintainer_email="sinzui.is@verizon.net",
     url="https://launchpad.net/pocket-lint",
@@ -37,6 +62,7 @@ setup(
         },
     scripts=['scripts/pocketlint'],
     cmdclass={
+        'check': Check,
         'signed_sdist': SignedSDistCommand,
         },
     )
