@@ -169,6 +169,7 @@ class Language:
     DOCTEST = object()
     CSS = object()
     JAVASCRIPT = object()
+    JSON = object()
     SH = object()
     XML = object()
     XSLT = object()
@@ -182,6 +183,7 @@ class Language:
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
+    mimetypes.add_type('application/json', '.json')
     mimetypes.add_type('application/x-zope-configuation', '.zcml')
     mimetypes.add_type('application/x-zope-page-template', '.pt')
     mimetypes.add_type('text/x-python-doctest', '.doctest')
@@ -199,6 +201,7 @@ class Language:
         'text/x-log': LOG,
         'text/x-rst': RESTRUCTUREDTEXT,
         'application/javascript': JAVASCRIPT,
+        'application/json': JSON,
         'application/xml': XML,
         'application/x-sh': SH,
         'application/x-zope-configuation': ZCML,
@@ -307,6 +310,10 @@ class UniversalChecker(BaseChecker):
             checker_class = XMLChecker
         elif self.language is Language.JAVASCRIPT:
             checker_class = JavascriptChecker
+        elif self.language is Language.JSON:
+            checker_class = JSONChecker
+        elif self.language is Language.RESTRUCTUREDTEXT:
+            checker_class = ReStructuredTextChecker
         elif self.language is Language.LOG:
             # Log files are not source, but they are often in source code
             # trees.
@@ -345,6 +352,19 @@ class AnyTextMixin:
         if '\t' in line:
             self.message(
                 line_no, 'Line contains a tab character.', icon='info')
+
+    def check_empty_last_line(self, total_lines):
+        """Chech the files ends with an emtpy line and not with double empty
+        line.
+
+        This will avoid merge conflicts.
+        """
+        if self.text[-1] != '\n' or self.text[-2:] == '\n\n':
+            self.message(
+                total_lines,
+                'File does not ends with an empty line.',
+                icon='info',
+                )
 
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
@@ -611,7 +631,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
 
 class JavascriptChecker(BaseChecker, AnyTextMixin):
-    """Check python source code."""
+    """Check JavaScript source code."""
 
     HERE = os.path.dirname(__file__)
     FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
@@ -652,8 +672,56 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             self.check_tab(line_no, line)
 
 
+class JSONChecker(BaseChecker, AnyTextMixin):
+    """Check JSON files."""
+
+    def check(self):
+        """Check JSON file using basic text checks and custom checks."""
+        if not self.text:
+            return
+
+        # Line independent checks.
+        for line_no, line in enumerate(self.text.splitlines()):
+            line_no += 1
+            self.check_trailing_whitespace(line_no, line)
+            self.check_conflicts(line_no, line)
+            self.check_tab(line_no, line)
+        last_lineno = line_no
+
+        self.check_load()
+        self.check_empty_last_line(last_lineno)
+
+    def check_length(self, line_no, line):
+        """JSON files can have long lines."""
+        return
+
+    def check_load(self):
+        """Check that JSON can be deserialized/loaded."""
+        try:
+            import json
+        except ImportError:
+            try:
+                from simplejson import json
+            except ImportError:
+                raise AssertionError('JSON module could not be loaded.')
+
+        try:
+            json.loads(self.text)
+        except ValueError, error:
+            line_number = 0
+            message = error.message
+            match = re.search(r"(.*): line (\d+)", message)
+            if match:
+                try:
+                    line_number = int(match.group(2))
+                except:
+                    # If we can not find the line number,
+                    # just fall back to default.
+                    line_number = 0
+            self.message(line_number, message, icon='error')
+
 class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
-    """Check reStructuredText ource code."""
+    """Check reStructuredText source code."""
 
     # Taken from rst documentation.
     delimiter_characters = [
@@ -667,8 +735,11 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
 
     def check(self):
         """Check the syntax of the reStructuredText code."""
+        if not self.text:
+            return
+
         self.check_lines()
-        self.check_empty_last_line()
+        self.check_empty_last_line(len(self.lines))
 
     def check_lines(self):
         """Call each line checker for each line in text."""
@@ -877,21 +948,6 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
                 return False
 
         return True
-
-    def check_empty_last_line(self):
-        """Chech the files ends with an emtpy line and not with double empty
-        line.
-
-        This will avoid merge conflicts.
-        """
-        if len(self.lines) < 2:
-            return
-        if self.text[-1] != '\n' or self.text[-2:] == '\n\n':
-            self.message(
-                len(self.lines),
-                'File does not ends with an empty line.',
-                icon='info',
-                )
 
 
 def get_option_parser():
