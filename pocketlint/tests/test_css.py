@@ -60,7 +60,7 @@ class TestCSS(CheckerTestCase):
         checker = CSSChecker('ballyhoo', invalid_value, self.reporter)
         checker.check_cssutils()
         message = (
-            'Invalid value for "CSS Color Module Level 3/CSS Level 2.1" '
+            'Invalid value for "CSS Level 2.1" '
             'property: speckled: color')
         self.assertEqual([(2, message)], self.reporter.messages)
 
