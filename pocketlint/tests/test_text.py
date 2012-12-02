@@ -75,3 +75,16 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self.assertEqual(
             [(1, 'Line exceeds 49 characters.')],
             self.reporter.messages)
+
+    def test_windows_newlines(self):
+        """
+        Files with Windows newlines are reported with errors.
+        """
+        content = '\r\nbla\r\nbla\r\n'
+        checker = AnyTextChecker(
+            'bogus', content, self.reporter)
+        checker.check()
+        self.assertEqual(
+            [(0, 'File contains Windows new lines.')],
+            self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
