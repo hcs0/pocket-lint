@@ -1,3 +1,10 @@
+pocket-lint (0.5.32-0gdp) quantal; urgency=low
+
+  * New upstream release fixes LP:1082046, LP:1085498, LP:1085490
+    Adds support for JSON data syntac checking. Now requires pyflakes.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sun, 02 Dec 2012 11:59:36 -0500
+
 pocket-lint (0.5.30-0gdp) precise; urgency=low
 
   * New upstream release fixes LP:928903 (bug was reopened for a complete fix.)
