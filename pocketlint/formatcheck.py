@@ -40,7 +40,7 @@ from formatdoctest import DoctestReviewer
 
 import contrib.pep8 as pep8
 from contrib.cssccc import CSSCodingConventionChecker
-from contrib.pyflakes.checker import Checker as PyFlakesChecker
+from pyflakes.checker import Checker as PyFlakesChecker
 try:
     import cssutils
     HAS_CSSUTILS = True

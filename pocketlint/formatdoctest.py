@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (C) 2009-2010 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2009-2012 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 """Reformat a doctest to Launchpad style."""
 
@@ -23,7 +23,7 @@ from doctest import DocTestParser, Example
 from optparse import OptionParser
 from textwrap import wrap
 
-from contrib.pyflakes.checker import Checker
+from pyflakes.checker import Checker
 
 
 class DoctestReviewer:
