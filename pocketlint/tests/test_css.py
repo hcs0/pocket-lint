@@ -62,7 +62,11 @@ class TestCSS(CheckerTestCase):
         message = (
             'Invalid value for "CSS Level 2.1" '
             'property: speckled: color')
-        self.assertEqual([(2, message)], self.reporter.messages)
+        self.assertEqual(1, len(self.reporter.messages))
+        message = self.reporter.messages[0]
+        self.assertEqual(2, message[0])
+        self.assertIn('Invalid value for', message[1])
+        self.assertIn('property: speckled: color', message[1])
 
     def test_multiple_files(self):
         # The logging and handler for each instance is added and
