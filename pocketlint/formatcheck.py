@@ -363,6 +363,7 @@ class AnyTextChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+
         self.check_windows_endlines()
 
 
@@ -378,6 +379,8 @@ class SQLChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
+
+        self.check_windows_endlines()
 
 
 class XMLChecker(BaseChecker, AnyTextMixin):
@@ -535,6 +538,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         self.check_text()
         self.check_flakes()
         self.check_pep8()
+        self.check_windows_endlines()
 
     def check_flakes(self):
         """Check compilation and syntax."""
