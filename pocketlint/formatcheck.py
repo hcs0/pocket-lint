@@ -346,6 +346,12 @@ class AnyTextMixin:
             self.message(
                 line_no, 'Line contains a tab character.', icon='info')
 
+    def check_windows_endlines(self):
+        """Check that file does not contains Windows newlines."""
+        if self.text.find('\r\n') != -1:
+            self.message(
+                0, 'File contains Windows new lines.', icon='info')
+
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
     """Verify the text of the document."""
@@ -357,6 +363,8 @@ class AnyTextChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+
+        self.check_windows_endlines()
 
 
 class SQLChecker(BaseChecker, AnyTextMixin):
@@ -371,6 +379,8 @@ class SQLChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
+
+        self.check_windows_endlines()
 
 
 class XMLChecker(BaseChecker, AnyTextMixin):
@@ -423,6 +433,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
                 error_lineno = int(location.split(',')[0].split()[1]) - offset
             self.message(error_lineno, error_message, icon='error')
         self.check_text()
+        self.check_windows_endlines()
 
     def check_text(self):
         for line_no, line in enumerate(self.text.splitlines()):
@@ -477,6 +488,7 @@ class CSSChecker(BaseChecker, AnyTextMixin):
 
         self.check_cssutils()
         self.check_text()
+        self.check_windows_endlines()
         # CSS coding conventoins checks should go last since they rely
         # on previous checks.
         self.check_css_coding_conventions()
@@ -526,6 +538,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         self.check_text()
         self.check_flakes()
         self.check_pep8()
+        self.check_windows_endlines()
 
     def check_flakes(self):
         """Check compilation and syntax."""
@@ -633,6 +646,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
                 line_no -= 1
                 self.message(line_no, message, icon='error')
         self.check_text()
+        self.check_windows_endlines()
 
     def check_debugger(self, line_no, line):
         """Check the length of the line."""
@@ -669,6 +683,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
         """Check the syntax of the reStructuredText code."""
         self.check_lines()
         self.check_empty_last_line()
+        self.check_windows_endlines()
 
     def check_lines(self):
         """Call each line checker for each line in text."""
