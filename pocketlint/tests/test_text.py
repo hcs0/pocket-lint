@@ -64,7 +64,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         checker.check()
 
     def test_with_tabs(self):
-        """Text files may contain tabs.."""
+        """Text files may contain tabs."""
         pass
 
     def test_long_length_options(self):
@@ -75,6 +75,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self.assertEqual(
             [(1, 'Line exceeds 49 characters.')],
             self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
 
     def test_windows_newlines(self):
         """Files with Windows newlines are reported with errors."""
@@ -85,4 +86,44 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self.assertEqual(
             [(0, 'File contains Windows new lines.')],
             self.reporter.messages)
+
+    def test_no_empty_last_line(self):
+        """
+        An error is reported if file does not end with a new lines.
+        """
+        content = (
+            'Some first line\n'
+            'the second and last line without newline'
+            )
+        checker = AnyTextChecker('bogus', content, self.reporter)
+        checker.check_empty_last_line(2)
+        expected = [(
+            2, 'File does not ends with an empty line.')]
+        self.assertEqual(expected, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_multiple_empty_last_lines(self):
+        """An error is reported if file ends with multiple new lines."""
+        content = (
+            'Some first line\n'
+            'the second and last\n'
+            '\n'
+            )
+        checker = AnyTextChecker('bogus', content, self.reporter)
+        checker.check_empty_last_line(3)
+        expected = [(
+            3, 'File does not ends with an empty line.')]
+        self.assertEqual(expected, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_single_last_line_no_newline(self):
+        """An error is reported if file contains a single newline."""
+        content = (
+            'the second and last line without newline'
+            )
+        checker = AnyTextChecker('bogus', content, self.reporter)
+        checker.check_empty_last_line(2)
+        expected = [(
+            2, 'File does not ends with an empty line.')]
+        self.assertEqual(expected, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)

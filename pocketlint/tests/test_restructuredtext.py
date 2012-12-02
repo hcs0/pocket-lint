@@ -137,7 +137,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             'the second and last line witout newline'
             )
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker.check_empty_last_line()
+        checker.check_empty_last_line(2)
         expected = [(
             2, 'File does not ends with an empty line.')]
         self.assertEqual(expected, self.reporter.messages)
@@ -151,7 +151,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '\n'
             )
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker.check_empty_last_line()
+        checker.check_empty_last_line(3)
         expected = [(
             3, 'File does not ends with an empty line.')]
         self.assertEqual(expected, self.reporter.messages)
