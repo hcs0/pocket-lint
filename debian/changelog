@@ -1,4 +1,4 @@
-pocket-lint (0.5.32-0gdp) quantal; urgency=low
+pocket-lint (0.5.32-0gdp) raring; urgency=low
 
   * New upstream release fixes LP:1082046, LP:1085498, LP:1085490
     Adds support for JSON data syntac checking. Now requires pyflakes.
