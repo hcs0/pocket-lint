@@ -444,10 +444,10 @@ class XMLChecker(BaseChecker, AnyTextMixin):
 
     def check(self):
         """Check the syntax of the python code."""
-        if self.text == '':
-            return
         # Reconcile the text and Expat checker text requriements.
         self.text = self.as_unicode(self.text)
+        if self.text == '':
+            return
         parser = ElementTree.XMLParser()
         parser.entity.update(entitydefs)
         offset = 0
