@@ -1,12 +1,14 @@
 #!/usr/bin/python
-# Copyright (C) 2009-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2009-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 """Reformat a doctest to Launchpad style."""
 
-from __future__ import with_statement
-
-
-__metaclass__ = type
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
+    )
 
 
 __all__ = [
@@ -26,7 +28,7 @@ from textwrap import wrap
 from pyflakes.checker import Checker
 
 
-class DoctestReviewer:
+class DoctestReviewer(object):
     """Check and reformat doctests."""
     rule_pattern = re.compile(r'([=~-])+[ ]*$')
     moin_pattern = re.compile(r'^(=+)[ ](.+)[ ](=+[ ]*)$')
@@ -66,9 +68,9 @@ class DoctestReviewer:
         """
         if self._reporter is None:
             if not self.has_printed_filename:
-                print '%s:' % self.file_path
+                print('%s:' % self.file_path)
                 self.has_printed_filename = True
-            print '    % 4s: %s' % (lineno, message)
+            print('    % 4s: %s' % (lineno, message))
         else:
             self._reporter(
                 int(lineno), message,
@@ -386,8 +388,8 @@ class DoctestReviewer:
             if is_interactive:
                 diff = unified_diff(
                     self.doctest.splitlines(), new_doctest.splitlines())
-                print '\n'.join(diff)
-                print '\n'
+                print('\n'.join(diff))
+                print('\n')
                 do_save = raw_input(
                     'Do you wish to save the changes? S(ave) or C(ancel)?')
             else:

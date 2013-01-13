@@ -1,6 +1,13 @@
 # Copyright (C) 2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
+    )
+
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatdoctest import DoctestReviewer
@@ -18,7 +25,7 @@ You can work with file paths using os.path
     ./pocketlint/formatcheck.py
 """
 
-malformed_doctest = """\
+malformed_doctest = b"""\
 You can work with file paths using os.path
     >>> import os.path
     >>> os.path.join('.', 'pocketlint', 'formatcheck.py')
@@ -147,7 +154,7 @@ class TestDoctest(CheckerTestCase):
             "Heading\n.......\n\nnarrative", text)
 
     def test_bad_indentation(self):
-        doctest = "narrative\n>>> print 'done'\n"
+        doctest = "narrative\n>>> print('done')\n"
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
@@ -158,27 +165,27 @@ class TestDoctest(CheckerTestCase):
             self.reporter.messages)
 
     def test_fix_bad_indentation(self):
-        doctest = "narrative\n>>> print 'done'\n"
+        doctest = "narrative\n>>> print('done')\n"
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual(
-            "narrative\n\n    >>> print 'done'\n\n", text)
+            "narrative\n\n    >>> print('done')\n\n", text)
 
     def test_fix_bad_indentation_with_source_and_want(self):
-        doctest = "narrative\n\n>>> print (\n...     'done')"
+        doctest = "narrative\n\n>>> print(\n...     'done')"
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual(
-            "narrative\n\n    >>> print (\n    ...     'done')\n\n", text)
+            "narrative\n\n    >>> print(\n    ...     'done')\n\n", text)
 
     def test_trailing_whitespace(self):
-        doctest = "narrative  \n    >>> print 'done'\n"
+        doctest = "narrative  \n    >>> print('done')\n"
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
@@ -189,13 +196,13 @@ class TestDoctest(CheckerTestCase):
             self.reporter.messages)
 
     def test_fix_trailing_whitespace(self):
-        doctest = "narrative  \n    >>> print 'done' \n"
+        doctest = "narrative  \n    >>> print('done') \n"
         self.file.write(doctest)
         self.file.flush()
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
-        self.assertEqual("narrative\n\n    >>> print 'done'\n\n", text)
+        self.assertEqual("narrative\n\n    >>> print('done')\n\n", text)
 
     def test_long_line_source_and_want(self):
         doctest = (
