@@ -1,5 +1,11 @@
-# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
+
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    )
 
 from pocketlint.formatcheck import XMLChecker
 from pocketlint.tests import CheckerTestCase
@@ -33,14 +39,14 @@ ill_formed_markup = """\
 </root>
 """
 
-utf8_xml_markup = """\
+utf8_xml_markup = b"""\
 \xa0<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <root>
   <child>hello world</child>
 </root>
 """
 
-utf8_html_markup = """\
+utf8_html_markup = b"""\
 \xa0<!DOCTYPE html PUBLIC
   "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

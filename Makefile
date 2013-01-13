@@ -5,7 +5,8 @@ build:
 	$(PYTHON) setup.py build
 
 test:
-	$(PYTHON) test.py
+	#$(PYTHON) test.py
+	$(PYTHON) -m unittest discover pocketlint
 
 check: build test
 

@@ -1,6 +1,12 @@
 # Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    )
+
 import unittest
 
 from pocketlint.formatcheck import Reporter

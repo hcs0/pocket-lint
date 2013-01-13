@@ -1,5 +1,11 @@
-# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
+
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    )
 
 from tempfile import NamedTemporaryFile
 
@@ -15,7 +21,7 @@ good_python = """\
 class example:
 
     def __init__(self, value):
-        print "Good night."
+        print("Good night.")
 """
 
 good_python_on_windows = """\
@@ -289,13 +295,13 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self._test_encoding("# First line\n# coding=%(encoding)s\n\n")
 
     def test_code_utf8(self):
-        utf8_python = u"a = 'this is utf-8 [\u272a]'"
+        utf8_python = "a = 'this is utf-8 [\u272a]'"
         checker = PythonChecker('bogus', utf8_python, self.reporter)
         checker.encoding = 'utf-8'
         checker.check_text()
 
     def test_code_ascii_is_not_utf8(self):
-        utf8_python = u"a = 'this is utf-8 [\u272a]'"
+        utf8_python = "a = 'this is utf-8 [\u272a]'"
         checker = PythonChecker('bogus', utf8_python, self.reporter)
         checker.check_text()
         self.assertEqual(

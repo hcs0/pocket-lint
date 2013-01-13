@@ -1,12 +1,14 @@
 #!/usr/bin/python
-# Copyright (C) 2009-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2009-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 """Check for syntax and style problems."""
 
-from __future__ import with_statement
-
-
-__metaclass__ = type
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
+    )
 
 
 __all__ = [
@@ -16,7 +18,11 @@ __all__ = [
 
 
 import _ast
-import htmlentitydefs
+try:
+    from html.entities import entitydefs
+    entitydefs
+except:
+    from htmlentitydefs import entitydefs
 import logging
 import mimetypes
 import os
@@ -25,7 +31,12 @@ import subprocess
 import sys
 
 from optparse import OptionParser
-from StringIO import StringIO
+try:
+    from io import StringIO
+    StringIO
+except ImportError:
+    # Pything 2.7 and below
+    from StringIO import StringIO
 from tokenize import TokenError
 from xml.etree import ElementTree
 try:
@@ -67,6 +78,16 @@ JS = find_exec(['gjs', 'seed'])
 DEFAULT_MAX_LENGTH = 80
 
 
+if sys.version < '3':
+    import codecs
+
+    def u(string):
+        return codecs.unicode_escape_decode(string)[0]
+else:
+    def u(string):  # pyflakes:ignore
+        return string
+
+
 class PocketLintPyFlakesChecker(PyFlakesChecker):
     '''PocketLint checker for pyflakes.
 
@@ -102,7 +123,7 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
         return super(PocketLintPyFlakesChecker, self).NAME(node)
 
 
-class Reporter:
+class Reporter(object):
     """Common rules for checkers."""
     CONSOLE = object()
     FILE_LINES = object()
@@ -137,14 +158,14 @@ class Reporter:
                          base_dir=None, file_name=None):
         """Print the messages to the console."""
         self._message_console_group(base_dir, file_name)
-        print '    %4s: %s' % (line_no, message)
+        print('    %4s: %s' % (line_no, message))
 
     def _message_console_group(self, base_dir, file_name):
         """Print the file name is it has not been seen yet."""
         source = (base_dir, file_name)
         if file_name is not None and source != self._last_file_name:
             self._last_file_name = source
-            print '%s' % os.path.join('./', base_dir, file_name)
+            print('%s' % os.path.join('./', base_dir, file_name))
 
     def _message_file_lines(self, line_no, message, icon=None,
                             base_dir=None, file_name=None):
@@ -162,7 +183,7 @@ class Reporter:
         self.messages.append((line_no, message))
 
 
-class Language:
+class Language(object):
     """Supported Language types."""
     TEXT = object()
     PYTHON = object()
@@ -241,7 +262,7 @@ class Language:
         return Language.get_language(file_path) is not None
 
 
-class BaseChecker:
+class BaseChecker(object):
     """Common rules for checkers.
 
     The Decedent must provide self.file_name and self.base_dir
@@ -253,6 +274,17 @@ class BaseChecker:
         self.text = text
         self.set_reporter(reporter=reporter)
         self.options = options
+
+    @staticmethod
+    def as_unicode(string):
+        """Ensure the byte string is a text string."""
+        try:
+            # This is a sanity check to work with the true text....
+            text = string.decode('utf-8').encode('utf-8')
+        except UnicodeDecodeError:
+            # ...but this fallback is okay since this check is about markup.
+            text = string.decode('ascii', 'ignore').encode('utf-8')
+        return u(text)
 
     def set_reporter(self, reporter=None):
         """Set the reporter for messages."""
@@ -407,22 +439,19 @@ class XMLChecker(BaseChecker, AnyTextMixin):
 
     xml_decl_pattern = re.compile(r'<\?xml .*?\?>')
     xhtml_doctype = (
-        u'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
-        u'"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
 
     def check(self):
         """Check the syntax of the python code."""
         if self.text == '':
             return
+        # Reconcile the text and Expat checker text requriements.
+        self.text = self.as_unicode(self.text)
         parser = ElementTree.XMLParser()
-        parser.entity.update(htmlentitydefs.entitydefs)
+        parser.entity.update(entitydefs)
         offset = 0
-        try:
-            # This is a sanity check to work with the true text....
-            text = unicode(self.text.decode('utf-8').encode('utf-8'))
-        except UnicodeDecodeError:
-            # ...but this fallback is okay since this check is about markup.
-            text = self.text.decode('ascii', 'ignore').encode('utf-8')
+        text = self.text
         if text.find('<!DOCTYPE') == -1:
             # Expat requires a doctype to honour parser.entity.
             offset = 1
@@ -436,7 +465,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
             text = text.replace('<!DOCTYPE html>', self.xhtml_doctype)
         try:
             ElementTree.parse(StringIO(text), parser)
-        except (ExpatError, ParseError), error:
+        except (ExpatError, ParseError) as error:
             if hasattr(error, 'code'):
                 error_message = ErrorString(error.code)
                 if hasattr(error, 'position') and error.position:
@@ -564,7 +593,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         try:
             tree = compile(
                 self.text, self.file_path, "exec", _ast.PyCF_ONLY_AST)
-        except (SyntaxError, IndentationError), exc:
+        except (SyntaxError, IndentationError) as exc:
             line_no = exc.lineno or 0
             line = exc.text or ''
             explanation = 'Could not compile; %s' % exc.msg
@@ -592,10 +621,10 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             pep8.process_options([self.file_path])
             try:
                 pep8.Checker(self.file_path).check_all()
-            except TokenError, er:
+            except TokenError as er:
                 message, location = er.args
                 self.message(location[0], message, icon='error')
-            except IndentationError, er:
+            except IndentationError as er:
                 message, location = er.args
                 message = "%s: %s" % (message, location[3].strip())
                 self.message(location[1], message, icon='error')
@@ -636,7 +665,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             return
         try:
             line.encode('ascii')
-        except UnicodeEncodeError, error:
+        except UnicodeEncodeError as error:
             self.message(
                 line_no, 'Non-ascii characer at position %s.' % error.end,
                 icon='error')
@@ -719,7 +748,7 @@ class JSONChecker(BaseChecker, AnyTextMixin):
 
         try:
             json.loads(self.text)
-        except ValueError, error:
+        except ValueError as error:
             line_number = 0
             message = error.message
             match = re.search(r"(.*): line (\d+)", message)

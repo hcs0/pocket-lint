@@ -1,8 +1,12 @@
 #!/usr/bin/python
-# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
-__metaclass__ = type
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    )
 
 import re
 import os
@@ -23,7 +27,7 @@ except ImportError:
     unittest.runner = FakeRunner(_WritelnDecorator)
 
 
-class TPut:
+class TPut(object):
     """Terminal colours (tput) utility."""
     _colours = [
         'black', 'blue', 'green', 'white', 'red', 'magenta', 'yellow', 'grey']
@@ -97,9 +101,9 @@ def find_tests(root_dir, filter=None):
 
 
 def show_help():
-    print '''\
+    print('''\
 python test.py [-h|--help] [test_module_regex_filter]
-'''
+''')
 
 
 def main():
