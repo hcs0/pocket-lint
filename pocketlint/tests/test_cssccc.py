@@ -1,7 +1,12 @@
 '''Test module for cssccc'''
 
-from unittest import TestCase, main as unittest_main
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    )
 
+from unittest import TestCase, main as unittest_main
 
 from pocketlint.contrib.cssccc import (
      CSSCodingConventionChecker, CSSAtRule, CSSRuleSet, CSSStatementMember)

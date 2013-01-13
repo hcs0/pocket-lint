@@ -1,4 +1,4 @@
-# Copyright (C) 2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
 from tempfile import NamedTemporaryFile
