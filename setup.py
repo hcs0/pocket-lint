@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+from __future__ import (
+    absolute_import,
+    print_function,
+    )
+
 import subprocess
 
 from distutils.core import (
@@ -41,7 +46,7 @@ class Check(Command):
         test = subprocess.Popen(
             test_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, errput = test.communicate()
-        print errput
+        print(errput)
 
 
 setup(
