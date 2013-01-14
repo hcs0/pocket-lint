@@ -42,7 +42,13 @@ TODO:
  * add support for TAB as a separator / identation.
  * add support for @media
 '''
-from __future__ import with_statement
+
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
+    )
 
 __version__ = '0.1.1'
 
@@ -342,7 +348,7 @@ class CSSCodingConventionChecker(object):
 
     def _defaultLog(self, line_number, message, icon='info'):
         '''Log the message to STDOUT.'''
-        print '    %4s:%s' % (line_number, message)
+        print('    %4s:%s' % (line_number, message))
 
     def _nextStatementIsAtRule(self):
         '''Return True if next statement in the buffer is an at-rule.
@@ -467,10 +473,10 @@ def _check_comment(data):
 
 def show_usage():
     '''Print the command usage.'''
-    print 'Usage: cssccc OPTIONS'
-    print '  -h, --help\t\tShow this help.'
-    print '  -v, --version\t\tShow version.'
-    print '  -f FILE, --file=FILE\tCheck FILE'
+    print('Usage: cssccc OPTIONS')
+    print('  -h, --help\t\tShow this help.')
+    print('  -v, --version\t\tShow version.')
+    print('  -f FILE, --file=FILE\tCheck FILE')
 
 
 def read_file(filename):
@@ -485,7 +491,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         show_usage()
     elif sys.argv[1] in ['-v', '--version']:
-        print 'CSS Code Convention Checker %s' % (__version__)
+        print('CSS Code Convention Checker %s' % (__version__))
         sys.exit(0)
     elif sys.argv[1] == '-f':
         text = read_file(sys.argv[2])
