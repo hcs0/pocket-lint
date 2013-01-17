@@ -8,13 +8,13 @@ from __future__ import (
     print_function,
     unicode_literals,
     with_statement,
-    )
+)
 
 
 __all__ = [
     'Reporter',
     'UniversalChecker',
-    ]
+]
 
 
 import _ast
@@ -49,7 +49,7 @@ from xml.parsers.expat import (
     ErrorString,
     ExpatError,
     ParserCreate,
-    )
+)
 
 from formatdoctest import DoctestReviewer
 
@@ -182,7 +182,7 @@ class Reporter(object):
             self.piter, (file_name, icon, line_no, message, base_dir))
 
     def _message_collector(self, line_no, message, icon=None,
-                         base_dir=None, file_name=None):
+                           base_dir=None, file_name=None):
         self._last_file_name = (base_dir, file_name)
         self.messages.append((line_no, message))
 
@@ -231,7 +231,7 @@ class Language(object):
         'application/x-sh': SH,
         'application/x-zope-configuration': ZCML,
         'application/x-zope-page-template': ZPT,
-        }
+    }
     doctest_pattern = re.compile(
         r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
 
@@ -404,8 +404,7 @@ class AnyTextMixin:
             self.message(
                 total_lines,
                 'File does not ends with an empty line.',
-                icon='info',
-                )
+                icon='info')
 
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
@@ -788,8 +787,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
 
     # Taken from rst documentation.
     delimiter_characters = [
-        '=', '-', '`', ':', '\'', '"', '~', '^', '_', '*', '+', '#', '<', '>',
-        ]
+        '=', '-', '`', ':', '\'', '"', '~', '^', '_', '*', '+', '#', '<', '>']
 
     def __init__(self, file_path, text, reporter=None):
         super(ReStructuredTextChecker, self).__init__(
@@ -853,8 +851,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             self.message(
                 line_number + 1,
                 'Transition markers should be bounded by single empty lines.',
-                icon='info',
-                )
+                icon='info')
 
     def isSectionDelimiter(self, line_number):
         '''Return true if the line is a section delimiter.'''
@@ -945,22 +942,19 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             self.message(
                 human_line_number,
                 'Section marker has wrong length.',
-                icon='error',
-                )
+                icon='error')
 
         if not self._haveGoodSpacingBeforeSection(top_marker):
             self.message(
                 human_line_number,
                 'Section should be divided by 2 empty lines.',
-                icon='info',
-                )
+                icon='info')
 
         if not self._haveGoodSpacingAfterSection(bottom_marker):
             self.message(
                 human_line_number,
                 'Section title should be followed by 1 empty line.',
-                icon='info',
-                )
+                icon='info')
 
     def _sectionHasCustomAnchor(self, top_marker):
         if (top_marker - 2) < 0:
@@ -1038,7 +1032,7 @@ def get_option_parser():
         do_format=False,
         is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
-        )
+    )
     return parser
 
 

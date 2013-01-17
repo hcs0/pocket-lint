@@ -8,12 +8,12 @@ from __future__ import (
     print_function,
     unicode_literals,
     with_statement,
-    )
+)
 
 
 __all__ = [
     'DoctestReviewer',
-    ]
+]
 
 
 import _ast
@@ -180,7 +180,7 @@ class DoctestReviewer(object):
             self.check_heading,
             self.check_indentation,
             self.check_trailing_whitespace,
-            ]
+        ]
         self._apply(line_checkers)
         code = '\n'.join(self.code_lines)
         self.check_source_code(code)
@@ -204,7 +204,7 @@ class DoctestReviewer(object):
             self.fix_indentation,
             self.fix_heading,
             self.fix_narrative_paragraph,
-            ]
+        ]
         self.block_method = self.format_block
         self._apply(line_checkers)
         self.block_method = self.preserve_block
