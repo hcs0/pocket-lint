@@ -56,7 +56,7 @@ class DoctestReviewer(object):
         parser = DocTestParser()
         try:
             return parser.parse(self.doctest, self.file_path)
-        except ValueError, error:
+        except ValueError as error:
             self._print_message(str(error), 0)
             return []
 
@@ -318,7 +318,7 @@ class DoctestReviewer(object):
         try:
             tree = compile(
                 code, self.file_path, "exec", _ast.PyCF_ONLY_AST)
-        except (SyntaxError, IndentationError), exc:
+        except (SyntaxError, IndentationError) as exc:
             (lineno, offset_, line) = exc[1][1:]
             if line.endswith("\n"):
                 line = line[:-1]
@@ -390,7 +390,11 @@ class DoctestReviewer(object):
                     self.doctest.splitlines(), new_doctest.splitlines())
                 print('\n'.join(diff))
                 print('\n')
-                do_save = raw_input(
+                if sys.version < 3:
+                    user_input = raw_input
+                else:
+                    user_input = input
+                do_save = user_input(
                     'Do you wish to save the changes? S(ave) or C(ancel)?')
             else:
                 do_save = 'S'
