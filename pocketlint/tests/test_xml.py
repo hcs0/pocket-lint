@@ -60,6 +60,12 @@ utf8_html_markup = b"""\
 </html>
 """
 
+zpt_without_namespace = """\
+<metal:root>
+  <p tal:condition="has_hello">hello&nbsp;world</p>
+</metal:root>
+"""
+
 
 class TestXML(CheckerTestCase):
     """Verify XML integration."""
@@ -76,6 +82,11 @@ class TestXML(CheckerTestCase):
 
     def test_html5_dtd(self):
         checker = XMLChecker('bogus', html5_dtd_and_entity, self.reporter)
+        checker.check()
+        self.assertEqual([], self.reporter.messages)
+
+    def test_zpt_without_namespace(self):
+        checker = XMLChecker('bogus.pt', zpt_without_namespace, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
 

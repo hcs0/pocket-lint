@@ -45,7 +45,11 @@ try:
 except ImportError:
     # Python 2.6 and below.
     ParseError = object()
-from xml.parsers.expat import ErrorString, ExpatError
+from xml.parsers.expat import (
+    ErrorString,
+    ExpatError,
+    ParserCreate,
+    )
 
 from formatdoctest import DoctestReviewer
 
@@ -441,6 +445,20 @@ class XMLChecker(BaseChecker, AnyTextMixin):
     xhtml_doctype = (
         '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
         '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
+    non_ns_types = (Language.ZPT, Language.ZCML)
+
+    def handle_namespaces(self, parser):
+        """Do not check namespaces for grammars used by ns-specific tools."""
+        if Language.get_language(self.file_name) in self.non_ns_types:
+            xparser = ParserCreate()
+            xparser.DefaultHandlerExpand = parser._default
+            xparser.StartElementHandler = parser._start
+            xparser.EndElementHandler = parser._end
+            xparser.CharacterDataHandler = parser._data
+            xparser.CommentHandler = parser._comment
+            xparser.ProcessingInstructionHandler = parser._pi
+            # Set the etree parser to use the expat non-ns parser.
+            parser.parser = parser._parser = xparser
 
     def check(self):
         """Check the syntax of the python code."""
@@ -449,6 +467,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
         if self.text == '':
             return
         parser = ElementTree.XMLParser()
+        self.handle_namespaces(parser)
         parser.entity.update(entitydefs)
         offset = 0
         text = self.text
