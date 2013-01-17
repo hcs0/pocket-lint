@@ -6,7 +6,7 @@ from __future__ import (
     print_function,
     unicode_literals,
     with_statement,
-    )
+)
 
 from tempfile import NamedTemporaryFile
 
@@ -72,7 +72,7 @@ class TestDoctest(CheckerTestCase):
         self.file.write(source_comments_doctest)
         self.file.flush()
         checker = DoctestReviewer(
-           self.file.name, source_comments_doctest, self.reporter)
+            self.file.name, source_comments_doctest, self.reporter)
         checker.check_source_comments()
         self.assertEqual([
             (2, 'Comment belongs in narrative.'),

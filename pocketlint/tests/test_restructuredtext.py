@@ -4,7 +4,7 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-    )
+)
 
 from pocketlint.formatcheck import ReStructuredTextChecker
 from pocketlint.tests import CheckerTestCase
@@ -141,8 +141,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.reporter.call_count = 0
         content = (
             'Some first line\n'
-            'the second and last line witout newline'
-            )
+            'the second and last line witout newline')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(2)
         expected = [(
@@ -155,8 +154,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             'Some first line\n'
             'the second and last\n'
-            '\n'
-            )
+            '\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(3)
         expected = [(
@@ -168,8 +166,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             '\n'
             '----\n'
-            '\n'
-            )
+            '\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isTransition(1)
         self.assertTrue(result)
@@ -178,8 +175,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             '\n'
             '---\n'
-            '\n'
-            )
+            '\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isTransition(1)
         self.assertFalse(result)
@@ -188,8 +184,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             '\n'
             '----\n'
-            ''
-            )
+            '')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isTransition(1)
         self.assertFalse(result)
@@ -198,8 +193,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             '\n'
             '----\n'
-            'some\n'
-            )
+            'some\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isTransition(1)
         self.assertFalse(result)
@@ -207,8 +201,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             'some\n'
             '----\n'
-            '\n'
-            )
+            '\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isTransition(1)
         self.assertFalse(result)
@@ -219,8 +212,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '\n'
             '----\n'
             '\n'
-            'some text\n'
-            )
+            'some text\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_transition(2)
         self.assertEqual([], self.reporter.messages)
@@ -233,8 +225,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '\n'
             '----\n'
             '\n'
-            'some text\n'
-            )
+            'some text\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_transition(3)
         expect = [(
@@ -249,8 +240,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '----\n'
             '\n'
             '\n'
-            'some text\n'
-            )
+            'some text\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_transition(2)
         expect = [(
@@ -266,8 +256,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '----\n'
             '\n'
             '\n'
-            'some text\n'
-            )
+            'some text\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_transition(3)
         expect = [(
@@ -279,8 +268,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             'Something'
             '---------\n'
-            ''
-            )
+            '')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isSectionDelimiter(1)
         self.assertFalse(result)
@@ -289,8 +277,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             'Som'
             '---\n'
-            ''
-            )
+            '')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isSectionDelimiter(1)
         self.assertFalse(result)
@@ -300,8 +287,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '---- ----'
             'Row1 Row1'
             '---- ----\n'
-            ''
-            )
+            '')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isSectionDelimiter(0)
         self.assertFalse(result)
@@ -312,8 +298,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             'Section\n'
             '-------\n'
-            'some text'
-            )
+            'some text')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isSectionDelimiter(1)
         self.assertTrue(result)
@@ -322,8 +307,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             '=======\n'
             'Section\n'
-            '=======\n'
-            )
+            '=======\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         result = checker.isSectionDelimiter(0)
         self.assertTrue(result)
@@ -339,8 +323,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             'Section\n'
             '=======\n'
             '\n'
-            'some text\n'
-            )
+            'some text\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(3)
         checker.check_section_delimiter(5)
@@ -353,8 +336,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '------\n'
             '\n'
             'some text\n'
-            'other text\n'
-            )
+            'other text\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(1)
         expect = [(2, 'Section marker has wrong length.')]
@@ -368,8 +350,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '---------\n'
             '\n'
             'some text\n'
-            'other text\n'
-            )
+            'other text\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(0)
         checker.check_section_delimiter(2)
@@ -382,8 +363,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '-------\n'
             'Section\n'
             '-------\n'
-            '\n'
-            )
+            '\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(0)
         checker.check_section_delimiter(2)
@@ -394,8 +374,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             'Section\n'
             '-------\n'
-            '\n'
-            )
+            '\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(1)
         self.assertEqual([], self.reporter.messages)
@@ -406,8 +385,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '\n'
             'Section\n'
             '-------\n'
-            '\n'
-            )
+            '\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(2)
         expect = [(3, 'Section should be divided by 2 empty lines.')]
@@ -420,8 +398,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '\n'
             'Section\n'
             '-------\n'
-            '\n'
-            )
+            '\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(3)
         expect = [(4, 'Section should be divided by 2 empty lines.')]
@@ -436,8 +413,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '\n'
             'Section\n'
             '-------\n'
-            '\n'
-            )
+            '\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(5)
         expect = [(6, 'Section should be divided by 2 empty lines.')]
@@ -447,8 +423,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
     def test_check_section_after_space_last_line(self):
         content = (
             'Section\n'
-            '-------\n'
-            )
+            '-------\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(1)
         self.assertEqual([], self.reporter.messages)
@@ -458,8 +433,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         content = (
             'Section\n'
             '-------\n'
-            'Paragraph start.\n'
-            )
+            'Paragraph start.\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(1)
         expect = [(2, 'Section title should be followed by 1 empty line.')]
@@ -472,8 +446,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '-------\n'
             '\n'
             '\n'
-            'Paragraph start.\n'
-            )
+            'Paragraph start.\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(1)
         expect = [(2, 'Section title should be followed by 1 empty line.')]
@@ -487,8 +460,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '\n'
             '\n'
             'Another Section\n'
-            '---------------\n'
-            )
+            '---------------\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(1)
         self.assertEqual([], self.reporter.messages)
@@ -502,8 +474,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '\n'
             '---------------\n'
             'Another Section\n'
-            '---------------\n'
-            )
+            '---------------\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(1)
         self.assertEqual([], self.reporter.messages)
@@ -518,14 +489,12 @@ class TestReStructuredTextChecker(CheckerTestCase):
             '--------\n'
             '\n'
             'some text\n'
-            'other text\n'
-            )
+            'other text\n')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_lines()
         expect = [
             (1, 'Section marker has wrong length.'),
             (1, 'Section title should be followed by 1 empty line.'),
-            (3, 'Section marker has wrong length.'),
-            ]
+            (3, 'Section marker has wrong length.')]
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(3, self.reporter.call_count)

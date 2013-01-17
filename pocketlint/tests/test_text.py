@@ -5,12 +5,12 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-    )
+)
 
 from pocketlint.formatcheck import (
     AnyTextChecker,
     get_option_parser,
-    )
+)
 from pocketlint.tests import CheckerTestCase
 
 
@@ -99,8 +99,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         """
         content = (
             'Some first line\n'
-            'the second and last line without newline'
-            )
+            'the second and last line without newline')
         checker = AnyTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(2)
         expected = [(
@@ -113,8 +112,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         content = (
             'Some first line\n'
             'the second and last\n'
-            '\n'
-            )
+            '\n')
         checker = AnyTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(3)
         expected = [(
@@ -125,8 +123,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
     def test_single_last_line_no_newline(self):
         """An error is reported if file contains a single newline."""
         content = (
-            'the second and last line without newline'
-            )
+            'the second and last line without newline')
         checker = AnyTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(2)
         expected = [(

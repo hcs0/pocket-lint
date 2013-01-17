@@ -5,12 +5,12 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-    )
+)
 
 from pocketlint.formatcheck import(
-     CSSChecker,
-     HAS_CSSUTILS,
-    )
+    CSSChecker,
+    HAS_CSSUTILS,
+)
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
@@ -52,9 +52,9 @@ class TestCSS(CheckerTestCase):
             (3, "PropertyValue: No match: 'CHAR', u':'"),
             self.reporter.messages)
         self.assertIn(
-                (0, 'PropertyValue: Unknown syntax or no value:  '
-                     'Ubuntu\n    color: #333'),
-                self.reporter.messages)
+            (0, 'PropertyValue: Unknown syntax or no value:  '
+                'Ubuntu\n    color: #333'),
+            self.reporter.messages)
         self.assertIn(
             (0, 'CSSStyleDeclaration: Syntax Error in Property: '
                 'font-family: Ubuntu\n    color: #333'),

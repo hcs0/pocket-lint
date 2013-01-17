@@ -5,14 +5,14 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-    )
+)
 
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatcheck import(
-     JavascriptChecker,
-     JS
-    )
+    JavascriptChecker,
+    JS
+)
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 

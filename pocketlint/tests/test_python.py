@@ -5,14 +5,14 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-    )
+)
 
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatcheck import (
     get_option_parser,
     PythonChecker,
-    )
+)
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
@@ -134,15 +134,14 @@ class TestPyflakes(CheckerTestCase):
         checker.check_flakes()
         self.assertEqual(
             [(3, "undefined name 'b'"),
-            (3, "local variable 'a' is assigned to but never used")],
+             (3, "local variable 'a' is assigned to but never used")],
             self.reporter.messages)
         self.assertEqual(2, self.reporter.call_count)
 
     def test_pyflakes_ignore(self):
         pyflakes_ignore = (
             'def something():\n'
-            '    unused_variable = 1  # pyflakes:ignore\n'
-            )
+            '    unused_variable = 1  # pyflakes:ignore\n')
         self.reporter.call_count = 0
         checker = PythonChecker('bogus', pyflakes_ignore, self.reporter)
         checker.check_flakes()
@@ -274,7 +273,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
 
     def _test_encoding(self, python, expected_encoding='foo-encoding'):
         checker = PythonChecker(
-           'bogus', python % dict(encoding=expected_encoding), self.reporter)
+            'bogus', python % dict(encoding=expected_encoding), self.reporter)
         checker.check_text()
         self.assertEqual(expected_encoding, checker.encoding)
 

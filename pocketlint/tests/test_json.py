@@ -6,7 +6,7 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-    )
+)
 
 from pocketlint.formatcheck import JSONChecker
 from pocketlint.tests import CheckerTestCase
