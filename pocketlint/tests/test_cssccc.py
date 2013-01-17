@@ -547,6 +547,15 @@ class TestCSSRuleSetSelectorChecksB(RuleTesterConventionB):
         self.assertEqual('I013', last_log.code)
         self.assertEqual(5, last_log.line_number)
 
+    def test_I013_compressed_file(self):
+        selector = CSSStatementMember(0, 0, 'something')
+        rule = CSSRuleSet(selector=selector, declarations=None, log=self.log)
+        rule.selector.text = ''
+        rule.checkSelector()
+        last_log = self.last_log
+        self.assertEqual('I013', last_log.code)
+        self.assertEqual(1, last_log.line_number)
+
 
 class RuleTesterConventionC(RuleTesterBase):
     '''Class for convention C.

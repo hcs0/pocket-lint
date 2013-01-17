@@ -165,7 +165,8 @@ class CSSRuleSet(object):
                 'I005',
                 'No newline after last selector.')
 
-        if not (last_selector[-2] != ' ' and last_selector[-1] == (' ')):
+        if (len(last_selector) < 2
+            or not (last_selector[-2] != ' ' and last_selector[-1] == (' '))):
             self.log(
                 start_line + offset,
                 'I013',
