@@ -3,14 +3,14 @@
 from __future__ import (
     absolute_import,
     print_function,
-    )
+)
 
 import subprocess
 
 from distutils.core import (
     Command,
     setup,
-    )
+)
 from distutils.command.sdist import sdist
 
 
@@ -63,12 +63,10 @@ setup(
         'pocketlint/contrib': 'pocketlint/contrib'},
     package_data={
         'pocketlint': ['jsreporter.js'],
-        'pocketlint/contrib': ['fulljslint.js'],
-        },
+        'pocketlint/contrib': ['fulljslint.js']},
     requires=['pyflakes (>=0.5)'],
     scripts=['scripts/pocketlint'],
     cmdclass={
         'check': Check,
         'signed_sdist': SignedSDistCommand,
-        },
-    )
+    })
