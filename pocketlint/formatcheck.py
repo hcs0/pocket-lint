@@ -698,6 +698,11 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
     JSREPORTER = os.path.join(HERE, 'jsreporter.js')
 
+    def __init__(self, file_path, text, reporter=None, options=None):
+        super(JavascriptChecker, self).__init__(
+            file_path, text, reporter, options)
+        self.text = self.as_unicode(text)
+
     def check(self):
         """Check the syntax of the javascript code."""
         if JS is None or self.text == '':
