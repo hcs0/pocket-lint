@@ -175,7 +175,7 @@ class TestPEP8(CheckerTestCase):
             self.file.name, ugly_style_python, self.reporter)
         checker.check_pep8()
         self.assertEqual(
-            [(4, 'EOF in multi-line statement')],
+            [(4, 'E901 TokenError: EOF in multi-line statement')],
             self.reporter.messages)
 
     def test_code_with_IndentationError(self):
@@ -185,7 +185,9 @@ class TestPEP8(CheckerTestCase):
             self.file.name, bad_indentation_python, self.reporter)
         checker.check_pep8()
         expected = [(
-            4, 'unindent does not match any outer indentation level: b = 1')]
+            4,
+            'E901 IndentationError: '
+            'unindent does not match any outer indentation level')]
         self.assertEqual(expected, self.reporter.messages)
 
     def test_code_with_issues(self):
@@ -221,7 +223,7 @@ class TestPEP8(CheckerTestCase):
         checker = PythonChecker(self.file.name, long_line, self.reporter)
         checker.check_pep8()
         self.assertEqual(
-            [(1, 'E501 line too long (80 characters)')],
+            [(1, 'E501 line too long (80 > 79 characters)')],
             self.reporter.messages)
 
     def test_long_length_options(self):
@@ -234,7 +236,7 @@ class TestPEP8(CheckerTestCase):
             self.file.name, long_line, self.reporter, options)
         checker.check_pep8()
         self.assertEqual(
-            [(1, 'E501 line too long (70 characters)')],
+            [(1, 'E501 line too long (70 > 59 characters)')],
             self.reporter.messages)
 
 

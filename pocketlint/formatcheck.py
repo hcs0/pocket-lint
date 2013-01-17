@@ -587,6 +587,16 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         CSSCodingConventionChecker(self.text, logger=self.message).check()
 
 
+class PEP8Report(pep8.StandardReport):
+
+    def __init__(self, options, message_function):
+        super(PEP8Report, self).__init__(options)
+        self.message = message_function
+
+    def error(self, line_no, offset, message, check):
+        self.message(line_no, message, icon='info')
+
+
 class PythonChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
 
@@ -627,29 +637,21 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
     def check_pep8(self):
         """Check style."""
+        style_options = pep8.StyleGuide(
+            max_line_length=self.check_length_filter)
+        options = style_options.options
+        pep8_report = PEP8Report(options, self.message)
         try:
-            # Monkey patch pep8 for direct access to the messages.
-            original_report_error = pep8.Checker.report_error
-
-            def pep8_report_error(ignore, line_no, offset, message, check):
-                self.message(line_no, message, icon='info')
-
-            pep8.Checker.report_error = pep8_report_error
-            original_max_line_length = pep8.MAX_LINE_LENGTH
-            pep8.MAX_LINE_LENGTH = self.check_length_filter
-            pep8.process_options([self.file_path])
-            try:
-                pep8.Checker(self.file_path).check_all()
-            except TokenError as er:
-                message, location = er.args
-                self.message(location[0], message, icon='error')
-            except IndentationError as er:
-                message, location = er.args
-                message = "%s: %s" % (message, location[3].strip())
-                self.message(location[1], message, icon='error')
-        finally:
-            pep8.MAX_LINE_LENGTH = original_max_line_length
-            pep8.Checker.report_error = original_report_error
+            pep8_checker = pep8.Checker(
+                self.file_path, options=options, report=pep8_report)
+            pep8_checker.check_all()
+        except TokenError as er:
+            message, location = er.args
+            self.message(location[0], message, icon='error')
+        except IndentationError as er:
+            message, location = er.args
+            message = "%s: %s" % (message, location[3].strip())
+            self.message(location[1], message, icon='error')
 
     def check_text(self):
         """Call each line_method for each line in text."""
