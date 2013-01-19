@@ -52,8 +52,7 @@ class TestDoctest(CheckerTestCase):
         self.file.close()
 
     def test_init_with_options(self):
-        self.file.write(good_doctest)
-        self.file.flush()
+        self.write_to_file(self.file, good_doctest)
         checker = DoctestReviewer(
             self.file.name, good_doctest, self.reporter, None)
         self.assertEqual(self.file.name, checker.file_path)
@@ -61,16 +60,14 @@ class TestDoctest(CheckerTestCase):
         self.assertIs(None, checker.options)
 
     def test_doctest_without_issues(self):
-        self.file.write(good_doctest)
-        self.file.flush()
+        self.write_to_file(self.file, good_doctest)
         checker = DoctestReviewer(
             self.file.name, good_doctest, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
 
     def test_doctest_with_source_comments(self):
-        self.file.write(source_comments_doctest)
-        self.file.flush()
+        self.write_to_file(self.file, source_comments_doctest)
         checker = DoctestReviewer(
             self.file.name, source_comments_doctest, self.reporter)
         checker.check_source_comments()
@@ -79,8 +76,7 @@ class TestDoctest(CheckerTestCase):
             (4, 'Comment belongs in narrative.')], self.reporter.messages)
 
     def test_doctest_malformed_doctest(self):
-        self.file.write(malformed_doctest)
-        self.file.flush()
+        self.write_to_file(self.file, malformed_doctest)
         checker = DoctestReviewer(
             self.file.name, malformed_doctest, self.reporter)
         checker.check()
@@ -94,8 +90,7 @@ class TestDoctest(CheckerTestCase):
         # Doctest runners often setup global identifiers that are not python
         # execution issues
         doctest = "    >>> ping('text')\n    pong text"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         checker.check()
@@ -103,8 +98,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_doctest_with_python_compilation_error(self):
         doctest = "    >>> if (True\n    pong text"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         checker.check()
@@ -114,8 +108,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_moin_header(self):
         doctest = "= Heading =\n\nnarrative"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         checker.check()
@@ -125,8 +118,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_fix_moin_header_1(self):
         doctest = "= Heading =\n\nnarrative"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
@@ -135,8 +127,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_fix_moin_header_2(self):
         doctest = "== Heading ==\n\nnarrative"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
@@ -145,8 +136,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_fix_moin_header_3(self):
         doctest = "=== Heading ===\n\nnarrative"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
@@ -155,8 +145,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_bad_indentation(self):
         doctest = "narrative\n>>> print('done')\n"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         checker.check()
@@ -166,8 +155,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_fix_bad_indentation(self):
         doctest = "narrative\n>>> print('done')\n"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
@@ -176,8 +164,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_fix_bad_indentation_with_source_and_want(self):
         doctest = "narrative\n\n>>> print(\n...     'done')"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
@@ -186,8 +173,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_trailing_whitespace(self):
         doctest = "narrative  \n    >>> print('done')\n"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         checker.check()
@@ -197,8 +183,7 @@ class TestDoctest(CheckerTestCase):
 
     def test_fix_trailing_whitespace(self):
         doctest = "narrative  \n    >>> print('done') \n"
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
@@ -210,8 +195,7 @@ class TestDoctest(CheckerTestCase):
             "method_method_method_method,\n"
             "    ...   call_call_call_call_call_call_call_call_call_call,"
             "bad_bad_bad_bad_bad)\n")
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         checker.check()
@@ -224,8 +208,7 @@ class TestDoctest(CheckerTestCase):
         doctest = (
             "narrative is a line that exceeds 78 characters which causes "
             "scrolling in consoles and wraps poorly in email\n")
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         checker.check()
@@ -238,8 +221,7 @@ class TestDoctest(CheckerTestCase):
             "narrative is a line that exceeds 78 characters which causes "
             "scrolling in consoles and wraps poorly in email\n"
             "  * item")
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
@@ -257,8 +239,7 @@ class TestDoctest(CheckerTestCase):
             "    >>> very_very_very_very_very.long_long_long_long("
             "method_method_method_method)\n"
             "    True\n\n")
-        self.file.write(doctest)
-        self.file.flush()
+        self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         checker.format_and_save()

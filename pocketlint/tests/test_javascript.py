@@ -38,8 +38,7 @@ class TestJavascript(CheckerTestCase):
         self.file.close()
 
     def test_good_js(self):
-        self.file.write(good_js)
-        self.file.flush()
+        self.write_to_file(self.file, good_js)
         checker = JavascriptChecker(self.file.name, good_js, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
@@ -47,8 +46,7 @@ class TestJavascript(CheckerTestCase):
     def test_invalid_value(self):
         if JS is None:
             return
-        self.file.write(invalid_js)
-        self.file.flush()
+        self.write_to_file(self.file, invalid_js)
         checker = JavascriptChecker(self.file.name, invalid_js, self.reporter)
         checker.check()
         self.assertEqual(

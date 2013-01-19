@@ -7,6 +7,7 @@ from __future__ import (
     unicode_literals,
 )
 
+import sys
 import unittest
 
 from pocketlint.formatcheck import Reporter
@@ -18,3 +19,9 @@ class CheckerTestCase(unittest.TestCase):
     def setUp(self):
         self.reporter = Reporter(Reporter.COLLECTOR)
         self.reporter.call_count = 0
+
+    def write_to_file(self, wfile, string):
+        if int(sys.version[0]) > 2:
+            string = bytes(string, 'utf8')
+        wfile.write(string)
+        wfile.flush()

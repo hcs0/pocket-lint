@@ -160,16 +160,14 @@ class TestPEP8(CheckerTestCase):
         self.file.close()
 
     def test_code_without_issues(self):
-        self.file.write(good_python)
-        self.file.flush()
+        self.write_to_file(self.file, good_python)
         checker = PythonChecker(
             self.file.name, good_python, self.reporter)
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
     def test_bad_syntax(self):
-        self.file.write(bad_syntax2_python)
-        self.file.flush()
+        self.write_to_file(self.file, bad_syntax2_python)
         checker = PythonChecker(
             self.file.name, ugly_style_python, self.reporter)
         checker.check_pep8()
@@ -178,8 +176,7 @@ class TestPEP8(CheckerTestCase):
             self.reporter.messages)
 
     def test_code_with_IndentationError(self):
-        self.file.write(bad_indentation_python)
-        self.file.flush()
+        self.write_to_file(self.file, bad_indentation_python)
         checker = PythonChecker(
             self.file.name, bad_indentation_python, self.reporter)
         checker.check_pep8()
@@ -190,8 +187,7 @@ class TestPEP8(CheckerTestCase):
         self.assertEqual(expected, self.reporter.messages)
 
     def test_code_with_issues(self):
-        self.file.write(ugly_style_python)
-        self.file.flush()
+        self.write_to_file(self.file, ugly_style_python)
         checker = PythonChecker(
             self.file.name, ugly_style_python, self.reporter)
         checker.check_pep8()
@@ -200,8 +196,7 @@ class TestPEP8(CheckerTestCase):
             self.reporter.messages)
 
     def test_code_with_comments(self):
-        self.file.write(ugly_style_lines_python)
-        self.file.flush()
+        self.write_to_file(self.file, ugly_style_lines_python)
         checker = PythonChecker(
             self.file.name, ugly_style_lines_python, self.reporter)
         checker.check_pep8()
@@ -209,16 +204,14 @@ class TestPEP8(CheckerTestCase):
 
     def test_long_length_good(self):
         long_line = '1234 56189' * 7 + '12345678' + '\n'
-        self.file.write(long_line)
-        self.file.flush()
+        self.write_to_file(self.file, long_line)
         checker = PythonChecker(self.file.name, long_line, self.reporter)
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
     def test_long_length_bad(self):
         long_line = '1234 56189' * 8 + '\n'
-        self.file.write(long_line)
-        self.file.flush()
+        self.write_to_file(self.file, long_line)
         checker = PythonChecker(self.file.name, long_line, self.reporter)
         checker.check_pep8()
         self.assertEqual(
@@ -229,8 +222,7 @@ class TestPEP8(CheckerTestCase):
         long_line = '1234 56189' * 7 + '\n'
         parser = get_option_parser()
         (options, sources) = parser.parse_args(['-m', '60'])
-        self.file.write(long_line)
-        self.file.flush()
+        self.write_to_file(self.file, long_line)
         checker = PythonChecker(
             self.file.name, long_line, self.reporter, options)
         checker.check_pep8()
