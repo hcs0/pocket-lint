@@ -25,7 +25,11 @@ from doctest import DocTestParser, Example
 from optparse import OptionParser
 from textwrap import wrap
 
-from pyflakes.checker import Checker
+try:
+    from pyflakes.checker import Checker as PyFlakesChecker
+    PyFlakesChecker
+except ImportError:
+    from pocketlint import PyFlakesChecker
 
 
 class DoctestReviewer(object):
@@ -325,7 +329,7 @@ class DoctestReviewer(object):
             self._print_message(
                 'Could not compile:\n    %s' % line, lineno)
         else:
-            warnings = Checker(tree)
+            warnings = PyFlakesChecker(tree)
             for warning in warnings.messages:
                 if 'undefined name ' in str(warning):
                     continue

@@ -55,7 +55,12 @@ from formatdoctest import DoctestReviewer
 
 import contrib.pep8 as pep8
 from contrib.cssccc import CSSCodingConventionChecker
-from pyflakes.checker import Checker as PyFlakesChecker
+try:
+    from pyflakes.checker import Checker as PyFlakesChecker
+    PyFlakesChecker
+except ImportError:
+    from pocketlint import PyFlakesChecker
+
 try:
     import cssutils
     HAS_CSSUTILS = True
@@ -86,7 +91,13 @@ if sys.version < '3':
     import codecs
 
     def u(string):
-        return codecs.unicode_escape_decode(string)[0]
+        try:
+            # This is a sanity check to work with the true text...
+            text = string.decode('utf-8').encode('utf-8')
+        except UnicodeDecodeError:
+            # ...but this fallback is okay since this comtemt.
+            text = string.decode('ascii', 'ignore').encode('utf-8')
+        return codecs.unicode_escape_decode(text)[0]
 else:
     def u(string):  # pyflakes:ignore
         return string
@@ -279,20 +290,9 @@ class BaseChecker(object):
         self.file_name = os.path.basename(file_path)
         self.text = text
         if self.REENCODE:
-            self.text = self.as_unicode(text)
+            self.text = u(text)
         self.set_reporter(reporter=reporter)
         self.options = options
-
-    @staticmethod
-    def as_unicode(string):
-        """Ensure the byte string is a text string."""
-        try:
-            # This is a sanity check to work with the true text...
-            text = string.decode('utf-8').encode('utf-8')
-        except UnicodeDecodeError:
-            # ...but this fallback is okay since this comtemt.
-            text = string.decode('ascii', 'ignore').encode('utf-8')
-        return u(text)
 
     def set_reporter(self, reporter=None):
         """Set the reporter for messages."""
