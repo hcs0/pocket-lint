@@ -100,7 +100,10 @@ if sys.version < '3':
         return codecs.unicode_escape_decode(text)[0]
 else:
     def u(string):  # pyflakes:ignore
-        return string
+        if isinstance(string, str):
+            return string
+        else:
+            return str(string.decode('utf-8'))
 
 
 class PocketLintPyFlakesChecker(PyFlakesChecker):
@@ -775,7 +778,7 @@ class JSONChecker(BaseChecker, AnyTextMixin):
             json.loads(self.text)
         except ValueError as error:
             line_number = 0
-            message = error.message
+            message = str(error)
             match = re.search(r"(.*): line (\d+)", message)
             if match:
                 try:
