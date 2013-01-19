@@ -323,7 +323,8 @@ class DoctestReviewer(object):
             tree = compile(
                 code, self.file_path, "exec", _ast.PyCF_ONLY_AST)
         except (SyntaxError, IndentationError) as exc:
-            (lineno, offset_, line) = exc[1][1:]
+            lineno = exc.lineno or 0
+            line = exc.text or ''
             if line.endswith("\n"):
                 line = line[:-1]
             self._print_message(
