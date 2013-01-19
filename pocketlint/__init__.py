@@ -13,7 +13,7 @@ class PyFlakesChecker(object):
     def __init__(self, tree, filename='(none)'):
         self.messages = []
         script = os.path.join(PACKAGE_PATH, 'formatcheck.py')
-        command = ['/usr/bin/python2', script, filename]
+        command = ['python2', script, filename]
         linter = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         issues, errors = linter.communicate()
