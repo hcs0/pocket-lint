@@ -69,6 +69,18 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
             file_name, text, self.reporter, options)
         checker.check()
 
+    def test_reencode_ascii(self):
+        """Bytes strings are rencoded to get unicode"""
+        ascii_line = b"this will be unicode"
+        checker = AnyTextChecker('bogus', ascii_line, self.reporter)
+        self.assertEqual("this will be unicode", checker.text)
+
+    def test_reencode_utf8(self):
+        """utf8 Bytes strings are rencoded to get unicode"""
+        ascii_line = b"this will be unicode \xe2"
+        checker = AnyTextChecker('bogus', ascii_line, self.reporter)
+        self.assertEqual("this will be unicode ", checker.text)
+
     def test_with_tabs(self):
         """Text files may contain tabs."""
         pass

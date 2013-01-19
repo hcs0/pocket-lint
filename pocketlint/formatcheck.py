@@ -271,11 +271,15 @@ class BaseChecker(object):
 
     The Decedent must provide self.file_name and self.base_dir
     """
+    REENCODE = True
+
     def __init__(self, file_path, text, reporter=None, options=None):
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
         self.file_name = os.path.basename(file_path)
         self.text = text
+        if self.REENCODE:
+            self.text = self.as_unicode(text)
         self.set_reporter(reporter=reporter)
         self.options = options
 
@@ -283,10 +287,10 @@ class BaseChecker(object):
     def as_unicode(string):
         """Ensure the byte string is a text string."""
         try:
-            # This is a sanity check to work with the true text....
+            # This is a sanity check to work with the true text...
             text = string.decode('utf-8').encode('utf-8')
         except UnicodeDecodeError:
-            # ...but this fallback is okay since this check is about markup.
+            # ...but this fallback is okay since this comtemt.
             text = string.decode('ascii', 'ignore').encode('utf-8')
         return u(text)
 
@@ -462,7 +466,6 @@ class XMLChecker(BaseChecker, AnyTextMixin):
     def check(self):
         """Check the syntax of the python code."""
         # Reconcile the text and Expat checker text requriements.
-        self.text = self.as_unicode(self.text)
         if self.text == '':
             return
         parser = ElementTree.XMLParser()
@@ -599,6 +602,8 @@ class PEP8Report(pep8.StandardReport):
 class PythonChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
 
+    REENCODE = False
+
     # This regex is taken from PEP 0263.
     encoding_pattern = re.compile("coding[:=]\s*([-\w.]+)")
 
@@ -697,11 +702,6 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     HERE = os.path.dirname(__file__)
     FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
     JSREPORTER = os.path.join(HERE, 'jsreporter.js')
-
-    def __init__(self, file_path, text, reporter=None, options=None):
-        super(JavascriptChecker, self).__init__(
-            file_path, text, reporter, options)
-        self.text = self.as_unicode(text)
 
     def check(self):
         """Check the syntax of the javascript code."""
