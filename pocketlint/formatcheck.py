@@ -87,7 +87,7 @@ JS = find_exec(['gjs', 'seed'])
 DEFAULT_MAX_LENGTH = 80
 
 
-if sys.version < '3':
+if int(sys.version[0]) < 3:
     import codecs
 
     def u(string):
