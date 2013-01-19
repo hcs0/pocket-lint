@@ -11,14 +11,15 @@ class PyFlakesChecker(object):
     """A fake for py3 that can run py2 in a sub-proc."""
 
     def __init__(self, tree, filename='(none)'):
+        self.messages = []
         script = os.path.join(PACKAGE_PATH, 'formatcheck.py')
-        args = ['/usr/bin/python2', script, filename]
+        command = ['/usr/bin/python2', script, filename]
         linter = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         issues, errors = linter.communicate()
-        issues = issues.strip()
+        issues = issues.decode('ascii').strip()
         if issues:
-            self.messages = [
-                '%s:%s' % (filename, line) for line in issues.split('\n')[1:]]
-        else:
-            self.messages = []
+            for line in issues.split('\n')[1:]:
+                line_no, message = line.split(':')
+                self.messages.append(
+                    '%s:%s:%s' % (filename, line_no.strip(), message.strip()))

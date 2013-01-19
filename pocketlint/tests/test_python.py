@@ -130,7 +130,9 @@ class TestPyflakes(CheckerTestCase):
 
     def test_code_with_warnings(self):
         self.reporter.call_count = 0
-        checker = PythonChecker('bogus', ugly_python, self.reporter)
+        self.file = NamedTemporaryFile(prefix='pocketlint_', suffix='.py')
+        self.write_to_file(self.file, ugly_python)
+        checker = PythonChecker(self.file.name, ugly_python, self.reporter)
         checker.check_flakes()
         self.assertEqual(
             [(3, "undefined name 'b'"),
