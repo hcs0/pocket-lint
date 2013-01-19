@@ -403,10 +403,10 @@ class DoctestReviewer(object):
                     'Do you wish to save the changes? S(ave) or C(ancel)?')
             else:
                 do_save = 'S'
+            self.doctest = new_doctest
             if do_save.upper() == 'S':
                 with open(self.file_path, 'w') as doctest_file:
                     doctest_file.write(new_doctest)
-            self.doctest = new_doctest
 
 
 def get_option_parser():
@@ -436,7 +436,7 @@ def main(argv=None):
 
     for file_path in args:
         with open(file_path) as doctest_file:
-            doctest_data = doctest_file.read()
+            doctest_data = doctest_file.read().decode('utf8')
         reviewer = DoctestReviewer(file_path, doctest_data)
         if options.is_format:
             reviewer.format_and_save()

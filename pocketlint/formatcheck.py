@@ -1054,7 +1054,7 @@ def check_sources(sources, options, reporter=None):
             continue
         language = Language.get_language(file_path)
         with open(file_path) as file_:
-            text = file_.read()
+            text = file_.read().decode('utf8')
         if language is Language.DOCTEST and options.do_format:
             formatter = DoctestReviewer(text, file_path, reporter)
             formatter.format_and_save(options.is_interactive)
