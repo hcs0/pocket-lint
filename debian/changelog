@@ -1,3 +1,12 @@
+pocket-lint (1.0.0-0gdp) raring; urgency=low
+
+  * New upstream release fixes LP:1086553, LP:1102188, LP:1102189
+    LP:1086553, LP:1102188, LP:1102189 , LP:1102192
+    Support Py3. Do not require namespaces for grammar-specific tools.
+    Handle compresses CSS files. Use the current PEP8 checker.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sun, 20 Jan 2013 18:19:16 -0500
+
 pocket-lint (0.5.32-0gdp) raring; urgency=low
 
   * New upstream release fixes LP:1082046, LP:1085498, LP:1085490
