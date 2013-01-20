@@ -12,6 +12,7 @@ from distutils.core import (
     setup,
 )
 from distutils.command.sdist import sdist
+import unittest
 
 
 class SignedSDistCommand(sdist):
@@ -42,17 +43,16 @@ class Check(Command):
         pass
 
     def run(self):
-        test_args = ['./test.py']
-        test = subprocess.Popen(
-            test_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errput = test.communicate()
-        print(errput)
-
+        test_loader = unittest.defaultTestLoader
+        suite = unittest.TestSuite()
+        for test_module in test_loader.discover('pocketlint'):
+            suite.addTest(test_module)
+        unittest.TextTestRunner(verbosity=1).run(suite)
 
 setup(
     name="pocketlint",
     description="Pocket-lint a composite linter and style checker.",
-    version="0.5.32",
+    version="1.0.0",
     maintainer="Curtis C. Hovey",
     maintainer_email="sinzui.is@verizon.net",
     url="https://launchpad.net/pocket-lint",
