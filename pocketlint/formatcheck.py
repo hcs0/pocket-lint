@@ -94,8 +94,6 @@ if sys.version_info >= (3,):
         else:
             return str(string.decode('utf-8', 'ignore'))
 else:
-    import codecs
-
     def u(string):  # pyflakes:ignore
         try:
             # This is a sanity check to work with the true text...
@@ -103,7 +101,7 @@ else:
         except UnicodeDecodeError:
             # ...but this fallback is okay since this comtemt.
             text = string.decode('ascii', 'ignore').encode('utf-8')
-        return codecs.unicode_escape_decode(text)[0]
+        return text.decode('utf-8')
 
 
 class PocketLintPyFlakesChecker(PyFlakesChecker):
