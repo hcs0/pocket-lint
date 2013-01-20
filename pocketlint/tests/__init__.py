@@ -22,6 +22,6 @@ class CheckerTestCase(unittest.TestCase):
 
     def write_to_file(self, wfile, string):
         if sys.version_info >= (3,):
-            string = bytes(string, 'utf8')
+            string = bytes(string, 'utf-8')
         wfile.write(string)
         wfile.flush()

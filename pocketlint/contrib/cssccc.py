@@ -484,7 +484,7 @@ def read_file(filename):
     '''Return the content of filename.'''
     text = ''
     with open(filename, 'r') as f:
-        text = f.read().decode('utf8')
+        text = f.read().decode('utf-8')
     return text
 
 

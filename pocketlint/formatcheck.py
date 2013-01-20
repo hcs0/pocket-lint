@@ -78,7 +78,7 @@ def find_exec(names):
             ['which', name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         js_exec, ignore = js.communicate()
         if js.returncode == 0:
-            return js_exec.decode('utf8').strip()
+            return js_exec.decode('utf-8').strip()
 
 
 JS = find_exec(['gjs', 'seed'])
@@ -100,7 +100,7 @@ else:
             text = string.decode('utf-8').encode('utf-8')
         except UnicodeDecodeError:
             # ...but this fallback is okay since this comtemt.
-            text = string.decode('ascii', 'ignore').encode('utf-8')
+            text = string.decode('utf-8', 'ignore').encode('utf-8')
         return text.decode('utf-8')
 
 
@@ -712,7 +712,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
         jslint = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         issues, errors = jslint.communicate()
-        issues = issues.decode('utf8').strip()
+        issues = issues.decode('utf-8').strip()
         if issues:
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')
@@ -1052,7 +1052,7 @@ def check_sources(sources, options, reporter=None):
             continue
         language = Language.get_language(file_path)
         with open(file_path) as file_:
-            text = file_.read().decode('utf8')
+            text = file_.read().decode('utf-8')
         if language is Language.DOCTEST and options.do_format:
             formatter = DoctestReviewer(text, file_path, reporter)
             formatter.format_and_save(options.is_interactive)

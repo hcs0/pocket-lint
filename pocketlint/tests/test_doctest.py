@@ -251,7 +251,7 @@ class TestDoctest(CheckerTestCase):
             "method_method_method_method)\n"
             "    True\n\n\n")
         self.file.seek(0)
-        text = self.file.read().decode('utf8')
+        text = self.file.read().decode('utf-8')
         self.assertEqual(expected, text)
         self.assertEqual(expected, checker.doctest)
         # Source code issues cannot be fixed by the formatter.

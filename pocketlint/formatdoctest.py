@@ -440,7 +440,7 @@ def main(argv=None):
 
     for file_path in args:
         with open(file_path) as doctest_file:
-            doctest_data = doctest_file.read().decode('utf8')
+            doctest_data = doctest_file.read().decode('utf-8')
         reviewer = DoctestReviewer(file_path, doctest_data)
         if options.is_format:
             reviewer.format_and_save()
