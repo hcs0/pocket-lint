@@ -1,12 +1,18 @@
 #!/usr/bin/python
 
+from __future__ import (
+    absolute_import,
+    print_function,
+)
+
 import subprocess
 
 from distutils.core import (
     Command,
     setup,
-    )
+)
 from distutils.command.sdist import sdist
+import unittest
 
 
 class SignedSDistCommand(sdist):
@@ -37,17 +43,16 @@ class Check(Command):
         pass
 
     def run(self):
-        test_args = ['./test.py']
-        test = subprocess.Popen(
-            test_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errput = test.communicate()
-        print errput
-
+        test_loader = unittest.defaultTestLoader
+        suite = unittest.TestSuite()
+        for test_module in test_loader.discover('pocketlint'):
+            suite.addTest(test_module)
+        unittest.TextTestRunner(verbosity=1).run(suite)
 
 setup(
     name="pocketlint",
     description="Pocket-lint a composite linter and style checker.",
-    version="0.5.32",
+    version="1.0.0",
     maintainer="Curtis C. Hovey",
     maintainer_email="sinzui.is@verizon.net",
     url="https://launchpad.net/pocket-lint",
@@ -58,12 +63,10 @@ setup(
         'pocketlint/contrib': 'pocketlint/contrib'},
     package_data={
         'pocketlint': ['jsreporter.js'],
-        'pocketlint/contrib': ['fulljslint.js'],
-        },
+        'pocketlint/contrib': ['fulljslint.js']},
     requires=['pyflakes (>=0.5)'],
     scripts=['scripts/pocketlint'],
     cmdclass={
         'check': Check,
         'signed_sdist': SignedSDistCommand,
-        },
-    )
+    })

@@ -1,22 +1,28 @@
 #!/usr/bin/python
-# Copyright (C) 2009-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2009-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 """Check for syntax and style problems."""
 
-from __future__ import with_statement
-
-
-__metaclass__ = type
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
+)
 
 
 __all__ = [
     'Reporter',
     'UniversalChecker',
-    ]
+]
 
 
 import _ast
-import htmlentitydefs
+try:
+    from html.entities import entitydefs
+    entitydefs
+except:
+    from htmlentitydefs import entitydefs
 import logging
 import mimetypes
 import os
@@ -25,7 +31,12 @@ import subprocess
 import sys
 
 from optparse import OptionParser
-from StringIO import StringIO
+try:
+    from io import StringIO
+    StringIO
+except ImportError:
+    # Pything 2.7 and below
+    from StringIO import StringIO
 from tokenize import TokenError
 from xml.etree import ElementTree
 try:
@@ -34,13 +45,22 @@ try:
 except ImportError:
     # Python 2.6 and below.
     ParseError = object()
-from xml.parsers.expat import ErrorString, ExpatError
+from xml.parsers.expat import (
+    ErrorString,
+    ExpatError,
+    ParserCreate,
+)
 
 from formatdoctest import DoctestReviewer
 
 import contrib.pep8 as pep8
 from contrib.cssccc import CSSCodingConventionChecker
-from pyflakes.checker import Checker as PyFlakesChecker
+try:
+    from pyflakes.checker import Checker as PyFlakesChecker
+    PyFlakesChecker
+except ImportError:
+    from pocketlint import PyFlakesChecker
+
 try:
     import cssutils
     HAS_CSSUTILS = True
@@ -58,13 +78,30 @@ def find_exec(names):
             ['which', name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         js_exec, ignore = js.communicate()
         if js.returncode == 0:
-            return js_exec.strip()
+            return js_exec.decode('utf-8').strip()
 
 
 JS = find_exec(['gjs', 'seed'])
 
 
 DEFAULT_MAX_LENGTH = 80
+
+
+if sys.version_info >= (3,):
+    def u(string):
+        if isinstance(string, str):
+            return string
+        else:
+            return str(string.decode('utf-8', 'ignore'))
+else:
+    def u(string):  # pyflakes:ignore
+        try:
+            # This is a sanity check to work with the true text...
+            text = string.decode('utf-8').encode('utf-8')
+        except UnicodeDecodeError:
+            # ...but this fallback is okay since this comtemt.
+            text = string.decode('utf-8', 'ignore').encode('utf-8')
+        return text.decode('utf-8')
 
 
 class PocketLintPyFlakesChecker(PyFlakesChecker):
@@ -102,7 +139,7 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
         return super(PocketLintPyFlakesChecker, self).NAME(node)
 
 
-class Reporter:
+class Reporter(object):
     """Common rules for checkers."""
     CONSOLE = object()
     FILE_LINES = object()
@@ -137,14 +174,14 @@ class Reporter:
                          base_dir=None, file_name=None):
         """Print the messages to the console."""
         self._message_console_group(base_dir, file_name)
-        print '    %4s: %s' % (line_no, message)
+        print('    %4s: %s' % (line_no, message))
 
     def _message_console_group(self, base_dir, file_name):
         """Print the file name is it has not been seen yet."""
         source = (base_dir, file_name)
         if file_name is not None and source != self._last_file_name:
             self._last_file_name = source
-            print '%s' % os.path.join('./', base_dir, file_name)
+            print('%s' % os.path.join('./', base_dir, file_name))
 
     def _message_file_lines(self, line_no, message, icon=None,
                             base_dir=None, file_name=None):
@@ -157,12 +194,12 @@ class Reporter:
             self.piter, (file_name, icon, line_no, message, base_dir))
 
     def _message_collector(self, line_no, message, icon=None,
-                         base_dir=None, file_name=None):
+                           base_dir=None, file_name=None):
         self._last_file_name = (base_dir, file_name)
         self.messages.append((line_no, message))
 
 
-class Language:
+class Language(object):
     """Supported Language types."""
     TEXT = object()
     PYTHON = object()
@@ -206,7 +243,7 @@ class Language:
         'application/x-sh': SH,
         'application/x-zope-configuration': ZCML,
         'application/x-zope-page-template': ZPT,
-        }
+    }
     doctest_pattern = re.compile(
         r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
 
@@ -241,16 +278,20 @@ class Language:
         return Language.get_language(file_path) is not None
 
 
-class BaseChecker:
+class BaseChecker(object):
     """Common rules for checkers.
 
     The Decedent must provide self.file_name and self.base_dir
     """
+    REENCODE = True
+
     def __init__(self, file_path, text, reporter=None, options=None):
         self.file_path = file_path
         self.base_dir = os.path.dirname(file_path)
         self.file_name = os.path.basename(file_path)
         self.text = text
+        if self.REENCODE:
+            self.text = u(text)
         self.set_reporter(reporter=reporter)
         self.options = options
 
@@ -285,7 +326,7 @@ class BaseChecker:
 
 
 class UniversalChecker(BaseChecker):
-    """Check and reformat doctests."""
+    """Check and reformat source files."""
 
     def __init__(self, file_path, text,
                  language=None, reporter=None, options=None):
@@ -368,8 +409,7 @@ class AnyTextMixin:
             self.message(
                 total_lines,
                 'File does not ends with an empty line.',
-                icon='info',
-                )
+                icon='info')
 
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
@@ -407,22 +447,33 @@ class XMLChecker(BaseChecker, AnyTextMixin):
 
     xml_decl_pattern = re.compile(r'<\?xml .*?\?>')
     xhtml_doctype = (
-        u'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
-        u'"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
+    non_ns_types = (Language.ZPT, Language.ZCML)
+
+    def handle_namespaces(self, parser):
+        """Do not check namespaces for grammars used by ns-specific tools."""
+        if Language.get_language(self.file_name) in self.non_ns_types:
+            xparser = ParserCreate()
+            xparser.DefaultHandlerExpand = parser._default
+            xparser.StartElementHandler = parser._start
+            xparser.EndElementHandler = parser._end
+            xparser.CharacterDataHandler = parser._data
+            xparser.CommentHandler = parser._comment
+            xparser.ProcessingInstructionHandler = parser._pi
+            # Set the etree parser to use the expat non-ns parser.
+            parser.parser = parser._parser = xparser
 
     def check(self):
         """Check the syntax of the python code."""
+        # Reconcile the text and Expat checker text requriements.
         if self.text == '':
             return
         parser = ElementTree.XMLParser()
-        parser.entity.update(htmlentitydefs.entitydefs)
+        self.handle_namespaces(parser)
+        parser.entity.update(entitydefs)
         offset = 0
-        try:
-            # This is a sanity check to work with the true text....
-            text = unicode(self.text.decode('utf-8').encode('utf-8'))
-        except UnicodeDecodeError:
-            # ...but this fallback is okay since this check is about markup.
-            text = self.text.decode('ascii', 'ignore').encode('utf-8')
+        text = self.text
         if text.find('<!DOCTYPE') == -1:
             # Expat requires a doctype to honour parser.entity.
             offset = 1
@@ -436,7 +487,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
             text = text.replace('<!DOCTYPE html>', self.xhtml_doctype)
         try:
             ElementTree.parse(StringIO(text), parser)
-        except (ExpatError, ParseError), error:
+        except (ExpatError, ParseError) as error:
             if hasattr(error, 'code'):
                 error_message = ErrorString(error.code)
                 if hasattr(error, 'position') and error.position:
@@ -539,8 +590,20 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         CSSCodingConventionChecker(self.text, logger=self.message).check()
 
 
+class PEP8Report(pep8.StandardReport):
+
+    def __init__(self, options, message_function):
+        super(PEP8Report, self).__init__(options)
+        self.message = message_function
+
+    def error(self, line_no, offset, message, check):
+        self.message(line_no, message, icon='info')
+
+
 class PythonChecker(BaseChecker, AnyTextMixin):
     """Check python source code."""
+
+    REENCODE = False
 
     # This regex is taken from PEP 0263.
     encoding_pattern = re.compile("coding[:=]\s*([-\w.]+)")
@@ -564,7 +627,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         try:
             tree = compile(
                 self.text, self.file_path, "exec", _ast.PyCF_ONLY_AST)
-        except (SyntaxError, IndentationError), exc:
+        except (SyntaxError, IndentationError) as exc:
             line_no = exc.lineno or 0
             line = exc.text or ''
             explanation = 'Could not compile; %s' % exc.msg
@@ -579,29 +642,21 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
     def check_pep8(self):
         """Check style."""
+        style_options = pep8.StyleGuide(
+            max_line_length=self.check_length_filter)
+        options = style_options.options
+        pep8_report = PEP8Report(options, self.message)
         try:
-            # Monkey patch pep8 for direct access to the messages.
-            original_report_error = pep8.Checker.report_error
-
-            def pep8_report_error(ignore, line_no, offset, message, check):
-                self.message(line_no, message, icon='info')
-
-            pep8.Checker.report_error = pep8_report_error
-            original_max_line_length = pep8.MAX_LINE_LENGTH
-            pep8.MAX_LINE_LENGTH = self.check_length_filter
-            pep8.process_options([self.file_path])
-            try:
-                pep8.Checker(self.file_path).check_all()
-            except TokenError, er:
-                message, location = er.args
-                self.message(location[0], message, icon='error')
-            except IndentationError, er:
-                message, location = er.args
-                message = "%s: %s" % (message, location[3].strip())
-                self.message(location[1], message, icon='error')
-        finally:
-            pep8.MAX_LINE_LENGTH = original_max_line_length
-            pep8.Checker.report_error = original_report_error
+            pep8_checker = pep8.Checker(
+                self.file_path, options=options, report=pep8_report)
+            pep8_checker.check_all()
+        except TokenError as er:
+            message, location = er.args
+            self.message(location[0], message, icon='error')
+        except IndentationError as er:
+            message, location = er.args
+            message = "%s: %s" % (message, location[3].strip())
+            self.message(location[1], message, icon='error')
 
     def check_text(self):
         """Call each line_method for each line in text."""
@@ -636,7 +691,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             return
         try:
             line.encode('ascii')
-        except UnicodeEncodeError, error:
+        except UnicodeEncodeError as error:
             self.message(
                 line_no, 'Non-ascii characer at position %s.' % error.end,
                 icon='error')
@@ -657,7 +712,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
         jslint = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         issues, errors = jslint.communicate()
-        issues = issues.strip()
+        issues = issues.decode('utf-8').strip()
         if issues:
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')
@@ -719,9 +774,9 @@ class JSONChecker(BaseChecker, AnyTextMixin):
 
         try:
             json.loads(self.text)
-        except ValueError, error:
+        except ValueError as error:
             line_number = 0
-            message = error.message
+            message = str(error)
             match = re.search(r"(.*): line (\d+)", message)
             if match:
                 try:
@@ -738,8 +793,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
 
     # Taken from rst documentation.
     delimiter_characters = [
-        '=', '-', '`', ':', '\'', '"', '~', '^', '_', '*', '+', '#', '<', '>',
-        ]
+        '=', '-', '`', ':', '\'', '"', '~', '^', '_', '*', '+', '#', '<', '>']
 
     def __init__(self, file_path, text, reporter=None):
         super(ReStructuredTextChecker, self).__init__(
@@ -803,8 +857,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             self.message(
                 line_number + 1,
                 'Transition markers should be bounded by single empty lines.',
-                icon='info',
-                )
+                icon='info')
 
     def isSectionDelimiter(self, line_number):
         '''Return true if the line is a section delimiter.'''
@@ -895,22 +948,19 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             self.message(
                 human_line_number,
                 'Section marker has wrong length.',
-                icon='error',
-                )
+                icon='error')
 
         if not self._haveGoodSpacingBeforeSection(top_marker):
             self.message(
                 human_line_number,
                 'Section should be divided by 2 empty lines.',
-                icon='info',
-                )
+                icon='info')
 
         if not self._haveGoodSpacingAfterSection(bottom_marker):
             self.message(
                 human_line_number,
                 'Section title should be followed by 1 empty line.',
-                icon='info',
-                )
+                icon='info')
 
     def _sectionHasCustomAnchor(self, top_marker):
         if (top_marker - 2) < 0:
@@ -988,7 +1038,7 @@ def get_option_parser():
         do_format=False,
         is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
-        )
+    )
     return parser
 
 
@@ -1002,7 +1052,7 @@ def check_sources(sources, options, reporter=None):
             continue
         language = Language.get_language(file_path)
         with open(file_path) as file_:
-            text = file_.read()
+            text = file_.read().decode('utf-8')
         if language is Language.DOCTEST and options.do_format:
             formatter = DoctestReviewer(text, file_path, reporter)
             formatter.format_and_save(options.is_interactive)
