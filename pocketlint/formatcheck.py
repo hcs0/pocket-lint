@@ -61,6 +61,8 @@ try:
 except ImportError:
     from pocketlint import PyFlakesChecker
 
+from pocketlint import u
+
 try:
     import cssutils
     HAS_CSSUTILS = True
@@ -85,25 +87,6 @@ JS = find_exec(['gjs', 'seed'])
 
 
 DEFAULT_MAX_LENGTH = 80
-
-
-if int(sys.version[0]) < 3:
-    import codecs
-
-    def u(string):
-        try:
-            # This is a sanity check to work with the true text...
-            text = string.decode('utf-8').encode('utf-8')
-        except UnicodeDecodeError:
-            # ...but this fallback is okay since this comtemt.
-            text = string.decode('ascii', 'ignore').encode('utf-8')
-        return codecs.unicode_escape_decode(text)[0]
-else:
-    def u(string):  # pyflakes:ignore
-        if isinstance(string, str):
-            return string
-        else:
-            return str(string.decode('utf-8'))
 
 
 class PocketLintPyFlakesChecker(PyFlakesChecker):
@@ -328,7 +311,7 @@ class BaseChecker(object):
 
 
 class UniversalChecker(BaseChecker):
-    """Check and reformat doctests."""
+    """Check and reformat source files."""
 
     def __init__(self, file_path, text,
                  language=None, reporter=None, options=None):
