@@ -78,7 +78,7 @@ def find_exec(names):
             ['which', name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         js_exec, ignore = js.communicate()
         if js.returncode == 0:
-            return js_exec.strip()
+            return js_exec.decode('utf8').strip()
 
 
 JS = find_exec(['gjs', 'seed'])
@@ -714,7 +714,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
         jslint = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         issues, errors = jslint.communicate()
-        issues = issues.strip()
+        issues = issues.decode('utf8').strip()
         if issues:
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')
