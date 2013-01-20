@@ -103,7 +103,7 @@ else:
         if isinstance(string, str):
             return string
         else:
-            return str(string.decode('utf-8'))
+            return str(string.decode('utf-8', 'ignore'))
 
 
 class PocketLintPyFlakesChecker(PyFlakesChecker):
