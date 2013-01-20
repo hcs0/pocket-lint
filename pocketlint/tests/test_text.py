@@ -1,10 +1,16 @@
-# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
+
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+)
 
 from pocketlint.formatcheck import (
     AnyTextChecker,
     get_option_parser,
-    )
+)
 from pocketlint.tests import CheckerTestCase
 
 
@@ -63,6 +69,18 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
             file_name, text, self.reporter, options)
         checker.check()
 
+    def test_reencode_ascii(self):
+        """Bytes strings are rencoded to get unicode"""
+        ascii_line = b"this will be unicode"
+        checker = AnyTextChecker('bogus', ascii_line, self.reporter)
+        self.assertEqual("this will be unicode", checker.text)
+
+    def test_reencode_utf8(self):
+        """UTF-8 Bytes strings are rencoded to get unicode"""
+        ascii_line = b"this will be unicode \xe2"
+        checker = AnyTextChecker('bogus', ascii_line, self.reporter)
+        self.assertEqual("this will be unicode ", checker.text)
+
     def test_with_tabs(self):
         """Text files may contain tabs."""
         pass
@@ -93,8 +111,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         """
         content = (
             'Some first line\n'
-            'the second and last line without newline'
-            )
+            'the second and last line without newline')
         checker = AnyTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(2)
         expected = [(
@@ -107,8 +124,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         content = (
             'Some first line\n'
             'the second and last\n'
-            '\n'
-            )
+            '\n')
         checker = AnyTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(3)
         expected = [(
@@ -119,8 +135,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
     def test_single_last_line_no_newline(self):
         """An error is reported if file contains a single newline."""
         content = (
-            'the second and last line without newline'
-            )
+            'the second and last line without newline')
         checker = AnyTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(2)
         expected = [(

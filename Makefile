@@ -7,7 +7,8 @@ build:
 test:
 	$(PYTHON) test.py
 
-check: build test
+check: build
+	$(PYTHON) -m unittest discover pocketlint
 
 changelog:
 	@if test -d .bzr/branch; then \
