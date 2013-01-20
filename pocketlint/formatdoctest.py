@@ -399,10 +399,10 @@ class DoctestReviewer(object):
                     self.doctest.splitlines(), new_doctest.splitlines())
                 print('\n'.join(diff))
                 print('\n')
-                if sys.version < 3:
-                    user_input = raw_input
-                else:
+                if sys.version_info >= (3,):
                     user_input = input
+                else:
+                    user_input = raw_input
                 do_save = user_input(
                     'Do you wish to save the changes? S(ave) or C(ancel)?')
             else:
