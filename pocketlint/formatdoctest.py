@@ -61,7 +61,11 @@ class DoctestReviewer(object):
         try:
             return parser.parse(self.doctest, self.file_path)
         except ValueError as error:
-            self._print_message(str(error), 0)
+            # Output code without unicode literals needs to be normalised
+            # largely for the test suite, and somewhat for the person reading
+            # message.
+            message = str(error).replace("u'", "'")
+            self._print_message(message, 0)
             return []
 
     def _print_message(self, message, lineno):

@@ -25,7 +25,7 @@ You can work with file paths using os.path
     ./pocketlint/formatcheck.py
 """
 
-malformed_doctest = b"""\
+malformed_doctest = """\
 You can work with file paths using os.path
     >>> import os.path
     >>> os.path.join('.', 'pocketlint', 'formatcheck.py')
