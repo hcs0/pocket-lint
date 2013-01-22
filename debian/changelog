@@ -1,3 +1,10 @@
+pocket-lint (1.1.0-0gdp) raring; urgency=low
+
+  * New upstream release fixes LP:1103065
+    Fixes import of doctest and contrib modules.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Tue, 22 Jan 2013 11:52:35 -0500
+
 pocket-lint (1.0.0-0gdp) raring; urgency=low
 
   * New upstream release fixes LP:1086553, LP:1102188, LP:1102189
