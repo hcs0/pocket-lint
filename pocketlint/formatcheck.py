@@ -51,10 +51,10 @@ from xml.parsers.expat import (
     ParserCreate,
 )
 
-from formatdoctest import DoctestReviewer
+from pocketlint.formatdoctest import DoctestReviewer
 
-import contrib.pep8 as pep8
-from contrib.cssccc import CSSCodingConventionChecker
+import pocketlint.contrib.pep8 as pep8
+from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
     from pyflakes.checker import Checker as PyFlakesChecker
     PyFlakesChecker
