@@ -1,3 +1,10 @@
+pocket-lint (1.2.0-0gdp) raring; urgency=low
+
+  * New upstream release fixes LP:1105242
+    Fixes checking of utf-8 xml files.
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Fri, 25 Jan 2013 18:08:37 -0500
+
 pocket-lint (1.1.0-0gdp) raring; urgency=low
 
   * New upstream release fixes LP:1103065
