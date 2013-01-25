@@ -98,6 +98,8 @@ else:
         try:
             # This is a sanity check to work with the true text...
             text = string.decode('utf-8').encode('utf-8')
+        except UnicodeEncodeError:
+            text = string.encode('utf-8').decode('utf-8').encode('utf-8')
         except UnicodeDecodeError:
             # ...but this fallback is okay since this comtemt.
             text = string.decode('utf-8', 'ignore').encode('utf-8')
@@ -473,7 +475,9 @@ class XMLChecker(BaseChecker, AnyTextMixin):
         self.handle_namespaces(parser)
         parser.entity.update(entitydefs)
         offset = 0
-        text = self.text
+        # The expat parser seems to be assuming ascii even when
+        # XMLParser(encoding='utf-8') is used above.
+        text = self.text.encode('utf-8').decode('ascii', 'ignore')
         if text.find('<!DOCTYPE') == -1:
             # Expat requires a doctype to honour parser.entity.
             offset = 1
