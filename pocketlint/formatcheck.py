@@ -19,40 +19,55 @@ __all__ = [
 
 import _ast
 try:
+    from io import StringIO
+except ImportError:
+    # Pything 2.7 and below
+    from StringIO import StringIO  # pyflakes:ignore
+
+try:
     from html.entities import entitydefs
-    entitydefs
 except:
-    from htmlentitydefs import entitydefs
+    from htmlentitydefs import entitydefs  # pyflakes:ignore
+
+try:
+    import json
+    HAS_JSON = True
+except ImportError:
+    try:
+        from simplejson import json  # pyflakes:ignore
+        HAS_JSON = True
+    except ImportError:
+        HAS_JSON = False
+
 import logging
 import mimetypes
+from optparse import OptionParser
 import os
 import re
 import subprocess
 import sys
-
-from optparse import OptionParser
-try:
-    from io import StringIO
-    StringIO
-except ImportError:
-    # Pything 2.7 and below
-    from StringIO import StringIO
 from tokenize import TokenError
 from xml.etree import ElementTree
+
 try:
     from xml.etree.ElementTree import ParseError
-    ParseError != '# Supress redefintion warning.'
 except ImportError:
     # Python 2.6 and below.
-    ParseError = object()
+    ParseError = object()  # pyflakes:ignore
+
 from xml.parsers.expat import (
     ErrorString,
     ExpatError,
     ParserCreate,
 )
 
-from pocketlint.formatdoctest import DoctestReviewer
+try:
+    import cssutils
+    HAS_CSSUTILS = True
+except ImportError:
+    HAS_CSSUTILS = False
 
+from pocketlint.formatdoctest import DoctestReviewer
 import pocketlint.contrib.pep8 as pep8
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
@@ -60,12 +75,6 @@ try:
     PyFlakesChecker
 except ImportError:
     from pocketlint import PyFlakesChecker
-
-try:
-    import cssutils
-    HAS_CSSUTILS = True
-except ImportError:
-    HAS_CSSUTILS = False
 
 
 def find_exec(names):
@@ -767,14 +776,8 @@ class JSONChecker(BaseChecker, AnyTextMixin):
 
     def check_load(self):
         """Check that JSON can be deserialized/loaded."""
-        try:
-            import json
-        except ImportError:
-            try:
-                from simplejson import json  # pyflakes:ignore
-            except ImportError:
-                raise AssertionError('JSON module could not be loaded.')
-
+        if not HAS_JSON:
+            return
         try:
             json.loads(self.text)
         except ValueError as error:
