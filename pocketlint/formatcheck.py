@@ -1055,8 +1055,8 @@ def check_sources(sources, options, reporter=None):
         if os.path.isdir(source) or not Language.is_editable(source):
             continue
         language = Language.get_language(file_path)
-        with open(file_path) as file_:
-            text = file_.read().decode('utf-8')
+        with open(file_path, 'rt') as file_:
+            text = file_.read()
         if language is Language.DOCTEST and options.do_format:
             formatter = DoctestReviewer(text, file_path, reporter)
             formatter.format_and_save(options.is_interactive)

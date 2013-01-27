@@ -483,8 +483,8 @@ def show_usage():
 def read_file(filename):
     '''Return the content of filename.'''
     text = ''
-    with open(filename, 'r') as f:
-        text = f.read().decode('utf-8')
+    with open(filename, 'rt') as f:
+        text = f.read()
     return text
 
 

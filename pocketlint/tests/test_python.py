@@ -29,7 +29,7 @@ class example:
 
     def __init__(self, value):
         try:
-            open("some.file")
+            open("some.file", 'rt')
         except WindowsError:
             pass
 """
