@@ -548,9 +548,13 @@ class CSSReporterHandler(logging.Handler):
         if matches is None:
             matches = self.error_pattern.search(record.getMessage())
         try:
+            issue = matches.group('issue')
+            text = matches.group('text')
+            if 'Level 2.1' in issue and issue.endswith('rem'):
+                # Do not suggest that using CSS3 is bad.
+                return
             line_no = matches.group('lineno')
-            message = "%s: %s" % (
-                matches.group('issue'), matches.group('text'))
+            message = "%s: %s" % (issue, text)
         except AttributeError:
             line_no = 0
             message = record.getMessage()
