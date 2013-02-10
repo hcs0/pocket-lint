@@ -52,7 +52,7 @@ class Check(Command):
 setup(
     name="pocketlint",
     description="Pocket-lint a composite linter and style checker.",
-    version="1.1.0",
+    version="1.3.0",
     maintainer="Curtis C. Hovey",
     maintainer_email="sinzui.is@verizon.net",
     url="https://launchpad.net/pocket-lint",

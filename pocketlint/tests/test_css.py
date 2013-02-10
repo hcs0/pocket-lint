@@ -21,6 +21,13 @@ body {
     }
 """
 
+css3 = """\
+body {
+    margin: 24px;
+    margin: 2rem;
+    }
+"""
+
 ill_formed_property = """\
 body {
     font-family: Ubuntu
@@ -40,6 +47,11 @@ class TestCSS(CheckerTestCase):
 
     def test_good_css(self):
         checker = CSSChecker('bogus', good_css, self.reporter)
+        checker.check()
+        self.assertEqual([], self.reporter.messages)
+
+    def test_css3(self):
+        checker = CSSChecker('bogus', css3, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
 

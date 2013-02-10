@@ -19,40 +19,55 @@ __all__ = [
 
 import _ast
 try:
+    from io import StringIO
+except ImportError:
+    # Pything 2.7 and below
+    from StringIO import StringIO  # pyflakes:ignore
+
+try:
     from html.entities import entitydefs
-    entitydefs
 except:
-    from htmlentitydefs import entitydefs
+    from htmlentitydefs import entitydefs  # pyflakes:ignore
+
+try:
+    import json
+    HAS_JSON = True
+except ImportError:
+    try:
+        from simplejson import json  # pyflakes:ignore
+        HAS_JSON = True
+    except ImportError:
+        HAS_JSON = False
+
 import logging
 import mimetypes
+from optparse import OptionParser
 import os
 import re
 import subprocess
 import sys
-
-from optparse import OptionParser
-try:
-    from io import StringIO
-    StringIO
-except ImportError:
-    # Pything 2.7 and below
-    from StringIO import StringIO
 from tokenize import TokenError
 from xml.etree import ElementTree
+
 try:
     from xml.etree.ElementTree import ParseError
-    ParseError != '# Supress redefintion warning.'
 except ImportError:
     # Python 2.6 and below.
-    ParseError = object()
+    ParseError = object()  # pyflakes:ignore
+
 from xml.parsers.expat import (
     ErrorString,
     ExpatError,
     ParserCreate,
 )
 
-from pocketlint.formatdoctest import DoctestReviewer
+try:
+    import cssutils
+    HAS_CSSUTILS = True
+except ImportError:
+    HAS_CSSUTILS = False
 
+from pocketlint.formatdoctest import DoctestReviewer
 import pocketlint.contrib.pep8 as pep8
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
@@ -60,12 +75,6 @@ try:
     PyFlakesChecker
 except ImportError:
     from pocketlint import PyFlakesChecker
-
-try:
-    import cssutils
-    HAS_CSSUTILS = True
-except ImportError:
-    HAS_CSSUTILS = False
 
 
 def find_exec(names):
@@ -95,15 +104,14 @@ if sys.version_info >= (3,):
             return str(string.decode('utf-8', 'ignore'))
 else:
     def u(string):  # pyflakes:ignore
+        if isinstance(string, unicode):
+            return string
         try:
             # This is a sanity check to work with the true text...
-            text = string.decode('utf-8').encode('utf-8')
-        except UnicodeEncodeError:
-            text = string.encode('utf-8').decode('utf-8').encode('utf-8')
+            return string.decode('utf-8')
         except UnicodeDecodeError:
             # ...but this fallback is okay since this comtemt.
-            text = string.decode('utf-8', 'ignore').encode('utf-8')
-        return text.decode('utf-8')
+            return string.decode('utf-8', 'ignore')
 
 
 class PocketLintPyFlakesChecker(PyFlakesChecker):
@@ -540,9 +548,13 @@ class CSSReporterHandler(logging.Handler):
         if matches is None:
             matches = self.error_pattern.search(record.getMessage())
         try:
+            issue = matches.group('issue')
+            text = matches.group('text')
+            if 'Level 2.1' in issue and issue.endswith('rem'):
+                # Do not suggest that using CSS3 is bad.
+                return
             line_no = matches.group('lineno')
-            message = "%s: %s" % (
-                matches.group('issue'), matches.group('text'))
+            message = "%s: %s" % (issue, text)
         except AttributeError:
             line_no = 0
             message = record.getMessage()
@@ -768,14 +780,8 @@ class JSONChecker(BaseChecker, AnyTextMixin):
 
     def check_load(self):
         """Check that JSON can be deserialized/loaded."""
-        try:
-            import json
-        except ImportError:
-            try:
-                from simplejson import json  # pyflakes:ignore
-            except ImportError:
-                raise AssertionError('JSON module could not be loaded.')
-
+        if not HAS_JSON:
+            return
         try:
             json.loads(self.text)
         except ValueError as error:
@@ -1055,8 +1061,8 @@ def check_sources(sources, options, reporter=None):
         if os.path.isdir(source) or not Language.is_editable(source):
             continue
         language = Language.get_language(file_path)
-        with open(file_path) as file_:
-            text = file_.read().decode('utf-8')
+        with open(file_path, 'rt') as file_:
+            text = file_.read()
         if language is Language.DOCTEST and options.do_format:
             formatter = DoctestReviewer(text, file_path, reporter)
             formatter.format_and_save(options.is_interactive)

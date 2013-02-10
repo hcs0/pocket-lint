@@ -409,7 +409,7 @@ class DoctestReviewer(object):
                 do_save = 'S'
             self.doctest = new_doctest
             if do_save.upper() == 'S':
-                with open(self.file_path, 'w') as doctest_file:
+                with open(self.file_path, 'wt') as doctest_file:
                     doctest_file.write(new_doctest)
 
 
