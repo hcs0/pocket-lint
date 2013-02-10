@@ -1,3 +1,9 @@
+pocket-lint (1.3.0-0gdp) raring; urgency=low
+
+  * New upstream: Refactors UTF-8 encoding. fixes LP:1121426
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Sun, 10 Feb 2013 15:46:57 -0500
+
 pocket-lint (1.2.0-0gdp) raring; urgency=low
 
   * New upstream release fixes LP:1105242
