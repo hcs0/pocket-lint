@@ -45,7 +45,6 @@ TODO:
 
 from __future__ import (
     absolute_import,
-    print_function,
     unicode_literals,
     with_statement,
 )
@@ -82,6 +81,11 @@ AT_BLOCK_RULES = ['page', 'font-face']
 #     property:
 #     }
 IGNORED_MESSAGES = ['I005', 'I006']
+
+
+def to_console(text):
+    sys.stdout.write(text)
+    sys.stdout.write('\n')
 
 
 class CSSRule(object):
@@ -340,7 +344,7 @@ class CSSCodingConventionChecker(object):
 
     def _defaultLog(self, line_number, message, icon='info'):
         '''Log the message to STDOUT.'''
-        print('    %4s:%s' % (line_number, message))
+        to_console('    %4s:%s' % (line_number, message))
 
     def _nextStatementIsAtRule(self):
         '''Return True if next statement in the buffer is an at-rule.
@@ -463,10 +467,10 @@ def _check_comment(data):
 
 def show_usage():
     '''Print the command usage.'''
-    print('Usage: cssccc OPTIONS')
-    print('  -h, --help\t\tShow this help.')
-    print('  -v, --version\t\tShow version.')
-    print('  -f FILE, --file=FILE\tCheck FILE')
+    to_console('Usage: cssccc OPTIONS')
+    to_console('  -h, --help\t\tShow this help.')
+    to_console('  -v, --version\t\tShow version.')
+    to_console('  -f FILE, --file=FILE\tCheck FILE')
 
 
 def read_file(filename):
@@ -481,7 +485,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         show_usage()
     elif sys.argv[1] in ['-v', '--version']:
-        print('CSS Code Convention Checker %s' % (__version__))
+        to_console('CSS Code Convention Checker %s' % (__version__))
         sys.exit(0)
     elif sys.argv[1] == '-f':
         text = read_file(sys.argv[2])

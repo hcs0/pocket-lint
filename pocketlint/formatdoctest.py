@@ -5,7 +5,6 @@
 
 from __future__ import (
     absolute_import,
-    print_function,
     unicode_literals,
     with_statement,
 )
@@ -25,6 +24,7 @@ from doctest import DocTestParser, Example
 from optparse import OptionParser
 from textwrap import wrap
 
+from pocketlint.reporter import Reporter
 try:
     from pyflakes.checker import Checker as PyFlakesChecker
     PyFlakesChecker
@@ -53,7 +53,7 @@ class DoctestReviewer(object):
         self.example = None
         self.last_bad_indent = 0
         self.has_printed_filename = False
-        self._reporter = reporter
+        self._reporter = reporter or Reporter(Reporter.CONSOLE)
         self.options = options
 
     def get_parts(self):
@@ -74,15 +74,9 @@ class DoctestReviewer(object):
         :param message: The message to print.
         :param lineno: The line number the message pertains to.
         """
-        if self._reporter is None:
-            if not self.has_printed_filename:
-                print('%s:' % self.file_path)
-                self.has_printed_filename = True
-            print('    % 4s: %s' % (lineno, message))
-        else:
-            self._reporter(
-                int(lineno), message,
-                base_dir=self.base_dir, file_name=self.file_name)
+        self._reporter(
+            int(lineno), message,
+            base_dir=self.base_dir, file_name=self.file_name)
 
     def _is_formatted(self, text):
         """Return True if the text is pre-formatted, otherwise False.
@@ -397,8 +391,8 @@ class DoctestReviewer(object):
             if is_interactive:
                 diff = unified_diff(
                     self.doctest.splitlines(), new_doctest.splitlines())
-                print('\n'.join(diff))
-                print('\n')
+                sys.stdout.write('\n'.join(diff))
+                sys.stdout.write('\n\n')
                 if sys.version_info >= (3,):
                     user_input = input
                 else:
