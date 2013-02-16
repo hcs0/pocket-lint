@@ -21,7 +21,7 @@ good_python = """\
 class example:
 
     def __init__(self, value):
-        print("Good night.")
+        len("Good night.")
 """
 
 good_python_on_windows = """\

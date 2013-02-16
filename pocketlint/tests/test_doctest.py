@@ -144,7 +144,7 @@ class TestDoctest(CheckerTestCase):
             "Heading\n.......\n\nnarrative", text)
 
     def test_bad_indentation(self):
-        doctest = "narrative\n>>> print('done')\n"
+        doctest = "narrative\n>>> len('done')\n"
         self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
@@ -154,25 +154,25 @@ class TestDoctest(CheckerTestCase):
             self.reporter.messages)
 
     def test_fix_bad_indentation(self):
-        doctest = "narrative\n>>> print('done')\n"
+        doctest = "narrative\n>>> len('done')\n"
         self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual(
-            "narrative\n\n    >>> print('done')\n\n", text)
+            "narrative\n\n    >>> len('done')\n\n", text)
 
     def test_fix_bad_indentation_with_source_and_want(self):
-        doctest = "narrative\n\n>>> print(\n...     'done')"
+        doctest = "narrative\n\n>>> len(\n...     'done')"
         self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
         self.assertEqual(
-            "narrative\n\n    >>> print(\n    ...     'done')\n\n", text)
+            "narrative\n\n    >>> len(\n    ...     'done')\n\n", text)
 
     def test_trailing_whitespace(self):
-        doctest = "narrative  \n    >>> print('done')\n"
+        doctest = "narrative  \n    >>> len('done')\n"
         self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
@@ -182,12 +182,12 @@ class TestDoctest(CheckerTestCase):
             self.reporter.messages)
 
     def test_fix_trailing_whitespace(self):
-        doctest = "narrative  \n    >>> print('done') \n"
+        doctest = "narrative  \n    >>> len('done') \n"
         self.write_to_file(self.file, doctest)
         checker = DoctestReviewer(
             self.file.name, doctest, self.reporter)
         text = checker.format()
-        self.assertEqual("narrative\n\n    >>> print('done')\n\n", text)
+        self.assertEqual("narrative\n\n    >>> len('done')\n\n", text)
 
     def test_long_line_source_and_want(self):
         doctest = (
