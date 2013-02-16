@@ -5,7 +5,6 @@
 
 from __future__ import (
     absolute_import,
-    print_function,
     unicode_literals,
     with_statement,
 )
@@ -96,6 +95,31 @@ JS = find_exec(['gjs', 'seed'])
 DEFAULT_MAX_LENGTH = 80
 
 
+class ConsoleHandler(logging.StreamHandler):
+    """A handler that logs to console."""
+
+    def __init__(self):
+        logging.StreamHandler.__init__(self)
+        self.stream = None  # Not used.
+
+    def emit(self, record):
+        self.__emit(record, sys.stdout)
+
+    def __emit(self, record, stream):
+        self.stream = stream
+        logging.StreamHandler.emit(self, record)
+
+    def flush(self):
+        is_flushable = self.stream and hasattr(self.stream, 'flush')
+        if is_flushable and not self.stream.closed:
+            logging.StreamHandler.flush(self)
+
+
+logger = logging.getLogger()
+logger.propagate = False
+logger.addHandler(ConsoleHandler())
+
+
 if sys.version_info >= (3,):
     def u(string):
         if isinstance(string, str):
@@ -184,14 +208,14 @@ class Reporter(object):
                          base_dir=None, file_name=None):
         """Print the messages to the console."""
         self._message_console_group(base_dir, file_name)
-        print('    %4s: %s' % (line_no, message))
+        logger.error('    %4s: %s' % (line_no, message))
 
     def _message_console_group(self, base_dir, file_name):
         """Print the file name is it has not been seen yet."""
         source = (base_dir, file_name)
         if file_name is not None and source != self._last_file_name:
             self._last_file_name = source
-            print('%s' % os.path.join('./', base_dir, file_name))
+            logger.error('%s' % os.path.join('./', base_dir, file_name))
 
     def _message_file_lines(self, line_no, message, icon=None,
                             base_dir=None, file_name=None):
