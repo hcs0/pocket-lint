@@ -3,10 +3,11 @@
 """Reporting and output helpers."""
 
 __all__ = [
-    'CSSReporterHandler',
+    'css_report_handler',
     'Reporter',
 ]
 
+from contextlib import contextmanager
 import logging
 import os
 import re
@@ -133,3 +134,13 @@ class CSSReporterHandler(logging.Handler):
             line_no = 0
             message = record.getMessage()
         self.checker.message(int(line_no), message, icon=icon)
+
+
+@contextmanager
+def css_report_handler(checker, log_name):
+    handler = CSSReporterHandler(checker)
+    log = logging.getLogger(log_name)
+    log.addHandler(handler)
+    log.propagate = False
+    yield log
+    log.removeHandler(handler)

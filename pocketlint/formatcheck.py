@@ -68,7 +68,7 @@ except ImportError:
 
 from pocketlint.formatdoctest import DoctestReviewer
 from pocketlint.reporter import (
-    CSSReporterHandler,
+    css_report_handler,
     Reporter,
 )
 import pocketlint.contrib.pep8 as pep8
@@ -489,14 +489,10 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         """Check the CSS code by parsing it using CSSUtils module."""
         if not HAS_CSSUTILS:
             return
-        handler = CSSReporterHandler(self)
-        log = logging.getLogger('pocket-lint')
-        log.addHandler(handler)
-        log.propagate = False
-        parser = cssutils.CSSParser(
-            log=log, loglevel=logging.INFO, raiseExceptions=False)
-        parser.parseString(self.text)
-        log.removeHandler(handler)
+        with css_report_handler(self, 'pocket-lint') as log:
+            parser = cssutils.CSSParser(
+                log=log, loglevel=logging.INFO, raiseExceptions=False)
+            parser.parseString(self.text)
 
     def check_text(self):
         """Call each line_method for each line in text."""
