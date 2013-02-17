@@ -1,8 +1,11 @@
 #!/usr/bin/python
-# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
-__metaclass__ = type
+from __future__ import (
+    absolute_import,
+    print_function,
+)
 
 import re
 import os
@@ -23,7 +26,7 @@ except ImportError:
     unittest.runner = FakeRunner(_WritelnDecorator)
 
 
-class TPut:
+class TPut(object):
     """Terminal colours (tput) utility."""
     _colours = [
         'black', 'blue', 'green', 'white', 'red', 'magenta', 'yellow', 'grey']
@@ -82,24 +85,10 @@ class XTermWritelnDecorator(_WritelnDecorator):
         self.stream.write(text)
 
 
-def find_tests(root_dir, filter=None):
-    """Generate a list of matching test modules below a directory."""
-    for path, subdirs, files in os.walk(root_dir):
-        subdirs[:] = [dir for dir in subdirs]
-        if path.endswith('tests'):
-            for file_ in files:
-                if file_.startswith('test_') and file_.endswith('.py'):
-                    if filter and not re.search(filter, file_):
-                        continue
-                    file_path = os.path.join(path, file_)
-                    test_module = file_path[2:-3].replace('/', '.')
-                    yield test_module
-
-
 def show_help():
-    print '''\
+    print('''\
 python test.py [-h|--help] [test_module_regex_filter]
-'''
+''')
 
 
 def main():
@@ -108,16 +97,16 @@ def main():
             show_help()
             return
         else:
-            filter = sys.argv[1]
+            pattern = sys.argv[1]
     else:
-        filter = None
+        pattern = 'test*.py'
 
     unittest.runner._WritelnDecorator = XTermWritelnDecorator
     test_loader = unittest.defaultTestLoader
     suite = unittest.TestSuite()
-    for test_module in find_tests('.', filter=filter):
-        suite.addTest(test_loader.loadTestsFromName(test_module))
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    for test_module in test_loader.discover('pocketlint', pattern=pattern):
+        suite.addTest(test_module)
+    unittest.TextTestRunner(verbosity=1).run(suite)
 
 
 if __name__ == '__main__':

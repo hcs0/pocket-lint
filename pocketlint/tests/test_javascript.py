@@ -1,12 +1,18 @@
-# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
+
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+)
 
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatcheck import(
-     JavascriptChecker,
-     JS
-    )
+    JavascriptChecker,
+    JS
+)
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
@@ -32,8 +38,7 @@ class TestJavascript(CheckerTestCase):
         self.file.close()
 
     def test_good_js(self):
-        self.file.write(good_js)
-        self.file.flush()
+        self.write_to_file(self.file, good_js)
         checker = JavascriptChecker(self.file.name, good_js, self.reporter)
         checker.check()
         self.assertEqual([], self.reporter.messages)
@@ -41,8 +46,7 @@ class TestJavascript(CheckerTestCase):
     def test_invalid_value(self):
         if JS is None:
             return
-        self.file.write(invalid_js)
-        self.file.flush()
+        self.write_to_file(self.file, invalid_js)
         checker = JavascriptChecker(self.file.name, invalid_js, self.reporter)
         checker.check()
         self.assertEqual(

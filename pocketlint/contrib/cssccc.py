@@ -42,7 +42,12 @@ TODO:
  * add support for TAB as a separator / identation.
  * add support for @media
 '''
-from __future__ import with_statement
+
+from __future__ import (
+    absolute_import,
+    unicode_literals,
+    with_statement,
+)
 
 __version__ = '0.1.1'
 
@@ -76,6 +81,11 @@ AT_BLOCK_RULES = ['page', 'font-face']
 #     property:
 #     }
 IGNORED_MESSAGES = ['I005', 'I006']
+
+
+def to_console(text):
+    sys.stdout.write(text)
+    sys.stdout.write('\n')
 
 
 class CSSRule(object):
@@ -119,8 +129,7 @@ class CSSRuleSet(object):
         return '%d:%s{%s}' % (
             self.selector.start_line,
             str(self.selector),
-            str(self.declarations),
-            )
+            str(self.declarations))
 
     def check(self):
         '''Check the rule set.'''
@@ -159,7 +168,8 @@ class CSSRuleSet(object):
                 'I005',
                 'No newline after last selector.')
 
-        if not (last_selector[-2] != ' ' and last_selector[-1] == (' ')):
+        if (len(last_selector) < 2 or
+                not (last_selector[-2] != ' ' and last_selector[-1] == (' '))):
             self.log(
                 start_line + offset,
                 'I013',
@@ -178,43 +188,37 @@ class CSSRuleSet(object):
                 self.log(
                     start_line + offset,
                     'I007',
-                    'Each declarations should start on a new line.',
-                    )
+                    'Each declarations should start on a new line.')
             elif (not declaration.startswith('\n    ') or
-                declaration[5] == ' '):
+                  declaration[5] == ' '):
                 self.log(
                     start_line + offset,
                     'I008',
-                    'Each declaration must be indented with 4 spaces.',
-                    )
+                    'Each declaration must be indented with 4 spaces.')
 
             parts = declaration.split(PROPERTY_SEPARATOR)
             if len(parts) != 2:
                 self.log(
                     start_line + offset,
                     'I009',
-                    'Wrong separator on property: value pair.',
-                    )
+                    'Wrong separator on property: value pair.')
             else:
                 prop, value = parts
                 if prop.endswith(' '):
                     self.log(
                         start_line + offset,
                         'I010',
-                        'Whitespace before ":".',
-                        )
+                        'Whitespace before ":".')
                 if not (value.startswith(' ') or value.startswith('\n')):
                     self.log(
                         start_line + offset,
                         'I011',
-                        'Missing whitespace after ":".',
-                        )
+                        'Missing whitespace after ":".')
                 elif value.startswith('  '):
                     self.log(
                         start_line + offset,
                         'I012',
-                        'Multiple whitespaces after ":".',
-                        )
+                        'Multiple whitespaces after ":".')
             if first_declaration:
                 first_declaration = False
             else:
@@ -226,14 +230,12 @@ class CSSRuleSet(object):
             self.log(
                 start_line + offset,
                 'I006',
-                'Rule declarations should end with a single new line.',
-                )
+                'Rule declarations should end with a single new line.')
         if last_declaration != '\n    ':
             self.log(
                 start_line + offset,
                 'I014',
-                'Rule declarations should end indented on a single new line.',
-                )
+                'Rule declarations should end indented on a single new line.')
 
 
 class CSSStatementMember(object):
@@ -274,7 +276,7 @@ class CSSCodingConventionChecker(object):
     icons = {
         'E': 'error',
         'I': 'info',
-        }
+    }
 
     def __init__(self, text, logger=None):
         self._text = text.splitlines(True)
@@ -342,7 +344,7 @@ class CSSCodingConventionChecker(object):
 
     def _defaultLog(self, line_number, message, icon='info'):
         '''Log the message to STDOUT.'''
-        print '    %4s:%s' % (line_number, message)
+        to_console('    %4s:%s' % (line_number, message))
 
     def _nextStatementIsAtRule(self):
         '''Return True if next statement in the buffer is an at-rule.
@@ -384,10 +386,8 @@ class CSSCodingConventionChecker(object):
                 break
 
             # Look for comment start/end.
-            (comment_update,
-            before_comment,
-            after_comment,
-            newline_consumed) = _check_comment(data)
+            (comment_update, before_comment,
+             after_comment, newline_consumed) = _check_comment(data)
             if comment_update is not None:
                 comment_started = comment_update
 
@@ -467,16 +467,16 @@ def _check_comment(data):
 
 def show_usage():
     '''Print the command usage.'''
-    print 'Usage: cssccc OPTIONS'
-    print '  -h, --help\t\tShow this help.'
-    print '  -v, --version\t\tShow version.'
-    print '  -f FILE, --file=FILE\tCheck FILE'
+    to_console('Usage: cssccc OPTIONS')
+    to_console('  -h, --help\t\tShow this help.')
+    to_console('  -v, --version\t\tShow version.')
+    to_console('  -f FILE, --file=FILE\tCheck FILE')
 
 
 def read_file(filename):
     '''Return the content of filename.'''
     text = ''
-    with open(filename, 'r') as f:
+    with open(filename, 'rt') as f:
         text = f.read()
     return text
 
@@ -485,7 +485,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         show_usage()
     elif sys.argv[1] in ['-v', '--version']:
-        print 'CSS Code Convention Checker %s' % (__version__)
+        to_console('CSS Code Convention Checker %s' % (__version__))
         sys.exit(0)
     elif sys.argv[1] == '-f':
         text = read_file(sys.argv[2])

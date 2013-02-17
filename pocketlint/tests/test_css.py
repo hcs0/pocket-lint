@@ -1,10 +1,16 @@
-# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+)
+
 from pocketlint.formatcheck import(
-     CSSChecker,
-     HAS_CSSUTILS,
-    )
+    CSSChecker,
+    HAS_CSSUTILS,
+)
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
@@ -12,6 +18,13 @@ from pocketlint.tests.test_text import TestAnyTextMixin
 good_css = """\
 body {
     font-family: Ubuntu;
+    }
+"""
+
+css3 = """\
+body {
+    margin: 24px;
+    margin: 2rem;
     }
 """
 
@@ -37,6 +50,11 @@ class TestCSS(CheckerTestCase):
         checker.check()
         self.assertEqual([], self.reporter.messages)
 
+    def test_css3(self):
+        checker = CSSChecker('bogus', css3, self.reporter)
+        checker.check()
+        self.assertEqual([], self.reporter.messages)
+
     def test_ill_formed_property(self):
         if not HAS_CSSUTILS:
             return
@@ -46,9 +64,9 @@ class TestCSS(CheckerTestCase):
             (3, "PropertyValue: No match: 'CHAR', u':'"),
             self.reporter.messages)
         self.assertIn(
-                (0, 'PropertyValue: Unknown syntax or no value:  '
-                     'Ubuntu\n    color: #333'),
-                self.reporter.messages)
+            (0, 'PropertyValue: Unknown syntax or no value:  '
+                'Ubuntu\n    color: #333'),
+            self.reporter.messages)
         self.assertIn(
             (0, 'CSSStyleDeclaration: Syntax Error in Property: '
                 'font-family: Ubuntu\n    color: #333'),
@@ -60,9 +78,13 @@ class TestCSS(CheckerTestCase):
         checker = CSSChecker('ballyhoo', invalid_value, self.reporter)
         checker.check_cssutils()
         message = (
-            'Invalid value for "CSS Color Module Level 3/CSS Level 2.1" '
+            'Invalid value for "CSS Level 2.1" '
             'property: speckled: color')
-        self.assertEqual([(2, message)], self.reporter.messages)
+        self.assertEqual(1, len(self.reporter.messages))
+        message = self.reporter.messages[0]
+        self.assertEqual(2, message[0])
+        self.assertIn('Invalid value for', message[1])
+        self.assertIn('property: speckled: color', message[1])
 
     def test_multiple_files(self):
         # The logging and handler for each instance is added and

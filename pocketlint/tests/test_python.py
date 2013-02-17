@@ -1,12 +1,18 @@
-# Copyright (C) 2011-2012 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
+
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+)
 
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatcheck import (
     get_option_parser,
     PythonChecker,
-    )
+)
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
@@ -15,7 +21,7 @@ good_python = """\
 class example:
 
     def __init__(self, value):
-        print "Good night."
+        len("Good night.")
 """
 
 good_python_on_windows = """\
@@ -23,7 +29,7 @@ class example:
 
     def __init__(self, value):
         try:
-            open("some.file")
+            open("some.file", 'rt')
         except WindowsError:
             pass
 """
@@ -79,10 +85,6 @@ class Test:
 class TestPyflakes(CheckerTestCase):
     """Verify pyflakes integration."""
 
-    def test_contrib_integration(self):
-        from pocketlint.contrib.pyflakes.checker import messages
-        self.assertTrue('pocketlint/contrib/' in messages.__file__)
-
     def test_code_without_issues(self):
         self.reporter.call_count = 0
         checker = PythonChecker('bogus', good_python, self.reporter)
@@ -128,19 +130,20 @@ class TestPyflakes(CheckerTestCase):
 
     def test_code_with_warnings(self):
         self.reporter.call_count = 0
-        checker = PythonChecker('bogus', ugly_python, self.reporter)
+        self.file = NamedTemporaryFile(prefix='pocketlint_', suffix='.py')
+        self.write_to_file(self.file, ugly_python)
+        checker = PythonChecker(self.file.name, ugly_python, self.reporter)
         checker.check_flakes()
         self.assertEqual(
             [(3, "undefined name 'b'"),
-            (3, "local variable 'a' is assigned to but never used")],
+             (3, "local variable 'a' is assigned to but never used")],
             self.reporter.messages)
         self.assertEqual(2, self.reporter.call_count)
 
     def test_pyflakes_ignore(self):
         pyflakes_ignore = (
             'def something():\n'
-            '    unused_variable = 1  # pyflakes:ignore\n'
-            )
+            '    unused_variable = 1  # pyflakes:ignore\n')
         self.reporter.call_count = 0
         checker = PythonChecker('bogus', pyflakes_ignore, self.reporter)
         checker.check_flakes()
@@ -159,36 +162,34 @@ class TestPEP8(CheckerTestCase):
         self.file.close()
 
     def test_code_without_issues(self):
-        self.file.write(good_python)
-        self.file.flush()
+        self.write_to_file(self.file, good_python)
         checker = PythonChecker(
             self.file.name, good_python, self.reporter)
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
     def test_bad_syntax(self):
-        self.file.write(bad_syntax2_python)
-        self.file.flush()
+        self.write_to_file(self.file, bad_syntax2_python)
         checker = PythonChecker(
             self.file.name, ugly_style_python, self.reporter)
         checker.check_pep8()
         self.assertEqual(
-            [(4, 'EOF in multi-line statement')],
+            [(4, 'E901 TokenError: EOF in multi-line statement')],
             self.reporter.messages)
 
     def test_code_with_IndentationError(self):
-        self.file.write(bad_indentation_python)
-        self.file.flush()
+        self.write_to_file(self.file, bad_indentation_python)
         checker = PythonChecker(
             self.file.name, bad_indentation_python, self.reporter)
         checker.check_pep8()
         expected = [(
-            4, 'unindent does not match any outer indentation level: b = 1')]
+            4,
+            'E901 IndentationError: '
+            'unindent does not match any outer indentation level')]
         self.assertEqual(expected, self.reporter.messages)
 
     def test_code_with_issues(self):
-        self.file.write(ugly_style_python)
-        self.file.flush()
+        self.write_to_file(self.file, ugly_style_python)
         checker = PythonChecker(
             self.file.name, ugly_style_python, self.reporter)
         checker.check_pep8()
@@ -197,8 +198,7 @@ class TestPEP8(CheckerTestCase):
             self.reporter.messages)
 
     def test_code_with_comments(self):
-        self.file.write(ugly_style_lines_python)
-        self.file.flush()
+        self.write_to_file(self.file, ugly_style_lines_python)
         checker = PythonChecker(
             self.file.name, ugly_style_lines_python, self.reporter)
         checker.check_pep8()
@@ -206,33 +206,30 @@ class TestPEP8(CheckerTestCase):
 
     def test_long_length_good(self):
         long_line = '1234 56189' * 7 + '12345678' + '\n'
-        self.file.write(long_line)
-        self.file.flush()
+        self.write_to_file(self.file, long_line)
         checker = PythonChecker(self.file.name, long_line, self.reporter)
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
     def test_long_length_bad(self):
         long_line = '1234 56189' * 8 + '\n'
-        self.file.write(long_line)
-        self.file.flush()
+        self.write_to_file(self.file, long_line)
         checker = PythonChecker(self.file.name, long_line, self.reporter)
         checker.check_pep8()
         self.assertEqual(
-            [(1, 'E501 line too long (80 characters)')],
+            [(1, 'E501 line too long (80 > 79 characters)')],
             self.reporter.messages)
 
     def test_long_length_options(self):
         long_line = '1234 56189' * 7 + '\n'
         parser = get_option_parser()
         (options, sources) = parser.parse_args(['-m', '60'])
-        self.file.write(long_line)
-        self.file.flush()
+        self.write_to_file(self.file, long_line)
         checker = PythonChecker(
             self.file.name, long_line, self.reporter, options)
         checker.check_pep8()
         self.assertEqual(
-            [(1, 'E501 line too long (70 characters)')],
+            [(1, 'E501 line too long (70 > 59 characters)')],
             self.reporter.messages)
 
 
@@ -270,7 +267,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
 
     def _test_encoding(self, python, expected_encoding='foo-encoding'):
         checker = PythonChecker(
-           'bogus', python % dict(encoding=expected_encoding), self.reporter)
+            'bogus', python % dict(encoding=expected_encoding), self.reporter)
         checker.check_text()
         self.assertEqual(expected_encoding, checker.encoding)
 
@@ -293,13 +290,13 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         self._test_encoding("# First line\n# coding=%(encoding)s\n\n")
 
     def test_code_utf8(self):
-        utf8_python = u"a = 'this is utf-8 [\u272a]'"
+        utf8_python = "a = 'this is utf-8 [\u272a]'"
         checker = PythonChecker('bogus', utf8_python, self.reporter)
         checker.encoding = 'utf-8'
         checker.check_text()
 
     def test_code_ascii_is_not_utf8(self):
-        utf8_python = u"a = 'this is utf-8 [\u272a]'"
+        utf8_python = "a = 'this is utf-8 [\u272a]'"
         checker = PythonChecker('bogus', utf8_python, self.reporter)
         checker.check_text()
         self.assertEqual(

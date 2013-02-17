@@ -1,17 +1,18 @@
 #!/usr/bin/python
-# Copyright (C) 2009-2010 - Curtis Hovey <sinzui.is at verizon.net>
+# Copyright (C) 2009-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 """Reformat a doctest to Launchpad style."""
 
-from __future__ import with_statement
-
-
-__metaclass__ = type
+from __future__ import (
+    absolute_import,
+    unicode_literals,
+    with_statement,
+)
 
 
 __all__ = [
     'DoctestReviewer',
-    ]
+]
 
 
 import _ast
@@ -23,10 +24,15 @@ from doctest import DocTestParser, Example
 from optparse import OptionParser
 from textwrap import wrap
 
-from contrib.pyflakes.checker import Checker
+from pocketlint.reporter import Reporter
+try:
+    from pyflakes.checker import Checker as PyFlakesChecker
+    PyFlakesChecker
+except ImportError:
+    from pocketlint import PyFlakesChecker
 
 
-class DoctestReviewer:
+class DoctestReviewer(object):
     """Check and reformat doctests."""
     rule_pattern = re.compile(r'([=~-])+[ ]*$')
     moin_pattern = re.compile(r'^(=+)[ ](.+)[ ](=+[ ]*)$')
@@ -47,15 +53,19 @@ class DoctestReviewer:
         self.example = None
         self.last_bad_indent = 0
         self.has_printed_filename = False
-        self._reporter = reporter
+        self._reporter = reporter or Reporter(Reporter.CONSOLE)
         self.options = options
 
     def get_parts(self):
         parser = DocTestParser()
         try:
             return parser.parse(self.doctest, self.file_path)
-        except ValueError, error:
-            self._print_message(str(error), 0)
+        except ValueError as error:
+            # Output code without unicode literals needs to be normalised
+            # largely for the test suite, and somewhat for the person reading
+            # message.
+            message = str(error).replace("u'", "'")
+            self._print_message(message, 0)
             return []
 
     def _print_message(self, message, lineno):
@@ -64,15 +74,9 @@ class DoctestReviewer:
         :param message: The message to print.
         :param lineno: The line number the message pertains to.
         """
-        if self._reporter is None:
-            if not self.has_printed_filename:
-                print '%s:' % self.file_path
-                self.has_printed_filename = True
-            print '    % 4s: %s' % (lineno, message)
-        else:
-            self._reporter(
-                int(lineno), message,
-                base_dir=self.base_dir, file_name=self.file_name)
+        self._reporter(
+            int(lineno), message,
+            base_dir=self.base_dir, file_name=self.file_name)
 
     def _is_formatted(self, text):
         """Return True if the text is pre-formatted, otherwise False.
@@ -178,7 +182,7 @@ class DoctestReviewer:
             self.check_heading,
             self.check_indentation,
             self.check_trailing_whitespace,
-            ]
+        ]
         self._apply(line_checkers)
         code = '\n'.join(self.code_lines)
         self.check_source_code(code)
@@ -202,7 +206,7 @@ class DoctestReviewer:
             self.fix_indentation,
             self.fix_heading,
             self.fix_narrative_paragraph,
-            ]
+        ]
         self.block_method = self.format_block
         self._apply(line_checkers)
         self.block_method = self.preserve_block
@@ -316,14 +320,15 @@ class DoctestReviewer:
         try:
             tree = compile(
                 code, self.file_path, "exec", _ast.PyCF_ONLY_AST)
-        except (SyntaxError, IndentationError), exc:
-            (lineno, offset_, line) = exc[1][1:]
+        except (SyntaxError, IndentationError) as exc:
+            lineno = exc.lineno or 0
+            line = exc.text or ''
             if line.endswith("\n"):
                 line = line[:-1]
             self._print_message(
                 'Could not compile:\n    %s' % line, lineno)
         else:
-            warnings = Checker(tree)
+            warnings = PyFlakesChecker(tree)
             for warning in warnings.messages:
                 if 'undefined name ' in str(warning):
                     continue
@@ -386,16 +391,20 @@ class DoctestReviewer:
             if is_interactive:
                 diff = unified_diff(
                     self.doctest.splitlines(), new_doctest.splitlines())
-                print '\n'.join(diff)
-                print '\n'
-                do_save = raw_input(
+                sys.stdout.write('\n'.join(diff))
+                sys.stdout.write('\n\n')
+                if sys.version_info >= (3,):
+                    user_input = input
+                else:
+                    user_input = raw_input
+                do_save = user_input(
                     'Do you wish to save the changes? S(ave) or C(ancel)?')
             else:
                 do_save = 'S'
-            if do_save.upper() == 'S':
-                with open(self.file_path, 'w') as doctest_file:
-                    doctest_file.write(new_doctest)
             self.doctest = new_doctest
+            if do_save.upper() == 'S':
+                with open(self.file_path, 'wt') as doctest_file:
+                    doctest_file.write(new_doctest)
 
 
 def get_option_parser():
@@ -425,7 +434,7 @@ def main(argv=None):
 
     for file_path in args:
         with open(file_path) as doctest_file:
-            doctest_data = doctest_file.read()
+            doctest_data = doctest_file.read().decode('utf-8')
         reviewer = DoctestReviewer(file_path, doctest_data)
         if options.is_format:
             reviewer.format_and_save()

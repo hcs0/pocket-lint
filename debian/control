@@ -3,13 +3,15 @@ Section: python
 Priority: optional
 Maintainer: Curtis C. Hovey <sinzui.is@verizon.net>
 Homepage: https://launchpad.net/pocket-lint
-Build-Depends: debhelper (>= 5.0.37.2), cdbs (>= 0.4.43), python-all, python-support (>= 0.5.3)
+Build-Depends: debhelper (>= 5.0.37.2), cdbs (>= 0.4.43), python-all, python-support (>= 0.5.3), pyflakes (>= 0.5.0)
 Vcs-Bzr: http://bazaar.launchpad.net/~sinzui/pocket-lint/packaging
+X-Python-Version: >= 2.6
+X-Python3-Version: >= 3.2
 Standards-Version: 3.9.1
 
 Package: python-pocket-lint
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, pyflakes (>= 0.5.0)
 Recommends: python-cssutils, gjs | seed
 Description: a composite linter and style checker
  Pocket-lint has several notable features:
@@ -21,11 +23,10 @@ Description: a composite linter and style checker
  * Supports checking of multiple source types:
   * Python syntax and style
   * Python doctest style
-  * XML/HTML style and entities
-  * CSS style
+  * XML/HTML style, syntax, and entities
+  * CSS style and sytax
   * JavaScript syntax and style
+  * JSON data syntax
+  * reStructured Text style
   * Plain text
- * Supports reporting:
-  * Python doctests
-  * CSS
   * XML/HTML.
