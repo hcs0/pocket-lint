@@ -707,9 +707,9 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
     delimiter_characters = [
         '=', '-', '`', ':', '\'', '"', '~', '^', '_', '*', '+', '#', '<', '>']
 
-    def __init__(self, file_path, text, reporter=None):
+    def __init__(self, file_path, text, reporter=None, options=None):
         super(ReStructuredTextChecker, self).__init__(
-            file_path, text, reporter=reporter)
+            file_path, text, reporter, options)
         self.lines = self.text.splitlines()
 
     def check(self):
