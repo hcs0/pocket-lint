@@ -5,6 +5,8 @@
 // <seed|gjs> jsreporter.js <path/to/fulljslint.js> <path/file/to/lint.js>
 
 
+var ATTEMPT_TAG = false;
+
 function get_seed() {
     // Define a common global object like seed.
     var argv = ['gjs', 'jsreporter.js'];
@@ -95,6 +97,23 @@ function lint_script() {
             issues.push(implied);
             }
         Seed.print(issues.join('\n'));
+        }
+    else {
+        if (!ATTEMPT_TAG) {
+            return;
+        }
+        var data = JSLINT.data();
+        pretty = [
+            'name', 'line', 'closure', 'var', 'exception', 'global'];
+        var i;
+        for (i = 0; i < data.globals.length; i++) {
+            var glob = data.globals[i];
+            Seed.print(JSON.stringify(glob, pretty, 4));
+            }
+        for (i = 0; i < data.functions.length; i++) {
+            var func = data.functions[i];
+            Seed.print(JSON.stringify(func, pretty, 4));
+            }
         }
     }
 
