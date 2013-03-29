@@ -1,3 +1,9 @@
+pocket-lint (1.4.1-0gd1) raring; urgency=low
+
+  * New upstream: Fixes LP:1161913 (TypeError: __init__() linting rst files).
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Fri, 29 Mar 2013 11:23:12 -0400
+
 pocket-lint (1.4.0-0gdp) raring; urgency=low
 
   * New upstream: Fixes LP:1127431 (Cannot compile python that uses print
