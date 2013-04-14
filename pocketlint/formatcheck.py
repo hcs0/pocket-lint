@@ -79,6 +79,11 @@ try:
 except ImportError:
     from pocketlint import PyFlakesChecker
 
+try:
+    import closure_linter
+except ImportError:
+    closure_linter = None
+
 
 def find_exec(names):
     """Return the name of a GI enabled JS interpreter."""
@@ -622,23 +627,50 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
     JSREPORTER = os.path.join(HERE, 'jsreporter.js')
 
+    # List of Google Closure Errors to ignore.
+    # Ex 110 is line to long which is already provided by pocket-lint.
+    GOOGLE_CLOSURE_IGNORE = [110]
+
     def check(self):
-        """Check the syntax of the javascript code."""
+        """Check the syntax of the JavaScript code."""
+        self.check_jslint()
+        self.check_google_closure()
+        self.check_text()
+        self.check_windows_endlines()
+
+    def check_jslint(self):
+        """Check file using jslint."""
         if JS is None or self.text == '':
             return
         args = [JS, self.JSREPORTER, self.FULLJSLINT, self.file_path]
         jslint = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         issues, errors = jslint.communicate()
-        issues = issues.decode('utf-8').strip()
+        issues = issues.strip()
         if issues:
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')
                 line_no = int(line_no)
                 line_no -= 1
                 self.message(line_no, message, icon='error')
-        self.check_text()
-        self.check_windows_endlines()
+
+    def check_google_closure(self):
+        """Check file using Google Closure Linter."""
+        if not closure_linter:
+            return
+
+        from closure_linter import runner
+        from closure_linter.common import erroraccumulator
+
+        error_handler = erroraccumulator.ErrorAccumulator()
+        runner.Run(self.file_path, error_handler)
+        for error in error_handler.GetErrors():
+            if error.code in self.google_closure_ignore:
+                continue
+            # Use a similar format as default Google Closure Linter formatter.
+            # Line 12, E:0010: Missing semicolon at end of line
+            message = 'E:%04d: %s' % (error.code, error.message)
+            self.message(error.token.line_number, message, icon='error')
 
     def check_debugger(self, line_no, line):
         """Check the length of the line."""
