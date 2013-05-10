@@ -1,3 +1,10 @@
+pocket-lint (1.4.2-0gdp) saucy; urgency=low
+
+  * New upstream release: 1.4.2.. Fixes LP:1175244 (UnboundLocalError:
+   'checker_class').
+
+ -- Curtis C. Hovey <sinzui.is@verizon.net>  Fri, 10 May 2013 12:00:52 -0700
+
 pocket-lint (1.4.1-0gd1) raring; urgency=low
 
   * New upstream: Fixes LP:1161913 (TypeError: __init__() linting rst files).
