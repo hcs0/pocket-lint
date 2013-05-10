@@ -311,7 +311,7 @@ class UniversalChecker(BaseChecker):
         elif self.language is Language.LOG:
             # Log files are not source, but they are often in source code
             # trees.
-            pass
+            return
         else:
             checker_class = AnyTextChecker
         checker = checker_class(
