@@ -137,7 +137,7 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
 
     def report(self, messageClass, *args, **kwargs):
         '''Filter some errors not used in our project.'''
-        line_no = args[0] - 1
+        line_no = args[0].lineno - 1
 
         # Ignore explicit pyflakes:ignore requests.
         if self.text and self.text[line_no].find('pyflakes:ignore') >= 0:

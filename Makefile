@@ -1,4 +1,4 @@
-PYTHON = python
+PYTHON = python3
 VERSION = $(shell $(PYTHON) setup.py -V)
 
 build:
