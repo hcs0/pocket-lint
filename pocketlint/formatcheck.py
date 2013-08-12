@@ -54,6 +54,7 @@ except ImportError:
     # Python 2.6 and below.
     ParseError = object()  # pyflakes:ignore
 
+from xml.parsers import expat
 from xml.parsers.expat import (
     ErrorString,
     ExpatError,
@@ -395,6 +396,85 @@ class SQLChecker(BaseChecker, AnyTextMixin):
         self.check_windows_endlines()
 
 
+class FastTreeBuilder(ElementTree.TreeBuilder):
+
+    def _flush(self):
+        if self._data:
+            if self._last is not None:
+                # Ensure all text is ascii; the data is never written back.
+                text = ''.join([b for b in str(self._data) if ord(b) < 128])
+                if self._tail:
+                    assert self._last.tail is None, "internal error (tail)"
+                    self._last.tail = text
+                else:
+                    assert self._last.text is None, "internal error (text)"
+                    self._last.text = text
+            self._data = []
+
+
+class FastParser(object):
+    """A simple and pure-python parser that checks well-formedness.
+
+     This parser works in py 2 and 3. It handles entities and ignores
+     namespaces. This parser works with python ElementTree.
+     """
+
+    def __init__(self, html=0, target=None, encoding=None):
+        parser = ParserCreate(encoding, None)
+        target = FastTreeBuilder()
+        self.parser = parser
+        self.target = target
+        self._error = expat.error
+        self._names = {}  # Name memo cache
+        parser.DefaultHandlerExpand = self._default
+        parser.StartElementHandler = target.start
+        parser.EndElementHandler = target.end
+        parser.CharacterDataHandler = target.data
+        parser.buffer_text = 1
+        # Py3, but not Py2.
+        # parser.ordered_attributes = 1
+        # parser.specified_attributes = 1
+        self._doctype = None
+        self.entity = dict(entitydefs)
+        self.version = "Expat %d.%d.%d" % expat.version_info
+
+    def _default(self, text):
+        prefix = text[:1]
+        if prefix == "&":
+            # Deal with undefined entities.
+            data_handler = self.target.data
+            try:
+                data_handler(self.entity[text[1:-1]])
+            except KeyError:
+                err = expat.error(
+                    "undefined entity %s: line %d, column %d" %
+                    (text, self.parser.ErrorLineNumber,
+                    self.parser.ErrorColumnNumber))
+                err.code = 11  # XML_ERROR_UNDEFINED_ENTITY
+                err.lineno = self.parser.ErrorLineNumber
+                err.offset = self.parser.ErrorColumnNumber
+                raise err
+
+    def _raiseerror(self, value):
+        err = ParseError(value)
+        err.code = value.code
+        err.position = value.lineno, value.offset
+        raise err
+
+    def feed(self, data):
+        try:
+            self.parser.Parse(data, 0)
+        except self._error as v:
+            self._raiseerror(v)
+
+    def close(self):
+        try:
+            self.parser.Parse('', 1)   # End of data.
+        except self._error as v:
+            self._raiseerror(v)
+        self.target.close()
+
+
 class XMLChecker(BaseChecker, AnyTextMixin):
     """Check XML documents."""
 
@@ -404,27 +484,12 @@ class XMLChecker(BaseChecker, AnyTextMixin):
         '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
     non_ns_types = (Language.ZPT, Language.ZCML)
 
-    def handle_namespaces(self, parser):
-        """Do not check namespaces for grammars used by ns-specific tools."""
-        if Language.get_language(self.file_name) in self.non_ns_types:
-            xparser = ParserCreate()
-            xparser.DefaultHandlerExpand = parser._default
-            xparser.StartElementHandler = parser._start
-            xparser.EndElementHandler = parser._end
-            xparser.CharacterDataHandler = parser._data
-            xparser.CommentHandler = parser._comment
-            xparser.ProcessingInstructionHandler = parser._pi
-            # Set the etree parser to use the expat non-ns parser.
-            parser.parser = parser._parser = xparser
-
     def check(self):
         """Check the syntax of the python code."""
         # Reconcile the text and Expat checker text requriements.
         if self.text == '':
             return
-        parser = ElementTree.XMLParser()
-        self.handle_namespaces(parser)
-        parser.entity.update(entitydefs)
+        parser = FastParser()
         offset = 0
         # The expat parser seems to be assuming ascii even when
         # XMLParser(encoding='utf-8') is used above.
