@@ -55,11 +55,6 @@ except ImportError:
     ParseError = object()  # pyflakes:ignore
 
 from xml.parsers import expat
-from xml.parsers.expat import (
-    ErrorString,
-    ExpatError,
-    ParserCreate,
-)
 
 try:
     import cssutils
@@ -420,7 +415,7 @@ class FastParser(object):
      """
 
     def __init__(self, html=0, target=None, encoding=None):
-        parser = ParserCreate(encoding, None)
+        parser = expat.ParserCreate(encoding, None)
         target = FastTreeBuilder()
         self.parser = parser
         self.target = target
@@ -507,9 +502,9 @@ class XMLChecker(BaseChecker, AnyTextMixin):
             text = text.replace('<!DOCTYPE html>', self.xhtml_doctype)
         try:
             ElementTree.parse(StringIO(text), parser)
-        except (ExpatError, ParseError) as error:
+        except (expat.ExpatError, ParseError) as error:
             if hasattr(error, 'code'):
-                error_message = ErrorString(error.code)
+                error_message = expat.ErrorString(error.code)
                 if hasattr(error, 'position') and error.position:
                     error_lineno, error_charno = error.position
                     error_lineno = error_lineno - offset
