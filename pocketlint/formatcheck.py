@@ -19,7 +19,6 @@ __all__ = [
 import _ast
 try:
     from io import StringIO
-    IS_PY3 = True
 except ImportError:
     # Pything 2.7 and below
     from StringIO import StringIO  # pyflakes:ignore
@@ -76,6 +75,9 @@ try:
     PyFlakesChecker
 except ImportError:
     from pocketlint import PyFlakesChecker
+
+
+IS_PY3 = True if sys.version_info >= (3,) else False
 
 
 def find_exec(names):
