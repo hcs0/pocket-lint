@@ -19,9 +19,11 @@ __all__ = [
 import _ast
 try:
     from io import StringIO
+    IS_PY3 = True
 except ImportError:
     # Pything 2.7 and below
     from StringIO import StringIO  # pyflakes:ignore
+    IS_PY = False
 
 try:
     from html.entities import entitydefs

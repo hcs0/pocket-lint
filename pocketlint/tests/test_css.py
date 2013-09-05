@@ -10,6 +10,7 @@ from __future__ import (
 from pocketlint.formatcheck import(
     CSSChecker,
     HAS_CSSUTILS,
+    IS_PY3,
 )
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
@@ -60,8 +61,9 @@ class TestCSS(CheckerTestCase):
             return
         checker = CSSChecker('bogus', ill_formed_property, self.reporter)
         checker.check_cssutils()
+        qualifier = '' if IS_PY3 else 'u'
         self.assertIn(
-            (3, "PropertyValue: No match: 'CHAR', u':'"),
+            (3, "PropertyValue: No match: 'CHAR', %s':'" % qualifier),
             self.reporter.messages)
         self.assertIn(
             (0, 'PropertyValue: Unknown syntax or no value:  '
