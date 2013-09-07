@@ -99,7 +99,7 @@ JS = find_exec(['gjs', 'seed'])
 DEFAULT_MAX_LENGTH = 80
 
 
-if sys.version_info >= (3,):
+if IS_PY3:
     def u(string):
         if isinstance(string, str):
             return string
