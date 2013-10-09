@@ -81,6 +81,8 @@ except ImportError:
 
 try:
     import closure_linter
+    # Shut up the linter.
+    closure_linter
 except ImportError:
     closure_linter = None
 
@@ -671,6 +673,21 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             # Line 12, E:0010: Missing semicolon at end of line
             message = 'E:%04d: %s' % (error.code, error.message)
             self.message(error.token.line_number, message, icon='error')
+
+    @property
+    def google_closure_ignore(self):
+        """
+        Return the list of ignored errors for Google Closure Linter.
+
+        Return either the default list or the list specified as options.
+        """
+        if not self.options:
+            return self.GOOGLE_CLOSURE_IGNORE
+        ignore_list = getattr(self.options, 'google_closure_ignore', None)
+        if ignore_list is None:
+            return self.GOOGLE_CLOSURE_IGNORE
+        else:
+            return ignore_list
 
     def check_debugger(self, line_no, line):
         """Check the length of the line."""
