@@ -67,7 +67,7 @@ from pocketlint.reporter import (
     css_report_handler,
     Reporter,
 )
-import pocketlint.contrib.pep8 as pep8
+import pep8
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
     from pyflakes.checker import Checker as PyFlakesChecker
