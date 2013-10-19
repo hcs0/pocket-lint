@@ -1,6 +1,17 @@
 #!/usr/bin/make -f
 
-DEB_PYTHON_SYSTEM=pysupport
+# Prevent setuptools/distribute from accessing the internet.
+export http_proxy = http://127.0.9.1:9
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/python-distutils.mk
+export PYBUILD_DESTDIR_python2=debian/pocketlint
+export PYBUILD_DESTDIR_python3=debian/pocketlint
+
+%:
+	dh $@ --with python2,python3 --buildsystem=pybuild
+
+override_dh_auto_install:
+	dh_auto_install
+	cp debian/pocketlint/usr/bin/pocketlint debian/pocketlint/usr/bin/pocketlint3
+	sed -i '1s/3.*/2.7/' ./debian/pocketlint/usr/bin/pocketlint
+	sed -i '1s/3.*/3/' ./debian/pocketlint/usr/bin/pocketlint3
+
