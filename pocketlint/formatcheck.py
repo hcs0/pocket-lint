@@ -68,7 +68,7 @@ from pocketlint.reporter import (
     css_report_handler,
     Reporter,
 )
-import pocketlint.contrib.pep8 as pep8
+import pep8
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
     from pyflakes.checker import Checker as PyFlakesChecker
@@ -105,6 +105,8 @@ if IS_PY3:
             return string
         else:
             return str(string.decode('utf-8', 'ignore'))
+
+    unicode = object()
 else:
     def u(string):  # pyflakes:ignore
         if isinstance(string, unicode):
@@ -170,6 +172,7 @@ class Language(object):
     LOG = object()
     SQL = object()
     RESTRUCTUREDTEXT = object()
+    GO = object()
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
@@ -190,6 +193,7 @@ class Language(object):
         'text/x-sql': SQL,
         'text/x-log': LOG,
         'text/x-rst': RESTRUCTUREDTEXT,
+        'text/x-go': GO,
         'application/javascript': JAVASCRIPT,
         'application/json': JSON,
         'application/xml': XML,
@@ -308,6 +312,8 @@ class UniversalChecker(BaseChecker):
             checker_class = JSONChecker
         elif self.language is Language.RESTRUCTUREDTEXT:
             checker_class = ReStructuredTextChecker
+        elif self.language is Language.GO:
+            checker_class = GOChecker
         elif self.language is Language.LOG:
             # Log files are not source, but they are often in source code
             # trees.
@@ -989,6 +995,32 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
 
         return True
 
+
+class GOChecker(BaseChecker, AnyTextMixin):
+    """Check go lang source code."""
+
+    @property
+    def check_length_filter(self):
+        # Go land standards don't have a max length; it suggests common sense.
+        if self.options:
+            return self.options.max_line_length - 1
+        else:
+            return 160
+
+    def check(self):
+        """Check the syntax code."""
+        if self.text == '':
+            return
+        # need to call out to go to get the report.
+        self.check_text()
+
+    def check_text(self):
+        """Call each line_method for each line in text."""
+        for line_no, line in enumerate(self.text.splitlines()):
+            line_no += 1
+            self.check_length(line_no, line)
+            self.check_trailing_whitespace(line_no, line)
+            self.check_conflicts(line_no, line)
 
 def get_option_parser():
     """Return the option parser for this program."""
