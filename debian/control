@@ -19,12 +19,11 @@ Standards-Version: 3.9.4
 
 Package: python-pocket-lint
 Architecture: all
-Depends: python-pkg-resources,
-         python3-pkg-resources,
-         ${misc:Depends},
-         ${shlibs:Depends},
+Depends: ${misc:Depends},
          ${python:Depends},
          ${python3:Depends},
+         python-pkg-resources,
+         python3-pkg-resources,
          pyflakes (>= 0.7.3),
          pep8 (>= 1.4.0),
          python3-pep8 (>= 1.4.0)
