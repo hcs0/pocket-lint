@@ -12,6 +12,6 @@ export PYBUILD_DESTDIR_python3=debian/pocketlint
 override_dh_auto_install:
 	dh_auto_install
 	cp debian/pocketlint/usr/bin/pocketlint debian/pocketlint/usr/bin/pocketlint3
-	sed -i '1s/3.*/2.7/' ./debian/pocketlint/usr/bin/pocketlint
-	sed -i '1s/3.*/3/' ./debian/pocketlint/usr/bin/pocketlint3
+	sed -i '1s/python/python2/' ./debian/pocketlint/usr/bin/pocketlint
+	sed -i '1s/python/python3/' ./debian/pocketlint/usr/bin/pocketlint3
 
