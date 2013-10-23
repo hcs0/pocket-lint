@@ -1,3 +1,9 @@
+pocket-lint (1.4.2-1gdp) trusty; urgency=low
+
+  * Provides python2 and python3 versions.
+
+ -- Curtis C. Hovey <sinzui.is@gmail.com>  Wed, 23 Oct 2013 01:17:16 -0000
+
 pocket-lint (1.4.2-0gdp) saucy; urgency=low
 
   * New upstream release: 1.4.2.. Fixes LP:1175244 (UnboundLocalError:
