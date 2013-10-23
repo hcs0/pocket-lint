@@ -1,4 +1,4 @@
-pocket-lint (1.4.3-0gdp) trusty; urgency=low
+pocket-lint (1.4.3-0gdp) saucy; urgency=low
 
   * New upstream release: 1.4.3. with rudimentary go support.
     Provides python2 and python3 versions.
