@@ -718,7 +718,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
         jslint = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         issues, errors = jslint.communicate()
-        issues = issues.strip()
+        issues = issues.strip().decode('utf-8')
         if issues:
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')
