@@ -1,17 +1,17 @@
 #!/usr/bin/make -f
 
 # Prevent setuptools/distribute from accessing the internet.
-export http_proxy = http://127.0.9.1:9
+# export http_proxy = http://127.0.9.1:9
 
-export PYBUILD_DESTDIR_python2=debian/pocketlint
-export PYBUILD_DESTDIR_python3=debian/pocketlint
+export PYBUILD_DESTDIR_python2=debian/python-pocket-lint
+export PYBUILD_DESTDIR_python3=debian/python-pocket-lint
 
 %:
 	dh $@ --with python2,python3 --buildsystem=pybuild
 
 override_dh_auto_install:
 	dh_auto_install
-	cp debian/pocketlint/usr/bin/pocketlint debian/pocketlint/usr/bin/pocketlint3
-	sed -i '1s/python.*/python2/' ./debian/pocketlint/usr/bin/pocketlint
-	sed -i '1s/python.*/python3/' ./debian/pocketlint/usr/bin/pocketlint3
+	cp debian/pocketlint/usr/bin/pocketlint debian/python-pocket-lint/usr/bin/pocketlint3
+	sed -i '1s/python.*/python2/' ./debian/python-pocket-lint/usr/bin/pocketlint
+	sed -i '1s/python.*/python3/' ./debian/python-pocket-lint/usr/bin/pocketlint3
 
