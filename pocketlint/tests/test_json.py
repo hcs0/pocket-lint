@@ -93,10 +93,15 @@ class TestJSON(CheckerTestCase):
         checker = JSONChecker('bogus', content, self.reporter)
         checker.check()
 
-        self.assertEqual(
-            [(2, 'Expecting property name enclosed in double quotes: '
-                 'line 2 column 1 (char 2)')],
-            self.reporter.messages)
+        if self.python_version[:2] <= (2, 7):
+            self.assertEqual(
+                [(2, 'Expecting property name: line 2 column 1 (char 2)')],
+                self.reporter.messages)
+        else:
+            self.assertEqual(
+                [(2, 'Expecting property name enclosed in double quotes: '
+                     'line 2 column 1 (char 2)')],
+                self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
     def test_compile_error_on_multiple_line(self):

@@ -1,0 +1,12 @@
+language: python
+python:
+  - "2.7"
+  - "3.3"
+
+# Command to install the dependencies.
+install:
+  - "pip install -e . --use-mirrors"
+
+# Command to run the tests.
+script:
+  - python test.py
