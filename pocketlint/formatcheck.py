@@ -183,30 +183,42 @@ class Language(object):
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
-    mimetypes.add_type('application/json', '.json')
-    mimetypes.add_type('application/x-zope-configuration', '.zcml')
-    mimetypes.add_type('application/x-zope-page-template', '.pt')
+    # Sorted after extension.
+    mimetypes.add_type('text/plain', '.bat')
+    mimetypes.add_type('text/css', '.css')
     mimetypes.add_type('text/x-python-doctest', '.doctest')
-    mimetypes.add_type('text/x-twisted-application', '.tac')
+    mimetypes.add_type('text/html', '.html')
+    mimetypes.add_type('text/plain', '.ini')
+    mimetypes.add_type('application/javascript', '.js')
+    mimetypes.add_type('application/json', '.json')
     mimetypes.add_type('text/x-log', '.log')
+    mimetypes.add_type('application/x-zope-page-template', '.pt')
+    mimetypes.add_type('text/x-python', '.py')
     mimetypes.add_type('text/x-rst', '.rst')
+    mimetypes.add_type('text/x-sh', '.sh')
+    mimetypes.add_type('text/x-sql', '.sql')
+    mimetypes.add_type('text/x-twisted-application', '.tac')
+    mimetypes.add_type('text/plain', '.txt')
+    mimetypes.add_type('application/x-zope-configuation', '.zcml')
+
+    # Sorted after content type.
     mime_type_language = {
-        'text/x-python': PYTHON,
-        'text/x-twisted-application': PYTHON,
-        'text/x-python-doctest': DOCTEST,
-        'text/css': CSS,
-        'text/html': HTML,
-        'text/plain': TEXT,
-        'text/x-sql': SQL,
-        'text/x-log': LOG,
-        'text/x-rst': RESTRUCTUREDTEXT,
-        'text/x-go': GO,
         'application/javascript': JAVASCRIPT,
         'application/json': JSON,
         'application/xml': XML,
         'application/x-sh': SH,
         'application/x-zope-configuration': ZCML,
         'application/x-zope-page-template': ZPT,
+        'text/css': CSS,
+        'text/html': HTML,
+        'text/plain': TEXT,
+        'text/x-go': GO,
+        'text/x-log': LOG,
+        'text/x-python': PYTHON,
+        'text/x-python-doctest': DOCTEST,
+        'text/x-rst': RESTRUCTUREDTEXT,
+        'text/x-sql': SQL,
+        'text/x-twisted-application': PYTHON,
     }
     doctest_pattern = re.compile(
         r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
