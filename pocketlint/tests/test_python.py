@@ -82,6 +82,12 @@ class Test:
 """
 
 
+class Bunch(object):
+    """Collector of a bunch of named stuff."""
+    def __init__(self, **kwds):
+        self.__dict__.update(kwds)
+
+
 class TestPyflakes(CheckerTestCase):
     """Verify pyflakes integration."""
 
@@ -231,6 +237,88 @@ class TestPEP8(CheckerTestCase):
         self.assertEqual(
             [(1, 'E501 line too long (70 > 59 characters)')],
             self.reporter.messages)
+
+
+class TestPEP257(CheckerTestCase):
+    """Verify PEP257 integration."""
+
+    def setUp(self):
+        super(TestPEP257, self).setUp()
+        self.file = NamedTemporaryFile(prefix='pocketlint_')
+
+    def tearDown(self):
+        self.file.close()
+
+    def makeChecker(self, content, options=None):
+        """Create a Python checker with file from `content`."""
+        # Don't know why multi-line text is interpreted as Unicode.
+        content = content.encode('utf-8')
+        return PythonChecker(
+            self.file.name, content, self.reporter, options=options)
+
+    def test_code_without_issues(self):
+        """No errors are reported if everything has a valid docstring."""
+        checker = self.makeChecker('''
+"""Module's docstring."""
+
+class SomeClass(object):
+
+        """Class with short docstring."""
+
+        def method(self):
+            """Method with short docstring."""
+
+        def otherMethod(self):
+            """
+            Method with multi.
+
+            Line docstring.
+
+            """
+        ''')
+
+        checker.check_pep257()
+
+        self.assertEqual([], self.reporter.messages)
+
+    pep257_without_docstrings = '''
+def some_function():
+    """Bad multi line without point"""
+    '''
+
+    def test_code_with_issues(self):
+        """Errors are reported when docstrings are missing or in bad format.
+
+        """
+        checker = self.makeChecker(self.pep257_without_docstrings)
+
+        checker.check_pep257()
+
+        self.assertEqual([
+            (1, 'All modules should have docstrings.'),
+            (3, 'First line should end with a period.'),
+            ],
+            self.reporter.messages,
+            )
+
+    def test_code_with_ignore(self):
+        """A list with error message which should be ignored can be
+        provided as `pep257_ignore` option.
+
+        Hope that pep257 will add error codes soon.
+        """
+        options = Bunch(
+            pep257_ignore=['First line should end with a period.'])
+        checker = self.makeChecker(
+            self.pep257_without_docstrings, options=options)
+
+        checker.check_pep257()
+
+        self.assertEqual([
+            (1, 'All modules should have docstrings.'),
+            ],
+            self.reporter.messages,
+            )
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):
