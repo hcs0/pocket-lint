@@ -693,7 +693,9 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
     def check_pdb(self, line_no, line):
         """Check for pdb breakpoints."""
-        if 'pdb.set_trace' in line:
+        # Set trace call is split so that this file will pass the linter.
+        pdb_call = 'pdb.' + 'set_trace'
+        if pdb_call in line:
             self.message(
                 line_no, 'Line contains a call to pdb.', icon='error')
 

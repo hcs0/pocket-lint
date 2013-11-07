@@ -7,10 +7,13 @@ from __future__ import (
     unicode_literals,
 )
 
+import unittest
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatcheck import (
     get_option_parser,
+    # Imported via pocketlint to avoid duplication of conditional import.
+    pep257,
     PythonChecker,
 )
 from pocketlint.tests import CheckerTestCase
@@ -239,6 +242,7 @@ class TestPEP8(CheckerTestCase):
             self.reporter.messages)
 
 
+@unittest.skipIf(pep257 is None, 'pep257 is not available.')
 class TestPEP257(CheckerTestCase):
     """Verify PEP257 integration."""
 
