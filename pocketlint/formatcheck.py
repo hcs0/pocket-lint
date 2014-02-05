@@ -259,7 +259,7 @@ class PocketLintOptions(object):
 
     def __init__(self, command_options=None):
         self.max_line_length = 0
-
+        self.regex_line = []
         self.jslint = {
             'enabled': True,
             }
@@ -435,11 +435,7 @@ class AnyTextMixin:
 
         This can be used for custom checks.
         """
-        if not self.options:
-            return
-        patterns = getattr(self.options, 'regex_line', [])
-
-        for pattern, message in patterns:
+        for pattern, message in self.options.regex_line:
             if re.search(pattern, line):
                 self.message(
                     line_no,
