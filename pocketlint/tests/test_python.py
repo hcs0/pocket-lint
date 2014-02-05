@@ -232,6 +232,18 @@ class TestPEP8(CheckerTestCase):
             [(1, 'E501 line too long (70 > 59 characters)')],
             self.reporter.messages)
 
+    def test_pep8_options(self):
+        """It can set PEP8 options."""
+        long_line = '1234 56189' * 7 + '\n'
+        self.write_to_file(self.file, long_line)
+        checker = PythonChecker(self.file.name, long_line, self.reporter)
+        checker.options.pep8['ignore'] = ['E501']
+        checker.options.pep8['max_line_length'] = 60
+
+        checker.check_pep8()
+
+        self.assertEqual([], self.reporter.messages)
+
 
 class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
