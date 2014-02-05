@@ -101,7 +101,7 @@ class TestCSS(CheckerTestCase):
 class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
 
-    def create_and_check(self, file_name, text):
+    def create_and_check(self, file_name, text, options=None):
         """Used by the TestAnyTextMixin tests."""
-        checker = CSSChecker(file_name, text, self.reporter)
+        checker = CSSChecker(file_name, text, self.reporter, options)
         checker.check_text()
