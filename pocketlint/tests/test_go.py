@@ -15,8 +15,8 @@ from pocketlint.tests.test_text import TestAnyTextMixin
 class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
 
-    def create_and_check(self, file_name, text):
-        checker = GOChecker(file_name, text, self.reporter)
+    def create_and_check(self, file_name, text, options=None):
+        checker = GOChecker(file_name, text, self.reporter, options)
         checker.check()
 
     def test_long_length(self):

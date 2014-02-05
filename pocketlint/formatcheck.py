@@ -430,6 +430,23 @@ class AnyTextMixin:
                 'File does not ends with an empty line.',
                 icon='info')
 
+    def check_regex_line(self, line_no, line):
+        """Check that line does not match the regular expression.
+
+        This can be used for custom checks.
+        """
+        if not self.options:
+            return
+        patterns = getattr(self.options, 'regex_line', [])
+
+        for pattern, message in patterns:
+            if re.search(pattern, line):
+                self.message(
+                    line_no,
+                    'Line contains flagged text. %s' % (message),
+                    icon='info',
+                    )
+
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
     """Verify the text of the document."""
@@ -441,6 +458,7 @@ class AnyTextChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
         self.check_windows_endlines()
 
@@ -457,6 +475,7 @@ class SQLChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
         self.check_windows_endlines()
 
@@ -595,6 +614,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
             line_no += 1
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
 
 class CSSChecker(BaseChecker, AnyTextMixin):
@@ -631,6 +651,7 @@ class CSSChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
             self.check_tab(line_no, line)
 
     def check_css_coding_conventions(self):
@@ -715,6 +736,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                     self.encoding = match.group(1).lower()
             self.check_pdb(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
             self.check_ascii(line_no, line)
 
     def check_pdb(self, line_no, line):
@@ -807,6 +829,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
             self.check_tab(line_no, line)
 
 
@@ -823,6 +846,7 @@ class JSONChecker(BaseChecker, AnyTextMixin):
             line_no += 1
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
             self.check_tab(line_no, line)
         last_lineno = line_no
         self.check_load()
@@ -881,6 +905,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
             if self.isTransition(line_no - 1):
                 self.check_transition(line_no - 1)
@@ -1103,6 +1128,7 @@ class GOChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
 
 def get_option_parser():

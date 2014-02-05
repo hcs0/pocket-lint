@@ -260,9 +260,9 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
         # pep8 checks this.
         pass
 
-    def create_and_check(self, file_name, text):
+    def create_and_check(self, file_name, text, options=None):
         """Used by the TestAnyTextMixin tests."""
-        checker = PythonChecker(file_name, text, self.reporter)
+        checker = PythonChecker(file_name, text, self.reporter, options)
         checker.check_text()
 
     def test_code_without_issues(self):

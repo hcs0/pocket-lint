@@ -117,9 +117,9 @@ class TestJavascript(CheckerTestCase):
 class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
 
-    def create_and_check(self, file_name, text):
+    def create_and_check(self, file_name, text, options=None):
         """Used by the TestAnyTextMixin tests."""
-        checker = JavascriptChecker(file_name, text, self.reporter)
+        checker = JavascriptChecker(file_name, text, self.reporter, options)
         checker.check_text()
 
     def test_code_with_debugger(self):
