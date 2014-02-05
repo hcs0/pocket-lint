@@ -8,7 +8,7 @@ from __future__ import (
     unicode_literals,
 )
 
-from pocketlint.formatcheck import JSONChecker
+from pocketlint.formatcheck import IS_PY3, JSONChecker
 from pocketlint.tests import CheckerTestCase
 
 
@@ -93,7 +93,7 @@ class TestJSON(CheckerTestCase):
         checker = JSONChecker('bogus', content, self.reporter)
         checker.check()
 
-        if self.python_version[:2] <= (2, 7):
+        if IS_PY3:
             self.assertEqual(
                 [(2, 'Expecting property name: line 2 column 1 (char 2)')],
                 self.reporter.messages)

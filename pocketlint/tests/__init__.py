@@ -16,8 +16,6 @@ from pocketlint.formatcheck import Reporter
 class CheckerTestCase(unittest.TestCase):
     """A testcase with a TestReporter for checkers."""
 
-    python_version = sys.version_info
-
     def setUp(self):
         self.reporter = Reporter(Reporter.COLLECTOR)
         self.reporter.call_count = 0
