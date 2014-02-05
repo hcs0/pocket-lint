@@ -150,6 +150,21 @@ class TestPyflakes(CheckerTestCase):
         self.assertEqual([], self.reporter.messages)
         self.assertEqual(0, self.reporter.call_count)
 
+    def test_pyflakes_unicode(self):
+        """
+        It handles Python non-ascii encoded files.
+        """
+        source = (
+            '# -*- coding: utf-8 -*-\n'
+            'variable = u"r\xe9sum\xe9"'
+            )
+        checker = PythonChecker('bogus', source, self.reporter)
+        # This should set the correct encoding.
+        checker.check_text()
+
+        checker.check_flakes()
+        self.assertEqual([], self.reporter.messages)
+
 
 class TestPEP8(CheckerTestCase):
     """Verify PEP8 integration."""
