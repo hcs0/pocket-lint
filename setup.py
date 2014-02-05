@@ -52,9 +52,9 @@ class Check(Command):
 setup(
     name="pocketlint",
     description="Pocket-lint a composite linter and style checker.",
-    version="1.4.2",
+    version="1.4.4",
     maintainer="Curtis C. Hovey",
-    maintainer_email="sinzui.is@verizon.net",
+    maintainer_email="sinzui.is@gmail.com",
     url="https://launchpad.net/pocket-lint",
     packages=[
         'pocketlint', 'pocketlint/contrib'],
@@ -64,7 +64,7 @@ setup(
     package_data={
         'pocketlint': ['jsreporter.js'],
         'pocketlint/contrib': ['fulljslint.js']},
-    install_requires=['pyflakes>=0.7.3', 'pep8>=1.4.6'],
+    requires=['pyflakes (>=0.7.3)', 'pep8 (>=1.4.6)'],
     scripts=['scripts/pocketlint'],
     cmdclass={
         'check': Check,
