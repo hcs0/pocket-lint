@@ -159,6 +159,19 @@ class TestPyflakes(CheckerTestCase):
         self.assertEqual([], self.reporter.messages)
         self.assertEqual(0, self.reporter.call_count)
 
+    def test_pyflakes_unicode(self):
+        """It handles Python non-ascii encoded files."""
+        source = (
+            '# -*- coding: utf-8 -*-\n'
+            'variable = u"r\xe9sum\xe9"'
+        )
+        checker = PythonChecker('bogus', source, self.reporter)
+        # This should set the correct encoding.
+        checker.check_text()
+
+        checker.check_flakes()
+        self.assertEqual([], self.reporter.messages)
+
 
 class TestPEP8(CheckerTestCase):
     """Verify PEP8 integration."""
@@ -298,12 +311,11 @@ def some_function():
 
         checker.check_pep257()
 
-        self.assertEqual([
-            (1, 'All modules should have docstrings.'),
-            (3, 'First line should end with a period.'),
-            ],
+        self.assertEqual(
+            [(1, 'All modules should have docstrings.'),
+             (3, 'First line should end with a period.'), ],
             self.reporter.messages,
-            )
+        )
 
     def test_code_with_ignore(self):
         """A list with error message which should be ignored can be
@@ -318,11 +330,10 @@ def some_function():
 
         checker.check_pep257()
 
-        self.assertEqual([
-            (1, 'All modules should have docstrings.'),
-            ],
+        self.assertEqual(
+            [(1, 'All modules should have docstrings.'), ],
             self.reporter.messages,
-            )
+        )
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):

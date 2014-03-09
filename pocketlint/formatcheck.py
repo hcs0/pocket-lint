@@ -641,7 +641,11 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         """Check compilation and syntax."""
         try:
             tree = compile(
-                self.text, self.file_path, "exec", _ast.PyCF_ONLY_AST)
+                self.text.encode(self.encoding),
+                self.file_path,
+                "exec",
+                _ast.PyCF_ONLY_AST,
+                )
         except (SyntaxError, IndentationError) as exc:
             line_no = exc.lineno or 0
             line = exc.text or ''
