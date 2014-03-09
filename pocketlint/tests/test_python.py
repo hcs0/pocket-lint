@@ -84,6 +84,13 @@ class Test:
         self.a = "okay"
 """
 
+hanging_style_python = """\
+from or import (
+    environ,
+    path,
+    )
+"""
+
 
 class Bunch(object):
     """Collector of a bunch of named stuff."""
@@ -209,6 +216,21 @@ class TestPEP8(CheckerTestCase):
             'E901 IndentationError: '
             'unindent does not match any outer indentation level')]
         self.assertEqual(expected, self.reporter.messages)
+        checker.check_pep8()
+
+    def test_code_closing_bracket(self):
+        self.write_to_file(self.file, hanging_style_python)
+        checker = PythonChecker(
+            self.file.name, hanging_style_python, self.reporter)
+        checker.options.pep8['hang_closing'] = True
+        checker.check_pep8()
+        self.assertEqual([], self.reporter.messages)
+        checker.options.pep8['hang_closing'] = False
+        checker.check_pep8()
+        self.assertEqual(
+            [(4, "E123 closing bracket does not match indentation of "
+                 "opening bracket's line")],
+            self.reporter.messages)
 
     def test_code_with_issues(self):
         self.write_to_file(self.file, ugly_style_python)

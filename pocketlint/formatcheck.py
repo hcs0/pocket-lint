@@ -282,6 +282,7 @@ class PocketLintOptions(object):
         # See pep8.StyleGuide for available options.
         self.pep8 = {
             'max_line_length': pep8.MAX_LINE_LENGTH,
+            'hang_closing': False,
             }
 
         self.regex_line=[]
@@ -296,6 +297,7 @@ class PocketLintOptions(object):
         # Update maximum line length.
         self.max_line_length = options.max_line_length
         self.pep8['max_line_length'] = options.max_line_length - 1
+        self.pep8['hang_closing'] = options.hang_closing
         if hasattr(options, 'regex_line'):
             self.regex_line = options.regex_line
 
@@ -1180,6 +1182,9 @@ def get_option_parser():
         "-f", "--format", dest="do_format", action="store_true",
         help="Reformat the doctest.")
     parser.add_option(
+        "-a", "--align-closing", dest="hang_closing", action="store_false",
+        help="Align the closing bracket with the matching opening.")
+    parser.add_option(
         "-i", "--interactive", dest="is_interactive", action="store_true",
         help="Approve each change.")
     parser.add_option(
@@ -1188,6 +1193,7 @@ def get_option_parser():
     parser.set_defaults(
         verbose=True,
         do_format=False,
+        hang_closing=True,
         is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
     )

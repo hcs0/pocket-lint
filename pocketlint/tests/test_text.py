@@ -67,6 +67,7 @@ class TestAnyTextMixin:
         """
         options = Bunch(
             max_line_length=80,
+            hang_closing=True,
             regex_line=[
                 ('.*marker.*', 'Explanation.'),
                 ('.*sign.*', 'Message.'),
