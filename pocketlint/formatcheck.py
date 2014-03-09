@@ -83,6 +83,13 @@ try:
 except ImportError:
     closure_linter = None
 
+try:
+    import pep257
+    # Shut up the linter.
+    pep257
+except ImportError:
+    pep257 = None
+
 
 IS_PY3 = True if sys.version_info >= (3,) else False
 
@@ -627,6 +634,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         self.check_text()
         self.check_flakes()
         self.check_pep8()
+        self.check_pep257()
         self.check_windows_endlines()
 
     def check_flakes(self):
@@ -665,6 +673,24 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             message = "%s: %s" % (message, location[3].strip())
             self.message(location[1], message, icon='error')
 
+    def check_pep257(self):
+        """PEP 257 docstring style checker."""
+        if not pep257:
+            # PEP257 is not available.
+            return
+
+        ignore_list = getattr(self.options, 'pep257_ignore', [])
+
+        results = pep257.check_source(self.text, self.file_path)
+
+        for error in results:
+            # PEP257 message contains the short error as first line from
+            # the long docstring explanation.
+            error_message = error.explanation.splitlines()[0]
+            if error_message in ignore_list:
+                continue
+            self.message(error.line, error_message, icon='error')
+
     def check_text(self):
         """Call each line_method for each line in text."""
         for line_no, line in enumerate(self.text.splitlines()):
@@ -678,7 +704,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self.check_ascii(line_no, line)
 
     def check_pdb(self, line_no, line):
-        """Check the length of the line."""
+        """Check for pdb breakpoints."""
+        # Set trace call is split so that this file will pass the linter.
         pdb_call = 'pdb.' + 'set_trace'
         if pdb_call in line:
             self.message(
