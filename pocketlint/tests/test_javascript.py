@@ -8,13 +8,21 @@ from __future__ import (
 )
 
 from tempfile import NamedTemporaryFile
+import unittest
 
 from pocketlint.formatcheck import(
     JavascriptChecker,
     JS
 )
-from pocketlint.tests import CheckerTestCase
+from pocketlint.tests import Bunch, CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
+
+try:
+    import closure_linter
+    # Shut up the linter.
+    closure_linter
+except ImportError:
+    closure_linter = None
 
 
 good_js = """\
@@ -52,6 +60,37 @@ class TestJavascript(CheckerTestCase):
         self.assertEqual(
             [(1, "Expected ';' and instead saw '(end)'.")],
             self.reporter.messages)
+
+    def test_google_closure(self):
+        if closure_linter is None:
+            raise unittest.SkipTest('Google Closure Linter not available.')
+        google_closure_trigger = (
+            'var test = 1+ 1;\n'
+            )
+        self.write_to_file(self.file, google_closure_trigger)
+        checker = JavascriptChecker(self.file.name, invalid_js, self.reporter)
+
+        checker.check()
+
+        self.assertEqual(
+            [(1, u'E:0002: Missing space before "+"')],
+            self.reporter.messages)
+
+    def test_google_closure_ignore(self):
+        if closure_linter is None:
+            raise unittest.SkipTest('Google Closure Linter not available.')
+        google_closure_trigger = (
+            'var test = 1+ 1;\n'
+            )
+        self.write_to_file(self.file, google_closure_trigger)
+        options = Bunch(
+            google_closure_ignore=[2], max_line_length=80)
+        checker = JavascriptChecker(
+            self.file.name, invalid_js, self.reporter, options)
+
+        checker.check()
+
+        self.assertEqual([], self.reporter.messages)
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):

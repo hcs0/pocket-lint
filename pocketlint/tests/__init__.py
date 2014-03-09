@@ -25,3 +25,11 @@ class CheckerTestCase(unittest.TestCase):
             string = bytes(string, 'utf-8')
         wfile.write(string)
         wfile.flush()
+
+
+class Bunch(object):
+    """
+    A simple class to act as a dictionary.
+    """
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)

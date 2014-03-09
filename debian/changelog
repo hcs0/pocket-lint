@@ -1,3 +1,10 @@
+pocket-lint (1.4.4-0gdp0) trusty; urgency=low
+
+  * Install scripts for the latest 2x and 3.x.
+  * New version with rudimentary use of goolge closure.
+
+ -- Curtis C. Hovey <sinzui.is@gmail.com>  Sun, 09 Mar 2014 17:39:19 -0000
+
 pocket-lint (1.4.3-0gdp) saucy; urgency=low
 
   * New upstream release: 1.4.3. with rudimentary go support.

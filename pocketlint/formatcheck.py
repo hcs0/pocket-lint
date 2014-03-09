@@ -76,6 +76,13 @@ try:
 except ImportError:
     from pocketlint import PyFlakesChecker
 
+try:
+    import closure_linter
+    # Shut up the linter.
+    closure_linter
+except ImportError:
+    closure_linter = None
+
 
 IS_PY3 = True if sys.version_info >= (3,) else False
 
@@ -176,30 +183,42 @@ class Language(object):
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
-    mimetypes.add_type('application/json', '.json')
-    mimetypes.add_type('application/x-zope-configuration', '.zcml')
-    mimetypes.add_type('application/x-zope-page-template', '.pt')
+    # Sorted after extension.
+    mimetypes.add_type('text/plain', '.bat')
+    mimetypes.add_type('text/css', '.css')
     mimetypes.add_type('text/x-python-doctest', '.doctest')
-    mimetypes.add_type('text/x-twisted-application', '.tac')
+    mimetypes.add_type('text/html', '.html')
+    mimetypes.add_type('text/plain', '.ini')
+    mimetypes.add_type('application/javascript', '.js')
+    mimetypes.add_type('application/json', '.json')
     mimetypes.add_type('text/x-log', '.log')
+    mimetypes.add_type('application/x-zope-page-template', '.pt')
+    mimetypes.add_type('text/x-python', '.py')
     mimetypes.add_type('text/x-rst', '.rst')
+    mimetypes.add_type('text/x-sh', '.sh')
+    mimetypes.add_type('text/x-sql', '.sql')
+    mimetypes.add_type('text/x-twisted-application', '.tac')
+    mimetypes.add_type('text/plain', '.txt')
+    mimetypes.add_type('application/x-zope-configuation', '.zcml')
+
+    # Sorted after content type.
     mime_type_language = {
-        'text/x-python': PYTHON,
-        'text/x-twisted-application': PYTHON,
-        'text/x-python-doctest': DOCTEST,
-        'text/css': CSS,
-        'text/html': HTML,
-        'text/plain': TEXT,
-        'text/x-sql': SQL,
-        'text/x-log': LOG,
-        'text/x-rst': RESTRUCTUREDTEXT,
-        'text/x-go': GO,
         'application/javascript': JAVASCRIPT,
         'application/json': JSON,
         'application/xml': XML,
         'application/x-sh': SH,
         'application/x-zope-configuration': ZCML,
         'application/x-zope-page-template': ZPT,
+        'text/css': CSS,
+        'text/html': HTML,
+        'text/plain': TEXT,
+        'text/x-go': GO,
+        'text/x-log': LOG,
+        'text/x-python': PYTHON,
+        'text/x-python-doctest': DOCTEST,
+        'text/x-rst': RESTRUCTUREDTEXT,
+        'text/x-sql': SQL,
+        'text/x-twisted-application': PYTHON,
     }
     doctest_pattern = re.compile(
         r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
@@ -692,23 +711,65 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
     JSREPORTER = os.path.join(HERE, 'jsreporter.js')
 
+    # List of Google Closure Errors to ignore.
+    # Ex 110 is line to long which is already provided by pocket-lint.
+    GOOGLE_CLOSURE_IGNORE = [110]
+
     def check(self):
-        """Check the syntax of the javascript code."""
+        """Check the syntax of the JavaScript code."""
+        self.check_jslint()
+        self.check_google_closure()
+        self.check_text()
+        self.check_windows_endlines()
+
+    def check_jslint(self):
+        """Check file using jslint."""
         if JS is None or self.text == '':
             return
         args = [JS, self.JSREPORTER, self.FULLJSLINT, self.file_path]
         jslint = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         issues, errors = jslint.communicate()
-        issues = issues.decode('utf-8').strip()
+        issues = issues.strip().decode('utf-8')
         if issues:
             for issue in issues.splitlines():
                 line_no, char_no_, message = issue.split('::')
                 line_no = int(line_no)
                 line_no -= 1
                 self.message(line_no, message, icon='error')
-        self.check_text()
-        self.check_windows_endlines()
+
+    def check_google_closure(self):
+        """Check file using Google Closure Linter."""
+        if not closure_linter:
+            return
+
+        from closure_linter import runner
+        from closure_linter.common import erroraccumulator
+
+        error_handler = erroraccumulator.ErrorAccumulator()
+        runner.Run(self.file_path, error_handler)
+        for error in error_handler.GetErrors():
+            if error.code in self.google_closure_ignore:
+                continue
+            # Use a similar format as default Google Closure Linter formatter.
+            # Line 12, E:0010: Missing semicolon at end of line
+            message = 'E:%04d: %s' % (error.code, error.message)
+            self.message(error.token.line_number, message, icon='error')
+
+    @property
+    def google_closure_ignore(self):
+        """
+        Return the list of ignored errors for Google Closure Linter.
+
+        Return either the default list or the list specified as options.
+        """
+        if not self.options:
+            return self.GOOGLE_CLOSURE_IGNORE
+        ignore_list = getattr(self.options, 'google_closure_ignore', None)
+        if ignore_list is None:
+            return self.GOOGLE_CLOSURE_IGNORE
+        else:
+            return ignore_list
 
     def check_debugger(self, line_no, line):
         """Check the length of the line."""
@@ -1021,6 +1082,7 @@ class GOChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+
 
 def get_option_parser():
     """Return the option parser for this program."""
