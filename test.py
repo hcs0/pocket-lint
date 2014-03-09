@@ -106,8 +106,12 @@ def main():
     suite = unittest.TestSuite()
     for test_module in test_loader.discover('pocketlint', pattern=pattern):
         suite.addTest(test_module)
-    unittest.TextTestRunner(verbosity=1).run(suite)
+    result = unittest.TextTestRunner(verbosity=1).run(suite)
+    if result.wasSuccessful():
+        return 0
+    else:
+        return 1
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
