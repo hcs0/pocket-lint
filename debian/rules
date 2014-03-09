@@ -3,7 +3,7 @@
 export PYBUILD_DESTDIR_python2=debian/python-pocket-lint
 export PYBUILD_DESTDIR_python3=debian/python-pocket-lint
 
-BIN_PATH:=debian/python-pocket-lint/usr/bin/pocketlint
+BIN_PATH:=$(PYBUILD_DESTDIR_python2)/usr/bin
 PY_VERSION:=$(shell pyversions -d)
 PY3_VERSION:=$(shell py3versions -d)
 
