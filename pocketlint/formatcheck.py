@@ -7,13 +7,13 @@ from __future__ import (
     absolute_import,
     unicode_literals,
     with_statement,
-)
+    )
 
 
 __all__ = [
     'Reporter',
     'UniversalChecker',
-]
+    ]
 
 
 import _ast
@@ -67,7 +67,7 @@ from pocketlint.formatdoctest import DoctestReviewer
 from pocketlint.reporter import (
     css_report_handler,
     Reporter,
-)
+    )
 import pep8
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
@@ -226,7 +226,7 @@ class Language(object):
         'text/x-rst': RESTRUCTUREDTEXT,
         'text/x-sql': SQL,
         'text/x-twisted-application': PYTHON,
-    }
+        }
     doctest_pattern = re.compile(
         r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
 
@@ -285,7 +285,7 @@ class PocketLintOptions(object):
             'hang_closing': False,
             }
 
-        self.regex_line=[]
+        self.regex_line = []
 
         if command_options:
             self._updateFromCommandLineOptions(command_options)
@@ -546,7 +546,7 @@ class FastParser(object):
                 err = expat.error(
                     "undefined entity %s: line %d, column %d" %
                     (text, self.parser.ErrorLineNumber,
-                    self.parser.ErrorColumnNumber))
+                     self.parser.ErrorColumnNumber))
                 err.code = 11  # XML_ERROR_UNDEFINED_ENTITY
                 err.lineno = self.parser.ErrorLineNumber
                 err.offset = self.parser.ErrorColumnNumber
@@ -1196,7 +1196,7 @@ def get_option_parser():
         hang_closing=True,
         is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
-    )
+        )
     return parser
 
 
