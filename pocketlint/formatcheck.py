@@ -261,6 +261,45 @@ class Language(object):
         return Language.get_language(file_path) is not None
 
 
+class PocketLintOptions(object):
+    """Default options used by pocketlint"""
+
+    def __init__(self, command_options=None):
+        self.max_line_length = 0
+
+        self.jslint = {
+            'enabled': True,
+            }
+
+        self.closure_linter = {
+            # Disabled by default, since jslint is the default linter.
+            'enabled': False,
+            # List of Google Closure Errors to ignore.
+            # Ex 110 is line to long which is already provided by pocket-lint.
+            'ignore': [110],
+            }
+
+        # See pep8.StyleGuide for available options.
+        self.pep8 = {
+            'max_line_length': pep8.MAX_LINE_LENGTH,
+            }
+
+        self.regex_line=[]
+
+        if command_options:
+            self._updateFromCommandLineOptions(command_options)
+
+    def _updateFromCommandLineOptions(self, options):
+        """
+        Update with options received from command line.
+        """
+        # Update maximum line length.
+        self.max_line_length = options.max_line_length
+        self.pep8['max_line_length'] = options.max_line_length - 1
+        if hasattr(options, 'regex_line'):
+            self.regex_line = options.regex_line
+
+
 class BaseChecker(object):
     """Common rules for checkers.
 
@@ -276,7 +315,13 @@ class BaseChecker(object):
         if self.REENCODE:
             self.text = u(text)
         self.set_reporter(reporter=reporter)
-        self.options = options
+
+        if options is None:
+            self.options = PocketLintOptions()
+        elif not isinstance(options, PocketLintOptions):
+            self.options = PocketLintOptions(command_options=options)
+        else:
+            self.options = options
 
     def set_reporter(self, reporter=None):
         """Set the reporter for messages."""
@@ -302,7 +347,7 @@ class BaseChecker(object):
     @property
     def check_length_filter(self):
         '''Default filter used by default for checking line length.'''
-        if self.options:
+        if self.options.max_line_length:
             return self.options.max_line_length
         else:
             return DEFAULT_MAX_LENGTH
@@ -313,13 +358,13 @@ class UniversalChecker(BaseChecker):
 
     def __init__(self, file_path, text,
                  language=None, reporter=None, options=None):
-        self.file_path = file_path
-        self.base_dir = os.path.dirname(file_path)
-        self.file_name = os.path.basename(file_path)
-        self.text = text
-        self.set_reporter(reporter=reporter)
+        super(UniversalChecker, self).__init__(
+            file_path=file_path,
+            text=text,
+            reporter=reporter,
+            options=options,
+            )
         self.language = language
-        self.options = options
         self.file_lines_view = None
 
     def check(self):
@@ -682,8 +727,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
     def check_pep8(self):
         """Check style."""
-        style_options = pep8.StyleGuide(
-            max_line_length=self.check_length_filter)
+        style_options = pep8.StyleGuide(**self.options.pep8)
         options = style_options.options
         pep8_report = PEP8Report(options, self.message)
         try:
@@ -740,7 +784,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
     @property
     def check_length_filter(self):
         # The pep8 lib counts from 0.
-        if self.options:
+        if self.options.max_line_length:
             return self.options.max_line_length - 1
         else:
             return pep8.MAX_LINE_LENGTH
@@ -764,20 +808,16 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
     JSREPORTER = os.path.join(HERE, 'jsreporter.js')
 
-    # List of Google Closure Errors to ignore.
-    # Ex 110 is line to long which is already provided by pocket-lint.
-    GOOGLE_CLOSURE_IGNORE = [110]
-
     def check(self):
         """Check the syntax of the JavaScript code."""
         self.check_jslint()
-        self.check_google_closure()
+        self.check_closure_linter()
         self.check_text()
         self.check_windows_endlines()
 
     def check_jslint(self):
         """Check file using jslint."""
-        if JS is None or self.text == '':
+        if JS is None or self.text == '' or not self.options.jslint['enabled']:
             return
         args = [JS, self.JSREPORTER, self.FULLJSLINT, self.file_path]
         jslint = subprocess.Popen(
@@ -791,9 +831,9 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
                 line_no -= 1
                 self.message(line_no, message, icon='error')
 
-    def check_google_closure(self):
+    def check_closure_linter(self):
         """Check file using Google Closure Linter."""
-        if not closure_linter:
+        if not self.options.closure_linter['enabled']:
             return
 
         from closure_linter import runner
@@ -802,27 +842,12 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
         error_handler = erroraccumulator.ErrorAccumulator()
         runner.Run(self.file_path, error_handler)
         for error in error_handler.GetErrors():
-            if error.code in self.google_closure_ignore:
+            if error.code in self.options.closure_linter['ignore']:
                 continue
             # Use a similar format as default Google Closure Linter formatter.
             # Line 12, E:0010: Missing semicolon at end of line
             message = 'E:%04d: %s' % (error.code, error.message)
             self.message(error.token.line_number, message, icon='error')
-
-    @property
-    def google_closure_ignore(self):
-        """
-        Return the list of ignored errors for Google Closure Linter.
-
-        Return either the default list or the list specified as options.
-        """
-        if not self.options:
-            return self.GOOGLE_CLOSURE_IGNORE
-        ignore_list = getattr(self.options, 'google_closure_ignore', None)
-        if ignore_list is None:
-            return self.GOOGLE_CLOSURE_IGNORE
-        else:
-            return ignore_list
 
     def check_debugger(self, line_no, line):
         """Check the length of the line."""
@@ -1119,7 +1144,7 @@ class GOChecker(BaseChecker, AnyTextMixin):
     @property
     def check_length_filter(self):
         # Go land standards don't have a max length; it suggests common sense.
-        if self.options:
+        if self.options.max_line_length:
             return self.options.max_line_length - 1
         else:
             return 160
