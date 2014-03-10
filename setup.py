@@ -6,13 +6,20 @@ from __future__ import (
 )
 
 import subprocess
-
-from distutils.core import (
-    Command,
-    setup,
-)
-from distutils.command.sdist import sdist
 import unittest
+
+try:
+    from setuptools import (
+        Command,
+        setup,
+        )
+    from setuptools.command.sdist import sdist
+except ImportError:
+    from distutils.core import (
+        Command,
+        setup
+        )
+    from distutils.command.sdist import sdist
 
 
 class SignedSDistCommand(sdist):
@@ -64,9 +71,6 @@ setup(
     package_data={
         'pocketlint': ['jsreporter.js'],
         'pocketlint/contrib': ['fulljslint.js']},
-    requires=['pyflakes (>=7.3)', 'pep8 (>=1.4.6)'],
-    # install_requires is duplicated to support installing dependencies via
-    # pip.
     install_requires=['pyflakes>=0.7.3', 'pep8>=1.4.6'],
     scripts=['scripts/pocketlint'],
     cmdclass={
