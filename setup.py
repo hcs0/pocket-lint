@@ -64,7 +64,7 @@ setup(
     package_data={
         'pocketlint': ['jsreporter.js'],
         'pocketlint/contrib': ['fulljslint.js']},
-    requires=['pyflakes>=7.3', 'pep8>=1.4.6'],
+    requires=['pyflakes (>=7.3)', 'pep8 (>=1.4.6)'],
     scripts=['scripts/pocketlint'],
     cmdclass={
         'check': Check,
