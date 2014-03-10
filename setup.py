@@ -64,6 +64,9 @@ setup(
     package_data={
         'pocketlint': ['jsreporter.js'],
         'pocketlint/contrib': ['fulljslint.js']},
+    requires=['pyflakes (>=7.3)', 'pep8 (>=1.4.6)'],
+    # install_requires is duplicated to support installing dependencies via
+    # pip.
     install_requires=['pyflakes>=0.7.3', 'pep8>=1.4.6'],
     scripts=['scripts/pocketlint'],
     cmdclass={
