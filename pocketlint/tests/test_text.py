@@ -11,13 +11,13 @@ from pocketlint.formatcheck import (
     AnyTextChecker,
     get_option_parser,
 )
-from pocketlint.tests import CheckerTestCase
+from pocketlint.tests import Bunch, CheckerTestCase
 
 
 class TestAnyTextMixin:
     """A mixin that provides common text tests."""
 
-    def create_and_check(self, file_name, text):
+    def create_and_check(self, file_name, text, options=None):
         raise NotImplemented
 
     def test_without_conflicts(self):
@@ -59,6 +59,30 @@ class TestAnyTextMixin:
         self.assertEqual(
             [(1, 'Line contains a tab character.')],
             self.reporter.messages)
+
+    def test_regex_line(self):
+        """
+        A list of regex and corresponding error messages can be passed to
+        check each line.
+        """
+        options = Bunch(
+            max_line_length=80,
+            hang_closing=True,
+            regex_line=[
+                ('.*marker.*', 'Explanation.'),
+                ('.*sign.*', 'Message.'),
+                ])
+
+        self.create_and_check(
+            'bogus',
+            'with marker here\n other sign here', options)
+
+        self.assertEqual([
+            (1, 'Line contains flagged text. Explanation.'),
+            (2, 'Line contains flagged text. Message.'),
+            ],
+            self.reporter.messages,
+            )
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):

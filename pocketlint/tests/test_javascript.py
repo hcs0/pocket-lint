@@ -14,7 +14,7 @@ from pocketlint.formatcheck import(
     JavascriptChecker,
     JS
 )
-from pocketlint.tests import Bunch, CheckerTestCase
+from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
 
 try:
@@ -61,14 +61,21 @@ class TestJavascript(CheckerTestCase):
             [(1, "Expected ';' and instead saw '(end)'.")],
             self.reporter.messages)
 
-    def test_google_closure(self):
+    closure_linter_trigger = (
+        'var test = 1+ 1;\n'
+        )
+
+    def test_closure_linter(self):
         if closure_linter is None:
             raise unittest.SkipTest('Google Closure Linter not available.')
-        google_closure_trigger = (
-            'var test = 1+ 1;\n'
-            )
-        self.write_to_file(self.file, google_closure_trigger)
-        checker = JavascriptChecker(self.file.name, invalid_js, self.reporter)
+
+        self.write_to_file(self.file, self.closure_linter_trigger)
+        checker = JavascriptChecker(
+            self.file.name, invalid_js, self.reporter)
+        checker.options.closure_linter.update({
+                'enabled': True,
+                'ignore': [],
+                })
 
         checker.check()
 
@@ -76,17 +83,31 @@ class TestJavascript(CheckerTestCase):
             [(1, u'E:0002: Missing space before "+"')],
             self.reporter.messages)
 
-    def test_google_closure_ignore(self):
+    def test_closure_linter_ignore(self):
         if closure_linter is None:
             raise unittest.SkipTest('Google Closure Linter not available.')
-        google_closure_trigger = (
-            'var test = 1+ 1;\n'
-            )
-        self.write_to_file(self.file, google_closure_trigger)
-        options = Bunch(
-            google_closure_ignore=[2], max_line_length=80)
+
+        self.write_to_file(self.file, self.closure_linter_trigger)
         checker = JavascriptChecker(
-            self.file.name, invalid_js, self.reporter, options)
+            self.file.name, invalid_js, self.reporter)
+        checker.options.closure_linter.update({
+                'enabled': True,
+                'ignore': [2],
+                })
+
+        checker.check()
+
+        self.assertEqual([], self.reporter.messages)
+
+    def test_closure_linter_disabled(self):
+        """No errors are reported when closure linter is disabled."""
+        self.write_to_file(self.file, self.closure_linter_trigger)
+        checker = JavascriptChecker(
+            self.file.name, invalid_js, self.reporter)
+        checker.options.closure_linter.update({
+                'enabled': False,
+                'ignore': [],
+                })
 
         checker.check()
 
@@ -96,9 +117,9 @@ class TestJavascript(CheckerTestCase):
 class TestText(CheckerTestCase, TestAnyTextMixin):
     """Verify text integration."""
 
-    def create_and_check(self, file_name, text):
+    def create_and_check(self, file_name, text, options=None):
         """Used by the TestAnyTextMixin tests."""
-        checker = JavascriptChecker(file_name, text, self.reporter)
+        checker = JavascriptChecker(file_name, text, self.reporter, options)
         checker.check_text()
 
     def test_code_with_debugger(self):

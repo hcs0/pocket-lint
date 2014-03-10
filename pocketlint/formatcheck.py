@@ -7,13 +7,13 @@ from __future__ import (
     absolute_import,
     unicode_literals,
     with_statement,
-)
+    )
 
 
 __all__ = [
     'Reporter',
     'UniversalChecker',
-]
+    ]
 
 
 import _ast
@@ -67,7 +67,7 @@ from pocketlint.formatdoctest import DoctestReviewer
 from pocketlint.reporter import (
     css_report_handler,
     Reporter,
-)
+    )
 import pep8
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
@@ -82,6 +82,13 @@ try:
     closure_linter
 except ImportError:
     closure_linter = None
+
+try:
+    import pep257
+    # Shut up the linter.
+    pep257
+except ImportError:
+    pep257 = None
 
 
 IS_PY3 = True if sys.version_info >= (3,) else False
@@ -183,31 +190,43 @@ class Language(object):
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
-    mimetypes.add_type('application/json', '.json')
-    mimetypes.add_type('application/x-zope-configuration', '.zcml')
-    mimetypes.add_type('application/x-zope-page-template', '.pt')
+    # Sorted after extension.
+    mimetypes.add_type('text/plain', '.bat')
+    mimetypes.add_type('text/css', '.css')
     mimetypes.add_type('text/x-python-doctest', '.doctest')
-    mimetypes.add_type('text/x-twisted-application', '.tac')
+    mimetypes.add_type('text/html', '.html')
+    mimetypes.add_type('text/plain', '.ini')
+    mimetypes.add_type('application/javascript', '.js')
+    mimetypes.add_type('application/json', '.json')
     mimetypes.add_type('text/x-log', '.log')
+    mimetypes.add_type('application/x-zope-page-template', '.pt')
+    mimetypes.add_type('text/x-python', '.py')
     mimetypes.add_type('text/x-rst', '.rst')
+    mimetypes.add_type('text/x-sh', '.sh')
+    mimetypes.add_type('text/x-sql', '.sql')
+    mimetypes.add_type('text/x-twisted-application', '.tac')
+    mimetypes.add_type('text/plain', '.txt')
+    mimetypes.add_type('application/x-zope-configuation', '.zcml')
+
+    # Sorted after content type.
     mime_type_language = {
-        'text/x-python': PYTHON,
-        'text/x-twisted-application': PYTHON,
-        'text/x-python-doctest': DOCTEST,
-        'text/css': CSS,
-        'text/html': HTML,
-        'text/plain': TEXT,
-        'text/x-sql': SQL,
-        'text/x-log': LOG,
-        'text/x-rst': RESTRUCTUREDTEXT,
-        'text/x-go': GO,
         'application/javascript': JAVASCRIPT,
         'application/json': JSON,
         'application/xml': XML,
         'application/x-sh': SH,
         'application/x-zope-configuration': ZCML,
         'application/x-zope-page-template': ZPT,
-    }
+        'text/css': CSS,
+        'text/html': HTML,
+        'text/plain': TEXT,
+        'text/x-go': GO,
+        'text/x-log': LOG,
+        'text/x-python': PYTHON,
+        'text/x-python-doctest': DOCTEST,
+        'text/x-rst': RESTRUCTUREDTEXT,
+        'text/x-sql': SQL,
+        'text/x-twisted-application': PYTHON,
+        }
     doctest_pattern = re.compile(
         r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
 
@@ -242,6 +261,47 @@ class Language(object):
         return Language.get_language(file_path) is not None
 
 
+class PocketLintOptions(object):
+    """Default options used by pocketlint"""
+
+    def __init__(self, command_options=None):
+        self.max_line_length = 0
+
+        self.jslint = {
+            'enabled': True,
+            }
+
+        self.closure_linter = {
+            # Disabled by default, since jslint is the default linter.
+            'enabled': False,
+            # List of Google Closure Errors to ignore.
+            # Ex 110 is line to long which is already provided by pocket-lint.
+            'ignore': [110],
+            }
+
+        # See pep8.StyleGuide for available options.
+        self.pep8 = {
+            'max_line_length': pep8.MAX_LINE_LENGTH,
+            'hang_closing': False,
+            }
+
+        self.regex_line = []
+
+        if command_options:
+            self._updateFromCommandLineOptions(command_options)
+
+    def _updateFromCommandLineOptions(self, options):
+        """
+        Update with options received from command line.
+        """
+        # Update maximum line length.
+        self.max_line_length = options.max_line_length
+        self.pep8['max_line_length'] = options.max_line_length - 1
+        self.pep8['hang_closing'] = options.hang_closing
+        if hasattr(options, 'regex_line'):
+            self.regex_line = options.regex_line
+
+
 class BaseChecker(object):
     """Common rules for checkers.
 
@@ -257,7 +317,13 @@ class BaseChecker(object):
         if self.REENCODE:
             self.text = u(text)
         self.set_reporter(reporter=reporter)
-        self.options = options
+
+        if options is None:
+            self.options = PocketLintOptions()
+        elif not isinstance(options, PocketLintOptions):
+            self.options = PocketLintOptions(command_options=options)
+        else:
+            self.options = options
 
     def set_reporter(self, reporter=None):
         """Set the reporter for messages."""
@@ -283,7 +349,7 @@ class BaseChecker(object):
     @property
     def check_length_filter(self):
         '''Default filter used by default for checking line length.'''
-        if self.options:
+        if self.options.max_line_length:
             return self.options.max_line_length
         else:
             return DEFAULT_MAX_LENGTH
@@ -294,13 +360,13 @@ class UniversalChecker(BaseChecker):
 
     def __init__(self, file_path, text,
                  language=None, reporter=None, options=None):
-        self.file_path = file_path
-        self.base_dir = os.path.dirname(file_path)
-        self.file_name = os.path.basename(file_path)
-        self.text = text
-        self.set_reporter(reporter=reporter)
+        super(UniversalChecker, self).__init__(
+            file_path=file_path,
+            text=text,
+            reporter=reporter,
+            options=options,
+            )
         self.language = language
-        self.options = options
         self.file_lines_view = None
 
     def check(self):
@@ -377,6 +443,23 @@ class AnyTextMixin:
                 'File does not ends with an empty line.',
                 icon='info')
 
+    def check_regex_line(self, line_no, line):
+        """Check that line does not match the regular expression.
+
+        This can be used for custom checks.
+        """
+        if not self.options:
+            return
+        patterns = getattr(self.options, 'regex_line', [])
+
+        for pattern, message in patterns:
+            if re.search(pattern, line):
+                self.message(
+                    line_no,
+                    'Line contains flagged text. %s' % (message),
+                    icon='info',
+                    )
+
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
     """Verify the text of the document."""
@@ -388,6 +471,7 @@ class AnyTextChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
         self.check_windows_endlines()
 
@@ -404,6 +488,7 @@ class SQLChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
         self.check_windows_endlines()
 
@@ -461,7 +546,7 @@ class FastParser(object):
                 err = expat.error(
                     "undefined entity %s: line %d, column %d" %
                     (text, self.parser.ErrorLineNumber,
-                    self.parser.ErrorColumnNumber))
+                     self.parser.ErrorColumnNumber))
                 err.code = 11  # XML_ERROR_UNDEFINED_ENTITY
                 err.lineno = self.parser.ErrorLineNumber
                 err.offset = self.parser.ErrorColumnNumber
@@ -542,6 +627,7 @@ class XMLChecker(BaseChecker, AnyTextMixin):
             line_no += 1
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
 
 class CSSChecker(BaseChecker, AnyTextMixin):
@@ -578,6 +664,7 @@ class CSSChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
             self.check_tab(line_no, line)
 
     def check_css_coding_conventions(self):
@@ -615,13 +702,18 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         self.check_text()
         self.check_flakes()
         self.check_pep8()
+        self.check_pep257()
         self.check_windows_endlines()
 
     def check_flakes(self):
         """Check compilation and syntax."""
         try:
             tree = compile(
-                self.text, self.file_path, "exec", _ast.PyCF_ONLY_AST)
+                self.text.encode(self.encoding),
+                self.file_path,
+                "exec",
+                _ast.PyCF_ONLY_AST,
+                )
         except (SyntaxError, IndentationError) as exc:
             line_no = exc.lineno or 0
             line = exc.text or ''
@@ -637,8 +729,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
     def check_pep8(self):
         """Check style."""
-        style_options = pep8.StyleGuide(
-            max_line_length=self.check_length_filter)
+        style_options = pep8.StyleGuide(**self.options.pep8)
         options = style_options.options
         pep8_report = PEP8Report(options, self.message)
         try:
@@ -653,6 +744,24 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             message = "%s: %s" % (message, location[3].strip())
             self.message(location[1], message, icon='error')
 
+    def check_pep257(self):
+        """PEP 257 docstring style checker."""
+        if not pep257:
+            # PEP257 is not available.
+            return
+
+        ignore_list = getattr(self.options, 'pep257_ignore', [])
+
+        results = pep257.check_source(self.text, self.file_path)
+
+        for error in results:
+            # PEP257 message contains the short error as first line from
+            # the long docstring explanation.
+            error_message = error.explanation.splitlines()[0]
+            if error_message in ignore_list:
+                continue
+            self.message(error.line, error_message, icon='error')
+
     def check_text(self):
         """Call each line_method for each line in text."""
         for line_no, line in enumerate(self.text.splitlines()):
@@ -663,10 +772,12 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                     self.encoding = match.group(1).lower()
             self.check_pdb(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
             self.check_ascii(line_no, line)
 
     def check_pdb(self, line_no, line):
-        """Check the length of the line."""
+        """Check for pdb breakpoints."""
+        # Set trace call is split so that this file will pass the linter.
         pdb_call = 'pdb.' + 'set_trace'
         if pdb_call in line:
             self.message(
@@ -675,7 +786,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
     @property
     def check_length_filter(self):
         # The pep8 lib counts from 0.
-        if self.options:
+        if self.options.max_line_length:
             return self.options.max_line_length - 1
         else:
             return pep8.MAX_LINE_LENGTH
@@ -699,20 +810,16 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
     JSREPORTER = os.path.join(HERE, 'jsreporter.js')
 
-    # List of Google Closure Errors to ignore.
-    # Ex 110 is line to long which is already provided by pocket-lint.
-    GOOGLE_CLOSURE_IGNORE = [110]
-
     def check(self):
         """Check the syntax of the JavaScript code."""
         self.check_jslint()
-        self.check_google_closure()
+        self.check_closure_linter()
         self.check_text()
         self.check_windows_endlines()
 
     def check_jslint(self):
         """Check file using jslint."""
-        if JS is None or self.text == '':
+        if JS is None or self.text == '' or not self.options.jslint['enabled']:
             return
         args = [JS, self.JSREPORTER, self.FULLJSLINT, self.file_path]
         jslint = subprocess.Popen(
@@ -726,9 +833,9 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
                 line_no -= 1
                 self.message(line_no, message, icon='error')
 
-    def check_google_closure(self):
+    def check_closure_linter(self):
         """Check file using Google Closure Linter."""
-        if not closure_linter:
+        if not self.options.closure_linter['enabled']:
             return
 
         from closure_linter import runner
@@ -737,27 +844,12 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
         error_handler = erroraccumulator.ErrorAccumulator()
         runner.Run(self.file_path, error_handler)
         for error in error_handler.GetErrors():
-            if error.code in self.google_closure_ignore:
+            if error.code in self.options.closure_linter['ignore']:
                 continue
             # Use a similar format as default Google Closure Linter formatter.
             # Line 12, E:0010: Missing semicolon at end of line
             message = 'E:%04d: %s' % (error.code, error.message)
             self.message(error.token.line_number, message, icon='error')
-
-    @property
-    def google_closure_ignore(self):
-        """
-        Return the list of ignored errors for Google Closure Linter.
-
-        Return either the default list or the list specified as options.
-        """
-        if not self.options:
-            return self.GOOGLE_CLOSURE_IGNORE
-        ignore_list = getattr(self.options, 'google_closure_ignore', None)
-        if ignore_list is None:
-            return self.GOOGLE_CLOSURE_IGNORE
-        else:
-            return ignore_list
 
     def check_debugger(self, line_no, line):
         """Check the length of the line."""
@@ -774,6 +866,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
             self.check_tab(line_no, line)
 
 
@@ -790,6 +883,7 @@ class JSONChecker(BaseChecker, AnyTextMixin):
             line_no += 1
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
             self.check_tab(line_no, line)
         last_lineno = line_no
         self.check_load()
@@ -848,6 +942,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
             if self.isTransition(line_no - 1):
                 self.check_transition(line_no - 1)
@@ -1051,7 +1146,7 @@ class GOChecker(BaseChecker, AnyTextMixin):
     @property
     def check_length_filter(self):
         # Go land standards don't have a max length; it suggests common sense.
-        if self.options:
+        if self.options.max_line_length:
             return self.options.max_line_length - 1
         else:
             return 160
@@ -1070,6 +1165,7 @@ class GOChecker(BaseChecker, AnyTextMixin):
             self.check_length(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
+            self.check_regex_line(line_no, line)
 
 
 def get_option_parser():
@@ -1086,6 +1182,9 @@ def get_option_parser():
         "-f", "--format", dest="do_format", action="store_true",
         help="Reformat the doctest.")
     parser.add_option(
+        "-a", "--align-closing", dest="hang_closing", action="store_false",
+        help="Align the closing bracket with the matching opening.")
+    parser.add_option(
         "-i", "--interactive", dest="is_interactive", action="store_true",
         help="Approve each change.")
     parser.add_option(
@@ -1094,9 +1193,10 @@ def get_option_parser():
     parser.set_defaults(
         verbose=True,
         do_format=False,
+        hang_closing=True,
         is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
-    )
+        )
     return parser
 
 
