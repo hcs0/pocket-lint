@@ -7,13 +7,13 @@ from __future__ import (
     absolute_import,
     unicode_literals,
     with_statement,
-)
+    )
 
 
 __all__ = [
     'Reporter',
     'UniversalChecker',
-]
+    ]
 
 
 import _ast
@@ -67,7 +67,7 @@ from pocketlint.formatdoctest import DoctestReviewer
 from pocketlint.reporter import (
     css_report_handler,
     Reporter,
-)
+    )
 import pep8
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
@@ -82,6 +82,13 @@ try:
     closure_linter
 except ImportError:
     closure_linter = None
+
+try:
+    import pep257
+    # Shut up the linter.
+    pep257
+except ImportError:
+    pep257 = None
 
 
 IS_PY3 = True if sys.version_info >= (3,) else False
@@ -219,7 +226,7 @@ class Language(object):
         'text/x-rst': RESTRUCTUREDTEXT,
         'text/x-sql': SQL,
         'text/x-twisted-application': PYTHON,
-    }
+        }
     doctest_pattern = re.compile(
         r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
 
@@ -258,7 +265,7 @@ class PocketLintOptions(object):
     """Default options used by pocketlint"""
 
     def __init__(self, command_options=None):
-        self.max_line_length = 0
+        self._max_line_length = 0
         self.regex_line = []
         self.jslint = {
             'enabled': True,
@@ -275,10 +282,22 @@ class PocketLintOptions(object):
         # See pep8.StyleGuide for available options.
         self.pep8 = {
             'max_line_length': pep8.MAX_LINE_LENGTH,
+            'hang_closing': False,
             }
+
+        self.regex_line = []
 
         if command_options:
             self._updateFromCommandLineOptions(command_options)
+
+    @property
+    def max_line_length(self):
+        return self._max_line_length
+
+    @max_line_length.setter
+    def max_line_length(self, value):
+        self._max_line_length = value
+        self.pep8['max_line_length'] = value - 1
 
     def _updateFromCommandLineOptions(self, options):
         """
@@ -287,6 +306,9 @@ class PocketLintOptions(object):
         # Update maximum line length.
         self.max_line_length = options.max_line_length
         self.pep8['max_line_length'] = options.max_line_length - 1
+        self.pep8['hang_closing'] = options.hang_closing
+        if hasattr(options, 'regex_line'):
+            self.regex_line = options.regex_line
 
 
 class BaseChecker(object):
@@ -529,7 +551,7 @@ class FastParser(object):
                 err = expat.error(
                     "undefined entity %s: line %d, column %d" %
                     (text, self.parser.ErrorLineNumber,
-                    self.parser.ErrorColumnNumber))
+                     self.parser.ErrorColumnNumber))
                 err.code = 11  # XML_ERROR_UNDEFINED_ENTITY
                 err.lineno = self.parser.ErrorLineNumber
                 err.offset = self.parser.ErrorColumnNumber
@@ -685,6 +707,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         self.check_text()
         self.check_flakes()
         self.check_pep8()
+        self.check_pep257()
         self.check_windows_endlines()
 
     def check_flakes(self):
@@ -716,7 +739,11 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         pep8_report = PEP8Report(options, self.message)
         try:
             pep8_checker = pep8.Checker(
-                self.file_path, options=options, report=pep8_report)
+                filename=self.file_path,
+                lines=self.text.splitlines(True),
+                options=options,
+                report=pep8_report,
+                )
             pep8_checker.check_all()
         except TokenError as er:
             message, location = er.args
@@ -725,6 +752,24 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             message, location = er.args
             message = "%s: %s" % (message, location[3].strip())
             self.message(location[1], message, icon='error')
+
+    def check_pep257(self):
+        """PEP 257 docstring style checker."""
+        if not pep257:
+            # PEP257 is not available.
+            return
+
+        ignore_list = getattr(self.options, 'pep257_ignore', [])
+
+        results = pep257.check_source(self.text, self.file_path)
+
+        for error in results:
+            # PEP257 message contains the short error as first line from
+            # the long docstring explanation.
+            error_message = error.explanation.splitlines()[0]
+            if error_message in ignore_list:
+                continue
+            self.message(error.line, error_message, icon='error')
 
     def check_text(self):
         """Call each line_method for each line in text."""
@@ -740,7 +785,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self.check_ascii(line_no, line)
 
     def check_pdb(self, line_no, line):
-        """Check the length of the line."""
+        """Check for pdb breakpoints."""
+        # Set trace call is split so that this file will pass the linter.
         pdb_call = 'pdb.' + 'set_trace'
         if pdb_call in line:
             self.message(
@@ -1145,6 +1191,9 @@ def get_option_parser():
         "-f", "--format", dest="do_format", action="store_true",
         help="Reformat the doctest.")
     parser.add_option(
+        "-a", "--align-closing", dest="hang_closing", action="store_false",
+        help="Align the closing bracket with the matching opening.")
+    parser.add_option(
         "-i", "--interactive", dest="is_interactive", action="store_true",
         help="Approve each change.")
     parser.add_option(
@@ -1153,9 +1202,10 @@ def get_option_parser():
     parser.set_defaults(
         verbose=True,
         do_format=False,
+        hang_closing=True,
         is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
-    )
+        )
     return parser
 
 

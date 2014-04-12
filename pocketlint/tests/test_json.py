@@ -82,10 +82,11 @@ class TestJSON(CheckerTestCase):
 
         checker.check()
 
-        self.assertEqual(
-            [(0, 'No JSON object could be decoded')],
-            self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
+        self.assertIn(
+            self.reporter.messages[0],
+            [(0, 'No JSON object could be decoded'),
+             (3, 'Expecting value: line 3 column 1 (char 2)')])
 
     def test_compile_error_with_line(self):
         """The line number raised by JSON module is used."""
