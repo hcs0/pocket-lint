@@ -5,12 +5,12 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-)
+    )
 
 from pocketlint.formatcheck import (
     AnyTextChecker,
     get_option_parser,
-)
+    )
 from pocketlint.tests import Bunch, CheckerTestCase
 
 
@@ -71,7 +71,8 @@ class TestAnyTextMixin:
             regex_line=[
                 ('.*marker.*', 'Explanation.'),
                 ('.*sign.*', 'Message.'),
-                ])
+                ],
+            )
 
         self.create_and_check(
             'bogus',

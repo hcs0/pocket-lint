@@ -265,8 +265,8 @@ class PocketLintOptions(object):
     """Default options used by pocketlint"""
 
     def __init__(self, command_options=None):
-        self.max_line_length = 0
-
+        self._max_line_length = 0
+        self.regex_line = []
         self.jslint = {
             'enabled': True,
             }
@@ -289,6 +289,15 @@ class PocketLintOptions(object):
 
         if command_options:
             self._updateFromCommandLineOptions(command_options)
+
+    @property
+    def max_line_length(self):
+        return self._max_line_length
+
+    @max_line_length.setter
+    def max_line_length(self, value):
+        self._max_line_length = value
+        self.pep8['max_line_length'] = value - 1
 
     def _updateFromCommandLineOptions(self, options):
         """
@@ -734,7 +743,11 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         pep8_report = PEP8Report(options, self.message)
         try:
             pep8_checker = pep8.Checker(
-                self.file_path, options=options, report=pep8_report)
+                filename=self.file_path,
+                lines=self.text.splitlines(True),
+                options=options,
+                report=pep8_report,
+                )
             pep8_checker.check_all()
         except TokenError as er:
             message, location = er.args
