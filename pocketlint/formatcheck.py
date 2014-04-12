@@ -258,11 +258,11 @@ class PocketLintOptions(object):
     """Default options used by pocketlint"""
 
     def __init__(self, command_options=None):
-        self.max_line_length = 0
+        self._max_line_length = 0
         self.regex_line = []
         self.jslint = {
             'enabled': True,
-            }
+        }
 
         self.closure_linter = {
             # Disabled by default, since jslint is the default linter.
@@ -270,15 +270,24 @@ class PocketLintOptions(object):
             # List of Google Closure Errors to ignore.
             # Ex 110 is line to long which is already provided by pocket-lint.
             'ignore': [110],
-            }
+        }
 
         # See pep8.StyleGuide for available options.
         self.pep8 = {
             'max_line_length': pep8.MAX_LINE_LENGTH,
-            }
+        }
 
         if command_options:
             self._updateFromCommandLineOptions(command_options)
+
+    @property
+    def max_line_length(self):
+        return self._max_line_length
+
+    @max_line_length.setter
+    def max_line_length(self, value):
+        self._max_line_length = value
+        self.pep8['max_line_length'] = value - 1
 
     def _updateFromCommandLineOptions(self, options):
         """
@@ -352,7 +361,7 @@ class UniversalChecker(BaseChecker):
             text=text,
             reporter=reporter,
             options=options,
-            )
+        )
         self.language = language
         self.file_lines_view = None
 
@@ -441,7 +450,7 @@ class AnyTextMixin:
                     line_no,
                     'Line contains flagged text. %s' % (message),
                     icon='info',
-                    )
+                )
 
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
@@ -529,7 +538,8 @@ class FastParser(object):
                 err = expat.error(
                     "undefined entity %s: line %d, column %d" %
                     (text, self.parser.ErrorLineNumber,
-                    self.parser.ErrorColumnNumber))
+                        self.parser.ErrorColumnNumber),
+                )
                 err.code = 11  # XML_ERROR_UNDEFINED_ENTITY
                 err.lineno = self.parser.ErrorLineNumber
                 err.offset = self.parser.ErrorColumnNumber
@@ -695,7 +705,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 self.file_path,
                 "exec",
                 _ast.PyCF_ONLY_AST,
-                )
+            )
         except (SyntaxError, IndentationError) as exc:
             line_no = exc.lineno or 0
             line = exc.text or ''
@@ -716,7 +726,11 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         pep8_report = PEP8Report(options, self.message)
         try:
             pep8_checker = pep8.Checker(
-                self.file_path, options=options, report=pep8_report)
+                filename=self.file_path,
+                lines=self.text.splitlines(True),
+                options=options,
+                report=pep8_report,
+            )
             pep8_checker.check_all()
         except TokenError as er:
             message, location = er.args

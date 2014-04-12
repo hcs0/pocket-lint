@@ -9,9 +9,9 @@ from __future__ import (
 
 from pocketlint.formatcheck import (
     AnyTextChecker,
-    get_option_parser,
+    PocketLintOptions
 )
-from pocketlint.tests import Bunch, CheckerTestCase
+from pocketlint.tests import CheckerTestCase
 
 
 class TestAnyTextMixin:
@@ -65,23 +65,23 @@ class TestAnyTextMixin:
         A list of regex and corresponding error messages can be passed to
         check each line.
         """
-        options = Bunch(
-            max_line_length=80,
-            regex_line=[
-                ('.*marker.*', 'Explanation.'),
-                ('.*sign.*', 'Message.'),
-                ])
+        options = PocketLintOptions()
+        options.regex_line = [
+            ('.*marker.*', 'Explanation.'),
+            ('.*sign.*', 'Message.'),
+        ]
 
         self.create_and_check(
             'bogus',
             'with marker here\n other sign here', options)
 
-        self.assertEqual([
-            (1, 'Line contains flagged text. Explanation.'),
-            (2, 'Line contains flagged text. Message.'),
+        self.assertEqual(
+            [
+                (1, 'Line contains flagged text. Explanation.'),
+                (2, 'Line contains flagged text. Message.'),
             ],
             self.reporter.messages,
-            )
+        )
 
 
 class TestText(CheckerTestCase, TestAnyTextMixin):
@@ -110,8 +110,8 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
 
     def test_long_length_options(self):
         long_line = '1234 56189' * 5
-        parser = get_option_parser()
-        (options, sources) = parser.parse_args(['-m', '49'])
+        options = PocketLintOptions()
+        options.max_line_length = 49
         self.create_and_check('bogus', long_line, options=options)
         self.assertEqual(
             [(1, 'Line exceeds 49 characters.')],

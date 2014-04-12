@@ -10,8 +10,7 @@ from __future__ import (
 from tempfile import NamedTemporaryFile
 
 from pocketlint.formatcheck import (
-    get_option_parser,
-    PythonChecker,
+    PocketLintOptions, PythonChecker,
 )
 from pocketlint.tests import CheckerTestCase
 from pocketlint.tests.test_text import TestAnyTextMixin
@@ -157,7 +156,7 @@ class TestPyflakes(CheckerTestCase):
         source = (
             '# -*- coding: utf-8 -*-\n'
             'variable = u"r\xe9sum\xe9"'
-            )
+        )
         checker = PythonChecker('bogus', source, self.reporter)
         # This should set the correct encoding.
         checker.check_text()
@@ -169,33 +168,23 @@ class TestPyflakes(CheckerTestCase):
 class TestPEP8(CheckerTestCase):
     """Verify PEP8 integration."""
 
-    def setUp(self):
-        super(TestPEP8, self).setUp()
-        self.file = NamedTemporaryFile(prefix='pocketlint_')
-
-    def tearDown(self):
-        self.file.close()
-
     def test_code_without_issues(self):
-        self.write_to_file(self.file, good_python)
         checker = PythonChecker(
-            self.file.name, good_python, self.reporter)
+            'file/path', good_python, self.reporter)
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
     def test_bad_syntax(self):
-        self.write_to_file(self.file, bad_syntax2_python)
         checker = PythonChecker(
-            self.file.name, ugly_style_python, self.reporter)
+            'file/path', ugly_style_python, self.reporter)
         checker.check_pep8()
         self.assertEqual(
-            [(4, 'E901 TokenError: EOF in multi-line statement')],
+            [(4, 'E222 multiple spaces after operator')],
             self.reporter.messages)
 
     def test_code_with_IndentationError(self):
-        self.write_to_file(self.file, bad_indentation_python)
         checker = PythonChecker(
-            self.file.name, bad_indentation_python, self.reporter)
+            'file/path', bad_indentation_python, self.reporter)
         checker.check_pep8()
         expected = [(
             4,
@@ -204,32 +193,28 @@ class TestPEP8(CheckerTestCase):
         self.assertEqual(expected, self.reporter.messages)
 
     def test_code_with_issues(self):
-        self.write_to_file(self.file, ugly_style_python)
         checker = PythonChecker(
-            self.file.name, ugly_style_python, self.reporter)
+            'file/path', ugly_style_python, self.reporter)
         checker.check_pep8()
         self.assertEqual(
             [(4, 'E222 multiple spaces after operator')],
             self.reporter.messages)
 
     def test_code_with_comments(self):
-        self.write_to_file(self.file, ugly_style_lines_python)
         checker = PythonChecker(
-            self.file.name, ugly_style_lines_python, self.reporter)
+            'file/path', ugly_style_lines_python, self.reporter)
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
     def test_long_length_good(self):
         long_line = '1234 56189' * 7 + '12345678' + '\n'
-        self.write_to_file(self.file, long_line)
-        checker = PythonChecker(self.file.name, long_line, self.reporter)
+        checker = PythonChecker('file/path', long_line, self.reporter)
         checker.check_pep8()
         self.assertEqual([], self.reporter.messages)
 
     def test_long_length_bad(self):
         long_line = '1234 56189' * 8 + '\n'
-        self.write_to_file(self.file, long_line)
-        checker = PythonChecker(self.file.name, long_line, self.reporter)
+        checker = PythonChecker('file/path', long_line, self.reporter)
         checker.check_pep8()
         self.assertEqual(
             [(1, 'E501 line too long (80 > 79 characters)')],
@@ -237,11 +222,10 @@ class TestPEP8(CheckerTestCase):
 
     def test_long_length_options(self):
         long_line = '1234 56189' * 7 + '\n'
-        parser = get_option_parser()
-        (options, sources) = parser.parse_args(['-m', '60'])
-        self.write_to_file(self.file, long_line)
+        options = PocketLintOptions()
+        options.max_line_length = 60
         checker = PythonChecker(
-            self.file.name, long_line, self.reporter, options)
+            'file/path', long_line, self.reporter, options)
         checker.check_pep8()
         self.assertEqual(
             [(1, 'E501 line too long (70 > 59 characters)')],
@@ -250,8 +234,7 @@ class TestPEP8(CheckerTestCase):
     def test_pep8_options(self):
         """It can set PEP8 options."""
         long_line = '1234 56189' * 7 + '\n'
-        self.write_to_file(self.file, long_line)
-        checker = PythonChecker(self.file.name, long_line, self.reporter)
+        checker = PythonChecker('file/path', long_line, self.reporter)
         checker.options.pep8['ignore'] = ['E501']
         checker.options.pep8['max_line_length'] = 60
 
