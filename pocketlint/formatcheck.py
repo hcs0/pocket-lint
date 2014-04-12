@@ -83,14 +83,6 @@ try:
 except ImportError:
     closure_linter = None
 
-try:
-    import pep257
-    # Shut up the linter.
-    pep257
-except ImportError:
-    pep257 = None
-
-
 IS_PY3 = True if sys.version_info >= (3,) else False
 
 
@@ -262,10 +254,14 @@ class Language(object):
 
 
 class PocketLintOptions(object):
-    """Default options used by pocketlint"""
+    """Default options used by pocketlint."""
 
-    def __init__(self, command_options=None):
+    def __init__(self):
         self._max_line_length = 0
+        self.verbose = False
+        # Docstring options.
+        self.do_format = False
+        self.is_interactive = False
         self.regex_line = []
         self.jslint = {
             'enabled': True,
@@ -285,10 +281,7 @@ class PocketLintOptions(object):
             'hang_closing': False,
             }
 
-        self.regex_line = []
-
-        if command_options:
-            self._updateFromCommandLineOptions(command_options)
+        self._plugins = set()
 
     @property
     def max_line_length(self):
@@ -299,16 +292,14 @@ class PocketLintOptions(object):
         self._max_line_length = value
         self.pep8['max_line_length'] = value - 1
 
-    def _updateFromCommandLineOptions(self, options):
-        """
-        Update with options received from command line.
-        """
-        # Update maximum line length.
-        self.max_line_length = options.max_line_length
-        self.pep8['max_line_length'] = options.max_line_length - 1
-        self.pep8['hang_closing'] = options.hang_closing
-        if hasattr(options, 'regex_line'):
-            self.regex_line = options.regex_line
+    @property
+    def plugins(self):
+        """Return a copy of current plugins."""
+        return self._plugins.copy()
+
+    def addPlugin(self, plugin):
+        """Add `plugin`."""
+        self._plugins.add(plugin)
 
 
 class BaseChecker(object):
@@ -327,12 +318,9 @@ class BaseChecker(object):
             self.text = u(text)
         self.set_reporter(reporter=reporter)
 
-        if options is None:
-            self.options = PocketLintOptions()
-        elif not isinstance(options, PocketLintOptions):
-            self.options = PocketLintOptions(command_options=options)
-        else:
-            self.options = options
+        if not options:
+            options = PocketLintOptions()
+        self.options = options
 
     def set_reporter(self, reporter=None):
         """Set the reporter for messages."""
@@ -405,6 +393,19 @@ class UniversalChecker(BaseChecker):
         checker = checker_class(
             self.file_path, self.text, self._reporter, self.options)
         checker.check()
+
+        self.check_plugins()
+
+    def check_plugins(self):
+        """Checked code with registered plugins."""
+        for plugin in self.options.plugins:
+            plugin.check(
+                self.language,
+                self.file_path,
+                self.text,
+                self._reporter,
+                self.options,
+                )
 
 
 class AnyTextMixin:
@@ -517,9 +518,9 @@ class FastTreeBuilder(ElementTree.TreeBuilder):
 class FastParser(object):
     """A simple and pure-python parser that checks well-formedness.
 
-     This parser works in py 2 and 3. It handles entities and ignores
-     namespaces. This parser works with python ElementTree.
-     """
+    This parser works in py 2 and 3. It handles entities and ignores
+    namespaces. This parser works with python ElementTree.
+    """
 
     def __init__(self, html=0, target=None, encoding=None):
         parser = expat.ParserCreate(encoding, None)
@@ -707,7 +708,6 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         self.check_text()
         self.check_flakes()
         self.check_pep8()
-        self.check_pep257()
         self.check_windows_endlines()
 
     def check_flakes(self):
@@ -752,24 +752,6 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             message, location = er.args
             message = "%s: %s" % (message, location[3].strip())
             self.message(location[1], message, icon='error')
-
-    def check_pep257(self):
-        """PEP 257 docstring style checker."""
-        if not pep257:
-            # PEP257 is not available.
-            return
-
-        ignore_list = getattr(self.options, 'pep257_ignore', [])
-
-        results = pep257.check_source(self.text, self.file_path)
-
-        for error in results:
-            # PEP257 message contains the short error as first line from
-            # the long docstring explanation.
-            error_message = error.explanation.splitlines()[0]
-            if error_message in ignore_list:
-                continue
-            self.message(error.line, error_message, icon='error')
 
     def check_text(self):
         """Call each line_method for each line in text."""
@@ -1169,6 +1151,7 @@ class GOChecker(BaseChecker, AnyTextMixin):
 
     def check_text(self):
         """Call each line_method for each line in text."""
+
         for line_no, line in enumerate(self.text.splitlines()):
             line_no += 1
             self.check_length(line_no, line)
@@ -1177,8 +1160,8 @@ class GOChecker(BaseChecker, AnyTextMixin):
             self.check_regex_line(line_no, line)
 
 
-def get_option_parser():
-    """Return the option parser for this program."""
+def parse_command_line(args):
+    """Return a tuple with (options, source) for the command line request."""
     usage = "usage: %prog [options] file1 file2"
     parser = OptionParser(usage=usage)
     parser.add_option(
@@ -1206,7 +1189,18 @@ def get_option_parser():
         is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
         )
-    return parser
+
+    (command_options, sources) = parser.parse_args(args=args)
+
+    # Create options based on parsed command line.
+    options = PocketLintOptions()
+    options.verbose = command_options.verbose
+    options.do_format = command_options.do_format
+    options.is_interactive = command_options.is_interactive
+    options.max_line_length = command_options.max_line_length
+    options.pep8['hang_closing'] = command_options.hang_closing
+
+    return (options, sources)
 
 
 def check_sources(sources, options, reporter=None):
@@ -1233,11 +1227,15 @@ def main(argv=None):
     """Run the command line operations."""
     if argv is None:
         argv = sys.argv
-    parser = get_option_parser()
-    (options, sources) = parser.parse_args(args=argv[1:])
-    # Handle standard args.
+    (options, sources) = parse_command_line(args=argv[1:])
+
     if len(sources) == 0:
-        parser.error("Expected file paths.")
+        sys.stderr.write("Expected file paths.\n")
+        return 1
+
+    from pocketlint.contrib.pep257_plugin import PEP257Plugin
+
+    options.addPlugin(PEP257Plugin())
     reporter = Reporter(Reporter.CONSOLE)
     reporter.error_only = not options.verbose
     return check_sources(sources, options, reporter)
