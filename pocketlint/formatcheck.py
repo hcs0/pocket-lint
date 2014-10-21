@@ -420,6 +420,9 @@ class AnyTextMixin:
         """Check the length of the line."""
         max_length = self.check_length_filter
         if len(line) > max_length:
+            # Ignore if line is long due to an URL.
+            if 'http://' in line or 'https://' in line:
+                return
             self.message(
                 line_no, 'Line exceeds %s characters.' % max_length,
                 icon='info')

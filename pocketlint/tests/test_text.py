@@ -40,6 +40,18 @@ class TestAnyTextMixin:
             [(1, 'Line exceeds 80 characters.')],
             self.reporter.messages)
 
+    def test_long_length_http_exception(self):
+        """
+        Long line with http or https links are ignored.
+        """
+        long_line = '1234 http://some.url 56189' * 9
+        self.create_and_check('bogus', long_line)
+        self.assertEqual([], self.reporter.messages)
+
+        long_line = '1234 https://some.url 56189' * 9
+        self.create_and_check('bogus', long_line)
+        self.assertEqual([], self.reporter.messages)
+
     def test_no_trailing_whitespace(self):
         self.create_and_check('bogus', 'no trailing white-space')
         self.assertEqual([], self.reporter.messages)
