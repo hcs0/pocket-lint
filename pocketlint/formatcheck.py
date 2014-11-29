@@ -1236,9 +1236,7 @@ def main(argv=None):
         sys.stderr.write("Expected file paths.\n")
         return 1
 
-    from pocketlint.contrib.pep257_plugin import PEP257Plugin
-
-    options.addPlugin(PEP257Plugin())
+    options.addPlugin()
     reporter = Reporter(Reporter.CONSOLE)
     reporter.error_only = not options.verbose
     return check_sources(sources, options, reporter)
