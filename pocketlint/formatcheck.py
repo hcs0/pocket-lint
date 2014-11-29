@@ -1236,7 +1236,6 @@ def main(argv=None):
         sys.stderr.write("Expected file paths.\n")
         return 1
 
-    options.addPlugin()
     reporter = Reporter(Reporter.CONSOLE)
     reporter.error_only = not options.verbose
     return check_sources(sources, options, reporter)
