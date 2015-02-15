@@ -29,6 +29,9 @@ class ConsoleHandler(logging.StreamHandler):
         logging.StreamHandler.emit(self, record)
 
     def flush(self):
+        if not logging:
+            # We are in at_exit part so nothing to do.
+            return
         is_flushable = self.stream and hasattr(self.stream, 'flush')
         if is_flushable and not self.stream.closed:
             logging.StreamHandler.flush(self)
