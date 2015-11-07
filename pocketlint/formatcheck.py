@@ -17,6 +17,7 @@ __all__ = [
 
 
 import _ast
+import ast
 try:
     from io import StringIO
 except ImportError:
@@ -69,6 +70,7 @@ from pocketlint.reporter import (
     Reporter,
     )
 import pep8
+from mccabe import McCabeChecker
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
     from pyflakes.checker import Checker as PyFlakesChecker
@@ -259,6 +261,7 @@ class PocketLintOptions(object):
     def __init__(self):
         self._max_line_length = 0
         self.verbose = False
+        self.max_complexity = 10
         # Docstring options.
         self.do_format = False
         self.is_interactive = False
@@ -703,37 +706,51 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         super(PythonChecker, self).__init__(
             file_path, text, reporter, options)
         self.encoding = 'ascii'
+        # Last compiled tree.
+        self._compiled_tree = None
 
     def check(self):
         """Check the syntax of the python code."""
         if self.text == '':
             return
         self.check_text()
-        self.check_flakes()
-        self.check_pep8()
         self.check_windows_endlines()
 
-    def check_flakes(self):
-        """Check compilation and syntax."""
         try:
-            tree = compile(
+            # Compile the source code only once.
+            self._compiled_tree = compile(
                 self.text.encode(self.encoding),
                 self.file_path,
                 "exec",
                 _ast.PyCF_ONLY_AST,
                 )
         except (SyntaxError, IndentationError) as exc:
+            # Failed to compile the source code.
             line_no = exc.lineno or 0
             line = exc.text or ''
             explanation = 'Could not compile; %s' % exc.msg
             message = '%s: %s' % (explanation, line.strip())
             self.message(line_no, message, icon='error')
-        else:
-            warnings = PocketLintPyFlakesChecker(
-                tree, file_path=self.file_path, text=self.text)
-            for warning in warnings.messages:
-                dummy, line_no, message = str(warning).split(':')
-                self.message(int(line_no), message.strip(), icon='error')
+            self._compiled_tree = None
+
+        # pyflakes should be first as it will try to compile
+        self.check_flakes()
+        self.check_pep8()
+        self.check_complexity()
+
+        # Reset the tree.
+        self._compiled_tree = None
+
+    def check_flakes(self):
+        """Check compilation and syntax."""
+        if not self._compiled_tree:
+            return
+
+        warnings = PocketLintPyFlakesChecker(
+            self._compiled_tree, file_path=self.file_path, text=self.text)
+        for warning in warnings.messages:
+            dummy, line_no, message = str(warning).split(':')
+            self.message(int(line_no), message.strip(), icon='error')
 
     def check_pep8(self):
         """Check style."""
@@ -755,6 +772,17 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             message, location = er.args
             message = "%s: %s" % (message, location[3].strip())
             self.message(location[1], message, icon='error')
+
+    def check_complexity(self):
+        if not self._compiled_tree:
+            # We failed to compile the tree.
+            return
+
+        McCabeChecker.max_complexity = self.options.max_complexity
+
+        for lineno, offset, text, check in McCabeChecker(
+            self._compiled_tree, '-').run():
+                self.message(lineno, text, icon='error')
 
     def check_text(self):
         """Call each line_method for each line in text."""
@@ -1185,12 +1213,17 @@ def parse_command_line(args):
     parser.add_option(
         "-m", "--max-length", dest="max_line_length", type="int",
         help="Set the max line length (default %s)" % DEFAULT_MAX_LENGTH)
+    parser.add_option(
+        "--max-complexity", dest="max_complexity", type="int",
+        help="Set the max complexity (default 10)"
+        )
     parser.set_defaults(
         verbose=True,
         do_format=False,
         hang_closing=True,
         is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
+        max_complexity=10,
         )
 
     (command_options, sources) = parser.parse_args(args=args)
@@ -1201,6 +1234,7 @@ def parse_command_line(args):
     options.do_format = command_options.do_format
     options.is_interactive = command_options.is_interactive
     options.max_line_length = command_options.max_line_length
+    options.max_complexity = command_options.max_complexity
     options.pep8['hang_closing'] = command_options.hang_closing
 
     return (options, sources)
