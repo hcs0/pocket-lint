@@ -22,20 +22,20 @@ try:
     from io import StringIO
 except ImportError:
     # Pything 2.7 and below
-    from StringIO import StringIO  # pyflakes:ignore
+    from StringIO import StringIO  # pyflakes:noqa
     IS_PY = False
 
 try:
     from html.entities import entitydefs
 except:
-    from htmlentitydefs import entitydefs  # pyflakes:ignore
+    from htmlentitydefs import entitydefs  # pyflakes:noqa
 
 try:
     import json
     HAS_JSON = True
 except ImportError:
     try:
-        from simplejson import json  # pyflakes:ignore
+        from simplejson import json  # pyflakes:noqa
         HAS_JSON = True
     except ImportError:
         HAS_JSON = False
@@ -54,7 +54,7 @@ try:
     from xml.etree.ElementTree import ParseError
 except ImportError:
     # Python 2.6 and below.
-    ParseError = object()  # pyflakes:ignore
+    ParseError = object()  # pyflakes:noqa
 
 from xml.parsers import expat
 
@@ -70,7 +70,11 @@ from pocketlint.reporter import (
     Reporter,
     )
 import pep8
-from mccabe import McCabeChecker
+try:
+    from mccabe import McCabeChecker
+except ImportError:
+    McCabeChecker = None
+
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
     from pyflakes.checker import Checker as PyFlakesChecker
@@ -116,7 +120,7 @@ if IS_PY3:
 
     unicode = object()
 else:
-    def u(string):  # pyflakes:ignore
+    def u(string):  # pyflakes:noqa
         if isinstance(string, unicode):
             return string
         try:
@@ -148,11 +152,6 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
     def report(self, messageClass, *args, **kwargs):
         '''Filter some errors not used in our project.'''
         line_no = args[0].lineno - 1
-
-        # Ignore explicit pyflakes:ignore requests.
-        if self.text and self.text[line_no].find('pyflakes:ignore') >= 0:
-            return
-
         self.messages.append(messageClass(self.file_path, *args, **kwargs))
 
     def NAME(self, node):
@@ -261,7 +260,7 @@ class PocketLintOptions(object):
     def __init__(self):
         self._max_line_length = 0
         self.verbose = False
-        self.max_complexity = 10
+        self.max_complexity = -1
         # Docstring options.
         self.do_format = False
         self.is_interactive = False
@@ -310,6 +309,8 @@ class BaseChecker(object):
 
     The Decedent must provide self.file_name and self.base_dir
     """
+    # Marker use to signal that errors should be ignored.
+    _IGNORE_MARKER = 'noqa'
     REENCODE = True
 
     def __init__(self, file_path, text, reporter=None, options=None):
@@ -319,6 +320,7 @@ class BaseChecker(object):
         self.text = text
         if self.REENCODE:
             self.text = u(text)
+        self._lines = self.text.split('\n')
         self.set_reporter(reporter=reporter)
 
         if not options:
@@ -332,15 +334,43 @@ class BaseChecker(object):
         self._reporter = reporter
 
     def message(self, line_no, message, icon=None,
-                base_dir=None, file_name=None):
+                base_dir=None, file_name=None, category=None):
         """Report the message."""
         if base_dir is None:
             base_dir = self.base_dir
         if file_name is None:
             file_name = self.file_name
+
+        if self._isExceptedLine(self._lines[line_no - 1], category):
+            return
+
         self._reporter(
-            line_no, message, icon=icon,
-            base_dir=base_dir, file_name=file_name)
+            line_no, message,
+            icon=icon,
+            base_dir=base_dir,
+            file_name=file_name,
+            category=category,
+            )
+
+    def _isExceptedLine(self, line, category):
+        """Return `True` if line should be excepted."""
+        if not line.endswith(self._IGNORE_MARKER):
+            return False
+
+        if line.find(':' + self._IGNORE_MARKER) == -1:
+            # We have a generic exception
+            return True
+
+        if not category:
+            # This is a tagged exception but the checker has not advertised
+            # a category.
+            return False
+
+        if line.find('%s:%s' % (category, self._IGNORE_MARKER)) == -1:
+            return False
+        else:
+            # We have a tagged exception
+            return True
 
     def check(self):
         """Check the content."""
@@ -750,7 +780,12 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self._compiled_tree, file_path=self.file_path, text=self.text)
         for warning in warnings.messages:
             dummy, line_no, message = str(warning).split(':')
-            self.message(int(line_no), message.strip(), icon='error')
+            self.message(
+                int(line_no),
+                message.strip(),
+                icon='error',
+                category='pyflakes',
+                )
 
     def check_pep8(self):
         """Check style."""
@@ -767,22 +802,28 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             pep8_checker.check_all()
         except TokenError as er:
             message, location = er.args
-            self.message(location[0], message, icon='error')
+            self.message(location[0], message, icon='error', category='pep8')
         except IndentationError as er:
             message, location = er.args
             message = "%s: %s" % (message, location[3].strip())
-            self.message(location[1], message, icon='error')
+            self.message(location[1], message, icon='error', category='pep8')
 
     def check_complexity(self):
         if not self._compiled_tree:
             # We failed to compile the tree.
             return
 
+        if self.options.max_complexity < 0:
+            return
+
+        if not McCabeChecker:
+            return
+
         McCabeChecker.max_complexity = self.options.max_complexity
 
         for lineno, offset, text, check in McCabeChecker(
             self._compiled_tree, '-').run():
-                self.message(lineno, text, icon='error')
+                self.message(lineno, text, icon='error', category='mccabe')
 
     def check_text(self):
         """Call each line_method for each line in text."""
@@ -1215,7 +1256,7 @@ def parse_command_line(args):
         help="Set the max line length (default %s)" % DEFAULT_MAX_LENGTH)
     parser.add_option(
         "--max-complexity", dest="max_complexity", type="int",
-        help="Set the max complexity (default 10)"
+        help="Set the max complexity (default -1 - disabled)"
         )
     parser.set_defaults(
         verbose=True,
@@ -1223,7 +1264,7 @@ def parse_command_line(args):
         hang_closing=True,
         is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
-        max_complexity=10,
+        max_complexity=-1,
         )
 
     (command_options, sources) = parser.parse_args(args=args)
