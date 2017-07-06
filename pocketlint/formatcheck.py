@@ -460,8 +460,10 @@ class AnyTextMixin:
                     icon='info',
                     )
 
-def check_semantic_newline(self):
-        """Check for a sentence with no new line."""
+    def check_semantic_newline(self):
+        """Check for a sentence with a ., ?, or ! with a space.
+
+        Exclude ones with with no new line and two full-stops."""
         if self.line.find(['. ', '? ', '! ']) != (['\n', '..']):
             self.message(
                 0, 'Line contains a sentence without a new line.', icon='info')
