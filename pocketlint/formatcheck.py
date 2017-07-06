@@ -462,7 +462,7 @@ class AnyTextMixin:
 
 def check_semantic_newline(self):
         """Check for a sentence with no new line."""
-        if self.text.find('. ') and self.text[-1] != '\n':
+        if self.line.find(['. ', '? ', '! ']) != (['\n', '..']):
             self.message(
                 0, 'Line contains a sentence without a new line.', icon='info')
 
@@ -805,7 +805,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             line.encode('ascii')
         except UnicodeEncodeError as error:
             self.message(
-                line_no, 'Non-ascii characer at position %s.' % error.end,
+                line_no, 'Non-ascii character at position %s.' % error.end,
                 icon='error')
 
 
@@ -945,7 +945,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
         for line_no, line in enumerate(self.lines):
             line_no += 1
             self.check_length(line_no, line)
-            self.check_semantic_newline()
+            self.check_semantic_newline(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
