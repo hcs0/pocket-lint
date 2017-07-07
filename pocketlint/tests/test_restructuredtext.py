@@ -44,6 +44,10 @@ third section `with link<http://my.home>`_.
 | verse, and adornment-free lists.
 
 
+Newline test! No newline.
+Newline test? No newline.
+Newline test. No newline.
+
 .. _section-permalink:
 
 Another Section with predefined link
@@ -141,7 +145,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.reporter.call_count = 0
         content = (
             'Some first line\n'
-            'the second and last line witout newline')
+            'the second and last line without newline')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(2)
         expected = [(
@@ -343,37 +347,38 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
-    
     def test_semantic_newline_fullstop(self):
+        """Check for a sentence with a . and no new line."""
         content = (
-            'Sentence. New sentence'
+            'Sentence. New sentence\n'
             )
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_semantic_newline()
         expect = [('Newline not created after a sentence.')]
         self.assertEqual(expect, self.reporter.messages)
-        self.assertEqual(0, self.reporter.call_count)
+        self.assertEqual(1, self.reporter.call_count)
 
     def test_semantic_newline_questionmark(self):
+        """Check for a sentence with a ? and no new line."""
         content = (
-            'Sentence? New sentence'
+            'Sentence? New sentence\n'
             )
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_semantic_newline()
-        expect = [('Newline not created after a sentence.')]
+        expect = [('Newline not created after a ? sentence.')]
         self.assertEqual(expect, self.reporter.messages)
-        self.assertEqual(0, self.reporter.call_count)
-
+        self.assertEqual(1, self.reporter.call_count)
 
     def test_semantic_newline_exclamationmark(self):
+        """Check for a sentence with a ! and no new line."""
         content = (
-            'Sentence! New sentence'
+            'Sentence! New sentence\n'
             )
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_semantic_newline()
-        expect = [('Newline not created after a sentence.')]
+        expect = [('Newline not created after a ! sentence.')]
         self.assertEqual(expect, self.reporter.messages)
-        self.assertEqual(0, self.reporter.call_count)
+        self.assertEqual(1, self.reporter.call_count)
 
     def test_check_section_delimiter_bad_length_both_markers(self):
         content = (
